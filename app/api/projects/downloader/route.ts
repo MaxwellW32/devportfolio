@@ -13,7 +13,7 @@ export async function GET(request: Request, response: Response) {
     }
 
     const info = await ytdl.getInfo(url)
-    const videoFormats = ytdl.filterFormats(info.formats, "videoandaudio")
+    const videoFormats = ytdl.filterFormats(info.formats, "audioandvideo")
     const format = ytdl.chooseFormat(videoFormats, { quality: "highestvideo" })
 
     const fileName = `${info.videoDetails.title}.${format.container}`

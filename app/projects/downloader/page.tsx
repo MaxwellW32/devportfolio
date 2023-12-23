@@ -52,7 +52,7 @@ export default function Page() {
                         allowFullScreen
                     ></iframe>
                 ) : (
-                    <video style={{ width: "100%", aspectRatio: "16/9", maxWidth: "80vw" }} src={downloadLink} controls></video>
+                    <video style={{ width: "100%", aspectRatio: "16/9", maxWidth: "80vw", maxHeight: "100%" }} src={downloadLink} controls></video>
                 )}
             </div>
 
