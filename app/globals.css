@@ -23,15 +23,15 @@ html {
 *,
 *::before,
 *::after {
-  /* border: 1px solid red !important; */
+  border: 1px solid red !important;
 }
 
 html {
   min-height: 100%;
+  display: grid;
 }
 
 body {
-  height: 100%;
   display: grid;
   grid-template-rows: auto 1fr;
 }
@@ -143,4 +143,50 @@ h3 {
 
 .makeBold {
   font-weight: bold;
+}
+
+
+
+
+
+.clearNav {
+  animation: clearMoveUp 1s forwards;
+}
+
+.clearNav2 {
+  animation: clearMoveDown 1s forwards;
+}
+
+@keyframes clearMoveUp {
+  0% {
+    translate: 0 0;
+    opacity: 1;
+  }
+
+  99% {
+    translate: 0 -100%;
+    opacity: 0;
+  }
+
+  100% {
+    display: none;
+  }
+}
+
+
+@keyframes clearMoveDown {
+  0% {
+    translate: 0 0%;
+    opacity: 1;
+
+  }
+
+  99% {
+    translate: 0 100%;
+    opacity: 0;
+  }
+
+  100% {
+    display: none;
+  }
 }

@@ -1,17 +1,24 @@
-.urlCont{
-    display: grid;
-    grid-auto-flow: column;
-    max-width: 80%;
-    margin-inline: auto;
-}
-
-
-.urlCont > *{
-    margin: 0;
-}
-
-.urlInput{
-    border: 1px solid white;
+.animateIn::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
     height: 100%;
-    padding: 1rem;
+    background-color: #000;
+    animation: fadeIn 3s 400ms forwards;
+    z-index: 1000;
+    user-select: none;
+    pointer-events: none;
+}
+
+
+@keyframes fadeIn {
+    0% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+    }
 }
