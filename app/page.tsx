@@ -23,7 +23,7 @@ export default function page() {
     <main>
       <section>
         <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem", flexDirection: "row-reverse" }}>
-          <Image alt="profile" priority={true} width={400} height={400} src={require(`@/public/me.jpg`).default.src} style={{ flex: "1 1 400px", }} />
+          <Image alt="profile" priority={true} width={400} height={400} src={require(`@/public/cat1.png`).default.src} style={{ flex: "1 1 400px", }} />
 
           <article style={{ flex: "1 1 500px" }}>
             <h1>Hello I&apos;m</h1>

@@ -149,6 +149,43 @@ h3 {
 
 
 
+
+.blackFadeIn::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #000;
+  animation: blackFadeIn 3s both var(--animationPlaystate);
+  z-index: 1000;
+  user-select: none;
+  pointer-events: none;
+}
+
+@keyframes blackFadeIn {
+  0% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+
+.testHeight {
+  height: 5000vh;
+}
+
+
+
+
+.clear {
+  display: none !important;
+}
+
 .clearNav {
   animation: clearMoveUp 1s forwards;
 }
