@@ -1,229 +1,252 @@
 "use client"
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import styles from "./page.module.css"
-import axios from "axios";
+import { getSpecifcVideoInfo, getVideos } from "./getVideos";
+import ShowVideoRandPlayer from "./ShowVideoRandPlayer";
+import { toast } from "react-hot-toast";
+import ytdl from "ytdl-core";
 
 
-function MyYoutubeCont(props: { videoId: string; gridLetter: string }) {
+const myBackupVideoIds = ["ktBMxkLUIwY", "tcaw6lzYt1Q", "rULyu_wFWGU", "ZD6C498MB4U", "ytQ5CYE1VZw", "iI34LYmJ1Fs", "h3EJICKwITw", "3JBKp0YbSEc", "r_0JjYUe5jo", "oihY8GiXXgQ", "nceqQyqIa5o", "1RdrlReJmTY", "RRl_C73vFtQ",];
 
-    const { videoId, gridLetter } = props;
+async function getRandomWord() {
+    try {
+        const response = await fetch(`https://api.wordnik.com/v4/words.json/randomWords?hasDictionaryDef=true&minCorpusCount=0&minLength=5&maxLength=15&limit=1&api_key=a2a73e7b926c924fad7001ca3111acd55af2ffabf50eb4ae5`)
+        const data = await response.json()
 
-    return (
-        <iframe
-            id="mainVidIframe"
-            className={styles.mainVidIframe}
-            style={{
-                width: "100%",
-                aspectRatio: "16/9",
-                gridArea: gridLetter === "x" ? undefined : gridLetter,
-            }}
-            src={`https://www.youtube.com/embed/${videoId}`}
-            title="YouTube video player"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-        ></iframe>
-    );
+        return data[0].word
+
+    } catch (error) {
+        console.log(`$error`);
+        console.log(error);
+
+        return null
+    }
 }
 
+export default function VideoGenerator() {
+    const [searchString, searchStringSet] = useState("");
+    const [connectedToYoutube, connectedToYoutubeSet] = useState<"searching" | "true" | "false">("searching");
+    const [connectedToWordSearch, connectedToWordSearchSet] = useState(false);
+
+    const [watchNextVideoList, watchNextVideoListSet] = useState<string[]>([])
+    const [currentIndex, currentIndexSet] = useState(0)
 
 
-function VideoGenerator() {
+    const next = () => {
+        currentIndexSet(prev => {
+            let newIndex = prev + 1
 
-    const [videoIds, setVideoIds] = useState<string[]>([]);
-    const [searchString, setSearchString] = useState("cats");
-    const [maxSearchNumber, setMaxSearchNumber] = useState(1);
-    const [myLayout, setMyLayout] = useState(true);
+            const videoBufferLimit = 10
+            if (watchNextVideoList.length > videoBufferLimit && newIndex === watchNextVideoList.length - videoBufferLimit) {
+                infiniteScroll()
+            }
 
-    const [backupSearchString, setBackupSearchString] = useState("");
+            if (newIndex > watchNextVideoList.length - 1) {
+                newIndex = watchNextVideoList.length - 1
+            }
 
-    const [succGotFromYoutube, setSuccGotFromYoutube] = useState(true);
+            return newIndex
+        })
+    }
 
-    const gridLetters = ["a", "b", "c", "d", "e", "f", "g", "h", "i"];
+    const prev = () => {
+        currentIndexSet(prev => {
+            let newIndex = prev - 1
 
-    const myBackupVideos = [
-        "ktBMxkLUIwY",
-        "tcaw6lzYt1Q",
-        "rULyu_wFWGU",
-        "ZD6C498MB4U",
-        "ytQ5CYE1VZw",
-        "iI34LYmJ1Fs",
-        "h3EJICKwITw",
-        "3JBKp0YbSEc",
-        "r_0JjYUe5jo",
-        "oihY8GiXXgQ",
-        "nceqQyqIa5o",
-        "1RdrlReJmTY",
-        "RRl_C73vFtQ",
-    ];
+            if (newIndex < 0) {
+                newIndex = 0
+            }
+
+            return newIndex
+        })
+    }
+
+    //getRandom Word Start
     useEffect(() => {
-        //program start fetch
-        fetchData();
-    }, [maxSearchNumber]);
-
-    useEffect(() => {
-        //load backups on api fail
-        if (!succGotFromYoutube) {
-            setVideoIds((prevIds) => [...myBackupVideos, ...prevIds]);
+        const startOff = async () => {
+            // const randomWord = "cats"
+            const randomWord = await getRandomWord() ?? "cats"
+            searchStringSet(randomWord)
+            connectedToWordSearchSet(true);
         }
-    }, [succGotFromYoutube]);
 
-    async function fetchData() {
+        startOff()
+    }, []);
 
+    //program start fetch
+    useEffect(() => {
+        if (connectedToWordSearch) {
+            searchForVideos();
+        }
+    }, [connectedToWordSearch]);
+
+    //load backups videos
+    useEffect(() => {
+        if (connectedToYoutube === "false") {
+            watchNextVideoListSet(prevIds => [...myBackupVideoIds, ...prevIds]);
+        }
+    }, [connectedToYoutube]);
+
+    const videoSearchLoop = useRef<NodeJS.Timeout>()
+    function searchForVideos(passedSearchString?: string) {
+        if (videoSearchLoop.current) clearTimeout(videoSearchLoop.current)
+
+        videoSearchLoop.current = setTimeout(async () => {
+
+            toast.success("searching")
+            const localSearchString = passedSearchString ? passedSearchString : searchString
+
+            try {
+                const allVideosInfo = await getVideos(5, localSearchString)
+                // console.log(`$allVideosInfo`, allVideosInfo);
+
+                const allVidIds = allVideosInfo.map((eachObj: any) => eachObj.id.videoId);
+                // const allVidIds = myBackupVideoIds
+
+                connectedToYoutubeSet("true");
+                watchNextVideoListSet(prevList => [...prevList, ...allVidIds]);
+
+                const randomUrl = allVidIds[Math.floor(Math.random() * allVidIds.length)]
+                getRelated(randomUrl)
+                toast.success("got videos!")
+
+            } catch (error) {
+                console.log(`$error occurred`);
+                console.log(error);
+                connectedToYoutubeSet("false");
+            }
+        }, 1000);
+
+    }
+
+    async function getRelated(url: string) {
         try {
-            const response = await axios.get(`/api/ytVids?searchString=${searchString}&maxSearchNumber=${maxSearchNumber}`)
-            const allVidsInfo = response.data.allVidsInfo
+            const moreVideoInfo = await getSpecifcVideoInfo(url)
+            // console.log(`$moreVideoInfo`, moreVideoInfo);
 
-            const allVidIds = allVidsInfo.map((eachObj: any) => eachObj.id.videoId);
-
-            setSuccGotFromYoutube(true);
-            setVideoIds(allVidIds);
+            const moreVideosList = moreVideoInfo.related_videos.filter(eachVid => eachVid.id).map(eachVid => eachVid.id!)
+            watchNextVideoListSet(prev => [...prev, ...moreVideosList])
 
         } catch (error) {
-            console.log(`Hi max Error occurred: ${error}`);
-            setSuccGotFromYoutube(false);
-
+            console.log(`$moreVideoInfo error`);
+            console.log(error);
         }
     }
 
-    function getRandomWord() {
-        const url = `https://api.wordnik.com/v4/words.json/randomWords?hasDictionaryDef=true&minCorpusCount=0&minLength=5&maxLength=15&limit=1&api_key=a2a73e7b926c924fad7001ca3111acd55af2ffabf50eb4ae5`;
+    async function infiniteScroll() {
+        const word = await getRandomWord()
 
-        fetch(url)
-            .then((response) => response.json())
-            .then((data) => {
-                setSearchString(data[0].word);
+        if (!word) {
+            toast.error("couldn't get a random word")
+            return
+        }
+
+        searchStringSet(word)
+        searchForVideos(word)
+    }
+
+    const checkForCopies = (seenArr: any[]) => {
+        const duplicateElementsSeen: any[] = []
+
+        seenArr.forEach(eachItem => {
+            let seenCount = 0
+
+            seenArr.forEach(eachItemCheck => {
+                if (eachItem === eachItemCheck) {
+                    seenCount++
+                }
             })
-            .catch((error) => console.error(error));
 
-        fetchData();
-    }
-
-    function handleBackupSearch() {
-        let id = "";
-        if (backupSearchString.includes("youtube.com")) {
-            id = backupSearchString.split("v=")[1];
-            if (id.includes("&")) {
-                id = id.split("&")[0];
+            if (seenCount > 1) {
+                duplicateElementsSeen.push(eachItem)
             }
-        } else if (backupSearchString.includes("youtu.be")) {
-            id = backupSearchString.split("/")[3];
-        } else {
-            id = backupSearchString;
-        }
+        })
 
-        setVideoIds((prev) => [...prev, id]);
+        if (duplicateElementsSeen.length > 0) {
+            console.log(`duplicateElementsSeen`, duplicateElementsSeen);
+        } else {
+            console.log(`no duplicate elements`);
+        }
     }
 
     return (
-        <div id="mainVidPlayer" className={styles.mainVidPlayer}>
-            <main id="mainNavMainCont" className={styles.mainNavMainCont}>
-                <h1>Load random youtube videos</h1>
+        <main className={styles.mainVidPlayer}>
+            {connectedToYoutube === "searching" && (
+                <p>Loading up random videos</p>
+            )}
 
-                {!succGotFromYoutube && (
-                    <div id="errorVidDivCont" className={styles.errorVidDivCont}>
-                        <h2>Couldn&apos;t fetch Videos, using backup videos</h2>
-                        <input
-                            type="text"
-                            id="vidBackupSearch"
-                            value={backupSearchString}
-                            placeholder="enter any youtube url: "
-                            onChange={(e) => {
-                                setBackupSearchString(e.target.value);
-                            }}
-                            onKeyDown={(e) => {
-                                if (e.key === "Enter") {
-                                    handleBackupSearch();
-                                }
-                            }}
-                        />
-                        <button onClick={handleBackupSearch}>
-                            Search Video
-                        </button>
-                    </div>
-                )}
+            {/* heading */}
+            {connectedToYoutube === "false" && (
+                <div style={{ fontStyle: "italic" }}>
+                    <h2>Couldn&apos;t fetch Videos, using backup videos</h2>
 
-                {succGotFromYoutube && (
-                    <>
-                        <button
-                            onClick={() => {
-                                setMaxSearchNumber((prev) => prev + 10);
-                            }}
-                        >
-                            Load 10+ more
-                        </button>
+                    <button onClick={() => { searchForVideos() }}>
+                        Try search Again
+                    </button>
+                </div>
+            )}
 
-                        {maxSearchNumber > 5 && (
-                            <button
-                                onClick={() => {
-                                    setMaxSearchNumber(1);
-                                }}
-                            >
-                                Load only 1 video
-                            </button>
-                        )}
-                    </>
-                )}
-
-                <button
-                    onClick={() => {
-                        setMyLayout((prev) => !prev);
-                    }}
-                >
-                    {myLayout ? "Use Block Layout" : "Use Grid Layout"}
-                </button>
-
-                {succGotFromYoutube ? (
-                    <div id="vidSearchCont" className={styles.vidSearchCont}>
+            {/* main area */}
+            {connectedToYoutube === "true" && (
+                <>
+                    <div className={styles.vidSearchCont}>
                         <input
                             placeholder="search any topic: "
                             id="vidSearchInput"
                             className={styles.vidSearchInput}
                             type="text"
                             value={searchString}
-                            onChange={(e) => {
-                                setSearchString(e.target.value);
-                            }}
+                            onChange={(e) => { searchStringSet(e.target.value); }}
                             onKeyDown={(e) => {
                                 if (e.key === "Enter") {
-                                    fetchData();
+                                    searchForVideos();
                                 }
                             }}
                         />
 
-                        <button onClick={fetchData}>
+                        <button onClick={() => { searchForVideos() }}>
                             Search
                         </button>
+
+                        <button
+                            onClick={async () => {
+                                const word = await getRandomWord()
+
+                                if (!word) {
+                                    toast.error("couldn't get a random word")
+                                    return
+                                }
+
+                                searchStringSet(word)
+                                searchForVideos(word)
+                            }}>
+                            More Random Videos
+                        </button>
                     </div>
-                ) : (
-                    <button onClick={fetchData}>
-                        Try Random Search Again
-                    </button>
-                )}
 
-                <div
-                    style={{ display: myLayout ? "grid" : "block" }}
-                    id="allMyYoutubeVidCont"
-                    className={styles.allMyYoutubeVidCont}>
-                    {videoIds.map((each, index) => {
-                        return (
-                            <MyYoutubeCont
-                                key={index}
-                                gridLetter={gridLetters[index] ? gridLetters[index] : "x"}
-                                videoId={videoIds[index]}
-                            />
-                        );
-                    })}
-                </div>
+                    <div className={styles.vidCont}>
+                        <ShowVideoRandPlayer
+                            url={watchNextVideoList[currentIndex]}
+                        />
+                    </div>
 
-                <br />
-                {succGotFromYoutube && (
-                    <button onClick={getRandomWord}>
-                        Random Topic Video
-                    </button>
-                )}
-            </main>
-        </div>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: ".5rem", justifyContent: "center" }}
+                        onKeyDown={(e) => {
+                            if (e.key === "ArrowLeft") {
+                                prev();
+                            }
+
+                            if (e.key === "ArrowRight") {
+                                next();
+                            }
+                        }}>
+                        {currentIndex !== 0 && <button onClick={prev}>prev video</button>}
+                        {currentIndex !== watchNextVideoList.length - 1 && <button onClick={next}>next random video</button>}
+                    </div>
+
+                </>
+            )}
+        </main>
     );
 }
-
-export default VideoGenerator;
