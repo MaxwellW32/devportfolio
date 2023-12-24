@@ -42,8 +42,6 @@ export default function page() {
                 </button>
               </a>
 
-              <PlayMusic />
-
               <Socials />
             </div>
 

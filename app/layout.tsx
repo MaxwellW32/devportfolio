@@ -5,6 +5,7 @@ import Navbar from '@/components/navbar/Navbar'
 import AtomLoader from '@/utility/AtomLoader'
 import { Toaster } from 'react-hot-toast'
 import Footer from '@/components/footer/Footer'
+import PlayMusic from '@/components/playMusic/PlayMusic'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -22,6 +23,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <AtomLoader />
+        <PlayMusic />
         <Navbar />
         <Toaster
           position="top-center"

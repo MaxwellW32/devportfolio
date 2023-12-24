@@ -1,0 +1,74 @@
+.musicIcon {
+    animation: slideIn 2s both ease-in-out, scaleBounce 1s infinite alternate var(--audioNotPlayingPlayState), colorShift infinite 5s var(--audioPlayingPlayState), scaleBump infinite 700ms var(--audioPlayingPlayState);
+}
+
+.musicIcon:hover {
+    scale: 1;
+}
+
+
+@keyframes slideIn {
+    0% {
+        translate: -100vw 0;
+        opacity: 0;
+        rotate: -360deg;
+    }
+
+    75% {
+        translate: 2vw 0;
+    }
+
+    100% {
+        translate: 0 0;
+    }
+}
+
+
+@keyframes scaleBounce {
+    to {
+        transform: scale(1.2);
+    }
+}
+
+
+
+@keyframes colorShift {
+    0% {
+        fill: #fff;
+        scale: 1;
+    }
+
+    15% {
+        fill: #FF5F6D;
+    }
+
+    30% {
+        fill: #FFC371;
+    }
+
+    45% {
+        fill: #6B5B95;
+    }
+
+    60% {
+        fill: #B565A7;
+    }
+
+    75% {
+        fill: #88B04B;
+    }
+
+    100% {
+        fill: #fff
+    }
+}
+
+@keyframes scaleBump {
+    0% {
+        scale: 1.1;
+    }
+
+    100% {
+        scale: 1;
+    }
+}

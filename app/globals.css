@@ -145,7 +145,36 @@ h3 {
   font-weight: bold;
 }
 
+.toolTip {
+  position: relative;
+}
 
+.toolTip::before {
+  content: attr(data-toolTip);
+  background-color: #fff;
+  color: #000000;
+  padding: .5rem;
+  position: absolute;
+  top: -1rem;
+  left: 0;
+  translate: 0 -100%;
+  opacity: 0;
+  pointer-events: none;
+  user-select: none;
+  width: max-content;
+  transition: opacity 400ms;
+  font-size: .7rem;
+}
+
+.toolTip:hover:before {
+  animation: slowOpacity 1s 2s forwards;
+}
+
+@keyframes slowOpacity {
+  to {
+    opacity: 1;
+  }
+}
 
 
 
