@@ -22,7 +22,7 @@ export default function PlayMusic() {
             <>
                 {seenOnPhone ? (
                     <>
-                        <div className="toolTip" style={{ display: ableToPlayOnPhone ? "flex" : "none", justifyContent: "center", padding: "1rem", position: "absolute", zIndex: 1000, width: "100%" }} data-toolTip="Play Music">
+                        <div className="toolTip" style={{ display: ableToPlayOnPhone ? "flex" : "none", marginBlock: "1rem", position: "absolute", top: 0, left: "50%", translate: "-50% 0", zIndex: 1000, }} data-toolTip="Play Music">
                             <svg className={`${styles.musicIcon}`} onClick={() => {
                                 if (audioPlaying) {
                                     audioRef.current.pause()
@@ -37,6 +37,7 @@ export default function PlayMusic() {
                         </div>
 
                         <audio
+                            style={{ margin: "0 auto" }}
                             ref={audioRef}
                             controls={ableToPlayOnPhone ? false : true}
                             loop
@@ -49,7 +50,7 @@ export default function PlayMusic() {
                         </audio>
                     </>
                 ) : (
-                    <div className="toolTip" style={{ display: "flex", justifyContent: "center", padding: "1rem", position: "absolute", zIndex: 1000, width: "100%" }} data-toolTip="Play Music">
+                    <div className="toolTip" style={{ margin: "1rem", position: "absolute", top: 0, left: "50%", translate: "-50% 0", zIndex: 1000, }} data-toolTip="Play Music">
                         <svg className={`${styles.musicIcon}`} onClick={() => {
                             if (audioPlaying) {
                                 audioRef.current.pause()
