@@ -126,7 +126,7 @@ export default function VideoGenerator() {
     }
 
     return (
-        <main className={styles.mainVidPlayer} style={{ gridTemplateRows: connectedToYoutube === "true" ? "auto 1fr" : connectedToYoutube === "false" ? "auto auto 1fr" : "" }}>
+        <main className={styles.mainVidPlayer} style={{ gridTemplateRows: connectedToYoutube === "true" ? "auto 1fr" : "" }}>
             {connectedToYoutube === "searching" && (
                 <p>Loading up random videos</p>
             )}
@@ -134,12 +134,13 @@ export default function VideoGenerator() {
             {/* not connected */}
             {connectedToYoutube === "false" && (
                 <>
-                    <h2 style={{ fontStyle: "italic" }}>Couldn&apos;t fetch Videos, using related video generator</h2>
+                    <p style={{ fontStyle: "italic" }}>Couldn&apos;t fetch Videos, using related video generator</p>
 
                     <button style={{ justifySelf: "flex-start" }} onClick={() => { searchForVideos() }}>
                         Try search Again
                     </button>
 
+                    {watchNextVideoList.length === 0 && <p>Loading</p>}
                     {watchNextVideoList[currentIndex] !== undefined && (
                         <div className={styles.vidCont}>
                             <ShowVideoRandPlayer
