@@ -19,7 +19,7 @@ export default function PlayMusic() {
 
     return seenOnPhone === undefined ? null :
         (
-            <>
+            <div className="musicCont">
                 {seenOnPhone ? (
                     <>
                         <div className="toolTip musicDiv" style={{ display: ableToPlayOnPhone ? "flex" : "none", marginBlock: "1rem", position: "absolute", top: 0, left: "50%", translate: "-50% 0", zIndex: 1000, }} data-tooltip="Play Music">
@@ -70,7 +70,7 @@ export default function PlayMusic() {
                         </audio>
                     </div>
                 )}
-            </>
+            </div>
         )
 }
 

@@ -3,7 +3,7 @@
     padding-block: 2rem;
     display: grid;
     gap: 1rem;
-    grid-template-rows: auto 1fr auto;
+    align-content: flex-start;
 }
 
 .vidSearchCont {

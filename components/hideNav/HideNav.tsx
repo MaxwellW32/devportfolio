@@ -15,7 +15,7 @@ export default function HideNav({
     useEffect(() => {
         const nav = document.querySelector("nav")!
         const footer = document.querySelector("footer")!
-        let music = document.querySelector(".musicDiv")
+        let music = document.querySelector(".musicCont")
 
         nav.classList.add("clear")
         footer.classList.add("clear")
@@ -24,7 +24,7 @@ export default function HideNav({
             music.classList.add("clear")
         } else {
             setTimeout(() => {
-                music = document.querySelector(".musicDiv")
+                music = document.querySelector(".musicCont")
                 music?.classList.add("clear")
             }, 1000);
         }
@@ -48,7 +48,7 @@ export default function HideNav({
                     showingNavSet(prev => newShowingNav)
 
                     const nav = document.querySelector("nav")!
-                    const music = document.querySelector(".musicDiv")!
+                    const music = document.querySelector(".musicCont")!
 
 
                     if (!showingNav) {
