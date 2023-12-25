@@ -1,6 +1,4 @@
 export default function YoutubeUrlParse(searchString: string) {
-  if (!searchString) return
-
   let id = "";
   if (searchString.includes("youtube.com")) {
     id = searchString.split("v=")[1];

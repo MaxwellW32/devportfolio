@@ -87,20 +87,25 @@ const ToDoSingleView: React.FC<toDoSingleProps> = ({ eachToDoObj = initialToDoSt
 			let videoId = YoutubeUrlParse(ytUrlRef.current.value);
 			//append value
 
-			setSingleToDo(prevSingleToDoInfo => {
-				return {
-					...prevSingleToDoInfo,
-					toDoVideos: [
-						...prevSingleToDoInfo.toDoVideos,
-						{
-							uniqueId: generateRandomId(),
-							vidUrl: videoId,
-						},
-					],
-				};
-			});
+			if (videoId) {
 
-			ytUrlRef.current.value = ""
+
+				setSingleToDo(prevSingleToDoInfo => {
+					return {
+						...prevSingleToDoInfo,
+						toDoVideos: [
+							...prevSingleToDoInfo.toDoVideos,
+							{
+								uniqueId: generateRandomId(),
+								vidUrl: videoId,
+							},
+						],
+					};
+				});
+
+				ytUrlRef.current.value = ""
+			}
+
 		}
 	}
 
