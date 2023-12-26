@@ -1,11 +1,13 @@
 .persContainer {
     height: 100svh;
+    max-width: 100vw;
     overflow: hidden;
     padding: 3rem;
     transition: perspective 2s;
     display: grid;
     align-items: center;
     justify-items: center;
+    position: relative;
 }
 
 .persBox {
@@ -53,14 +55,14 @@
     width: var(--boxWidth);
     height: var(--boxWidth);
     transform: translate3d(0, 5%, 0) rotateX(-90deg);
-    animation: moveCool 500ms infinite linear alternate var(--canPlayBottomAnim);
+    animation: moveCool 2s infinite alternate var(--canPlayBottomAnim);
     opacity: 0.8;
     border: none;
 }
 
 @keyframes moveCool {
     to {
-        transform: translate3d(0, 50%, 0) rotateX(-90deg);
+        translate: 0 20%;
     }
 }
 
@@ -68,4 +70,13 @@
     object-fit: cover;
     object-position: center;
     transition: all 4s;
+}
+
+
+
+
+.settingsButton {
+    border-radius: 0;
+    padding: .5rem;
+    font-weight: bold;
 }

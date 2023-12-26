@@ -13,3 +13,11 @@ export default function YoutubeUrlParse(searchString: string) {
 
   return id;
 }
+
+
+export function YoutubePlaylistParse(url: string) {
+  const playlistIdMatch = url.match(/[?&]list=([^&]+)/);
+
+
+  return playlistIdMatch ? playlistIdMatch[1] : null
+}
