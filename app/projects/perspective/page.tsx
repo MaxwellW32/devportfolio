@@ -9,7 +9,7 @@ export default function Page() {
 
     const [boxHeight, setBoxHeight] = useState<string>();
 
-    const [perspective, setPerspective] = useState("500px");
+    const [perspectiveAmt, setPerspectiveAmt] = useState("500px");
 
     const [currentVidIndex, setCurrentVidIndex] = useState(0);
 
@@ -53,13 +53,13 @@ export default function Page() {
     function changeBox() {
         setFillIn(2);
         setBoxWidth("600px");
-        setPerspective("200px");
+        setPerspectiveAmt("200px");
 
         setTimeout(() => {
             setFillIn(1);
             setBoxWidth("200px");
-            setPerspective("500px");
-        }, 4000);
+            setPerspectiveAmt("500px");
+        }, 10000);
     }
 
     useEffect(() => {
@@ -153,93 +153,61 @@ export default function Page() {
         };
     }, []);
 
-    useEffect(() => {
-        let video = document.getElementById("mainVidIframe") as HTMLVideoElement;
-
-        function handleVid() {
-            video.currentTime = 0;
-            video.play();
-        }
-        video.addEventListener("ended", handleVid);
-
-        return () => video.removeEventListener("ended", handleVid);
-    }, []);
-
     return (
-        <div id="persMainDiv" className={styles.persMainDiv}>
-            <div style={{ perspective: perspective }} className={styles.persContainer}>
-                <div
-                    id="persBox"
-                    className={styles.persBox}
-                    style={{
-                        "--fillIn": fillIn,
-                        "--boxWidth": boxWidth,
-                        "--boxHeight": boxHeight,
-                        transform: `rotateX(${boxStats.boxRotationX}deg) rotateY(${boxStats.boxRotationY}deg)`,
-                    } as React.CSSProperties}
-                >
-                    <div
-                        className={`${styles.side} ${styles.persFront}`}
-                    >
-                        <DisplayVid id={allVideoList[(currentVidIndex) % allVideoList.length]} muted={false} />
-                    </div>
-
-                    <div
-                        className={`${styles.side} ${styles.persBack}`}
-                    >
-                        <DisplayVid id={allVideoList[(currentVidIndex + 1) % allVideoList.length]} />
-                    </div>
-                    <div
-                        // style={{
-                        //   backgroundImage: `url("https://images.firstpost.com/wp-content/uploads/2019/04/Black-hole-travel_Discover.jpg")`,
-                        // }}
-                        className={`${styles.side} ${styles.persLeft}`}
-                    >
-                        <DisplayVid id={allVideoList[(currentVidIndex + 2) % allVideoList.length]} />
-                    </div>
-                    <div
-                        className={`${styles.side} ${styles.persRight}`}
-                    >
-                        <DisplayVid id={allVideoList[(currentVidIndex + 3) % allVideoList.length]} />
-                    </div>
-                    <div
-                        style={{
-                            backgroundImage: `url("https://images.pexels.com/photos/1098764/pexels-photo-1098764.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1")`,
-                        }}
-                        className={`${styles.side} ${styles.persTop}`}
-                    >
-
-                    </div>
-                    <div
-                        style={{
-                            backgroundImage: `url("https://images.pexels.com/photos/1098764/pexels-photo-1098764.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1")`,
-                        }}
-                        className={`${styles.side} ${styles.persBottom}`}
-                    ></div>
+        <div style={{ perspective: perspectiveAmt }} className={styles.persContainer}>
+            <div className={styles.persBox}
+                style={{
+                    "--fillIn": fillIn,
+                    "--boxWidth": boxWidth,
+                    "--boxHeight": boxHeight,
+                    transform: `rotateX(${boxStats.boxRotationX}deg) rotateY(${boxStats.boxRotationY}deg)`,
+                } as React.CSSProperties}
+            >
+                <div className={`${styles.side} ${styles.persFront}`}>
+                    <DisplayVid id={allVideoList[(currentVidIndex) % allVideoList.length]} muted={false} />
                 </div>
+
+                <div className={`${styles.side} ${styles.persBack}`}>
+                    <DisplayVid id={allVideoList[(currentVidIndex + 1) % allVideoList.length]} />
+                </div>
+                <div className={`${styles.side} ${styles.persLeft}`}>
+                    <DisplayVid id={allVideoList[(currentVidIndex + 2) % allVideoList.length]} />
+                </div>
+                <div
+                    className={`${styles.side} ${styles.persRight}`}>
+                    <DisplayVid id={allVideoList[(currentVidIndex + 3) % allVideoList.length]} />
+                </div>
+                <div
+                    style={{
+                        backgroundImage: `url("https://images.pexels.com/photos/1098764/pexels-photo-1098764.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1")`,
+                    }}
+                    className={`${styles.side} ${styles.persTop}`}
+                >
+
+                </div>
+                <div
+                    style={{
+                        backgroundImage: `url("https://images.pexels.com/photos/1098764/pexels-photo-1098764.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1")`,
+                    }}
+                    className={`${styles.side} ${styles.persBottom}`}
+                ></div>
             </div>
         </div>
     );
 }
 
 
-interface dv {
-    id: string,
-    muted?: boolean,
-}
-
-const DisplayVid: React.FC<dv> = ({ id, muted = true }) => {
+const DisplayVid = ({ id, muted = true }: { id: string, muted?: boolean }) => {
 
     return (
         <iframe
-            id="mainVidIframe"
             className={styles.mainVidIframe}
             style={{
                 width: "100%",
-                aspectRatio: "16/9",
+                height: "100%",
                 position: "absolute",
-                top: "-1rem",
-                left: "0",
+                top: 0,
+                left: 0,
             }}
             src={`https://www.youtube.com/embed/${id}?autoplay=1&loop=1${muted ? "&mute=1" : undefined}`}
             title="YouTube video player"
