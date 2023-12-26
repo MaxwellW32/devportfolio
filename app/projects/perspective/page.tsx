@@ -5,7 +5,8 @@ import React, { useEffect, useMemo, useState, useRef } from "react";
 
 export default function Page() {
     const [fillIn, setFillIn] = useState(1);
-    const [boxWidth, setBoxWidth] = useState("200px");
+    const [boxWidth, setBoxWidth] = useState("30vh");
+    const [boxLarge, boxLargeSet] = useState(false);
 
     const [boxHeight, setBoxHeight] = useState<string>();
 
@@ -50,16 +51,20 @@ export default function Page() {
         );
     };
 
-    function changeBox() {
-        setFillIn(2);
-        setBoxWidth("600px");
-        setPerspectiveAmt("200px");
+    function changeBoxSize() {
+        boxLargeSet(prev => {
+            if (prev) {
+                setFillIn(1);
+                setBoxWidth("30vh");
+                setPerspectiveAmt("500px");
+            } else {
+                setBoxWidth("80vh");
+                setPerspectiveAmt("200px");
+            }
 
-        setTimeout(() => {
-            setFillIn(1);
-            setBoxWidth("200px");
-            setPerspectiveAmt("500px");
-        }, 10000);
+
+            return !prev
+        })
     }
 
     useEffect(() => {
@@ -72,17 +77,6 @@ export default function Page() {
         setBoxHeight(`${height}px`);
     }, [boxWidth]);
 
-    const videoStyle = {
-        width: "100%",
-        height: boxHeight,
-        playerVars: {
-            autoplay: 1,
-            controls: 0,
-            showinfo: 0,
-            modestbranding: 1,
-            loop: 1,
-        },
-    };
 
     const [boxStats, setBoxStats] = useState({
         boxRotationX: 0,
@@ -90,20 +84,17 @@ export default function Page() {
         rotateCanStart: false,
     });
 
+    //rotate box on auto click
     useEffect(() => {
-        let interval: any
 
-        if (boxStats.rotateCanStart) {
-            interval = setInterval(() => {
-                setBoxStats(prevStats => {
-                    return { ...prevStats, boxRotationY: prevStats.boxRotationY += 36 }
-                })
+        if (!boxStats.rotateCanStart) return
 
-            }, 1000)
+        const interval = setInterval(() => {
+            setBoxStats(prevStats => {
+                return { ...prevStats, boxRotationY: prevStats.boxRotationY += 36 }
+            })
 
-        } else {
-            clearInterval(interval)
-        }
+        }, 1000)
 
         return () => clearInterval(interval)
     }, [boxStats.rotateCanStart])
@@ -111,7 +102,7 @@ export default function Page() {
 
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
-            let amount = 10
+            let xRotationAmount = 10
 
             if (event.key.toLowerCase() === "l") {
                 handleClick();
@@ -122,26 +113,23 @@ export default function Page() {
             } else if (event.key.toLowerCase() === "j") {
                 handlePrevClick();
             } else if (event.code === "Space") {
-                changeBox();
-            } else if (event.keyCode === 38) {
-                // Handle up arrow key
+                console.log(`$hit change box`);
+                changeBoxSize();
+            } else if (event.key === "ArrowUp") {
                 setBoxStats((prevStats) => {
-                    return { ...prevStats, boxRotationX: (prevStats.boxRotationX += amount) };
+                    return { ...prevStats, boxRotationX: (prevStats.boxRotationX += xRotationAmount) };
                 });
-            } else if (event.keyCode === 40) {
-                // Handle down arrow key
+            } else if (event.key === "ArrowDown") {
                 setBoxStats((prevStats) => {
-                    return { ...prevStats, boxRotationX: (prevStats.boxRotationX -= amount) };
+                    return { ...prevStats, boxRotationX: (prevStats.boxRotationX -= xRotationAmount) };
                 });
-            } else if (event.keyCode === 37) {
-                // Handle left arrow key
+            } else if (event.key === "ArrowLeft") {
                 setBoxStats((prevStats) => {
-                    return { ...prevStats, boxRotationY: (prevStats.boxRotationY -= amount) };
+                    return { ...prevStats, boxRotationY: (prevStats.boxRotationY -= xRotationAmount) };
                 });
-            } else if (event.keyCode === 39) {
-                // Handle right arrow key
+            } else if (event.key === "ArrowRight") {
                 setBoxStats((prevStats) => {
-                    return { ...prevStats, boxRotationY: (prevStats.boxRotationY += amount) };
+                    return { ...prevStats, boxRotationY: (prevStats.boxRotationY += xRotationAmount) };
                 });
             }
         };
@@ -153,6 +141,7 @@ export default function Page() {
         };
     }, []);
 
+    console.log(`$box large`, boxLarge);
     return (
         <div style={{ perspective: perspectiveAmt }} className={styles.persContainer}>
             <div className={styles.persBox}
@@ -160,6 +149,8 @@ export default function Page() {
                     "--fillIn": fillIn,
                     "--boxWidth": boxWidth,
                     "--boxHeight": boxHeight,
+                    "--canPlayBottomAnim": boxStats.rotateCanStart ? "running" : "paused",
+                    "--scaleXVal": boxLarge ? -1 : 1,
                     transform: `rotateX(${boxStats.boxRotationX}deg) rotateY(${boxStats.boxRotationY}deg)`,
                 } as React.CSSProperties}
             >
@@ -177,19 +168,17 @@ export default function Page() {
                     className={`${styles.side} ${styles.persRight}`}>
                     <DisplayVid id={allVideoList[(currentVidIndex + 3) % allVideoList.length]} />
                 </div>
-                <div
+                <div className={`${styles.side} ${styles.persTop}`}
                     style={{
                         backgroundImage: `url("https://images.pexels.com/photos/1098764/pexels-photo-1098764.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1")`,
                     }}
-                    className={`${styles.side} ${styles.persTop}`}
                 >
-
                 </div>
-                <div
+
+                <div className={`${styles.side} ${styles.persBottom}`}
                     style={{
                         backgroundImage: `url("https://images.pexels.com/photos/1098764/pexels-photo-1098764.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1")`,
                     }}
-                    className={`${styles.side} ${styles.persBottom}`}
                 ></div>
             </div>
         </div>

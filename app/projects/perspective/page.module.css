@@ -26,20 +26,20 @@
 }
 
 .persFront {
-    transform: translate3d(0, 0, calc(var(--boxWidth) / 2 * var(--fillIn)));
+    transform: translate3d(0, 0, calc(var(--boxWidth) / 2 * var(--fillIn))) rotateY(0deg) scaleX(var(--scaleXVal));
     opacity: 1;
 }
 
 .persBack {
-    transform: translate3d(0, 0, calc(var(--boxWidth) / -2 * var(--fillIn)));
+    transform: translate3d(0, 0, calc(var(--boxWidth) / -2 * var(--fillIn))) rotateY(180deg) scaleX(var(--scaleXVal));
 }
 
 .persLeft {
-    transform: translate3d(calc(var(--boxWidth) / -2 * var(--fillIn)), 0, 0) rotateY(90deg);
+    transform: translate3d(calc(var(--boxWidth) / -2 * var(--fillIn)), 0, 0) rotateY(-90deg) scaleX(var(--scaleXVal));
 }
 
 .persRight {
-    transform: translate3d(calc(var(--boxWidth) / 2 * var(--fillIn)), 0, 0) rotateY(-90deg);
+    transform: translate3d(calc(var(--boxWidth) / 2 * var(--fillIn)), 0, 0) rotateY(90deg) scaleX(var(--scaleXVal));
 }
 
 .persTop {
@@ -52,8 +52,8 @@
 .persBottom {
     width: var(--boxWidth);
     height: var(--boxWidth);
-    transform: translate3d(0, 10%, 0) rotateX(-90deg);
-    animation: moveCool 500ms infinite linear alternate;
+    transform: translate3d(0, 5%, 0) rotateX(-90deg);
+    animation: moveCool 500ms infinite linear alternate var(--canPlayBottomAnim);
     opacity: 0.8;
     border: none;
 }
