@@ -38,17 +38,13 @@ export default function Page() {
         "3-yRTEFAv6g",
     ];
 
-    const handleClick = () => {
-        setCurrentVidIndex(
-            (prevVidIndex) => (prevVidIndex + 1) % allVideoList.length
+    const handleNextClick = () => {                             // 2  10
+        setCurrentVidIndex(prevVidIndex => (prevVidIndex + 4) % allVideoList.length
         );
     };
 
     const handlePrevClick = () => {
-        setCurrentVidIndex(
-            (prevVidIndex) =>
-                (prevVidIndex - 1 + allVideoList.length) % allVideoList.length
-        );
+        setCurrentVidIndex(prevVidIndex => (prevVidIndex - 4 + allVideoList.length) % allVideoList.length);
     };
 
     function changeBoxSize() {
@@ -105,7 +101,7 @@ export default function Page() {
             let xRotationAmount = 10
 
             if (event.key.toLowerCase() === "l") {
-                handleClick();
+                handleNextClick();
             } else if (event.key.toLowerCase() === "k") {
                 setBoxStats(prevStats => {
                     return { ...prevStats, rotateCanStart: !prevStats.rotateCanStart }
@@ -141,7 +137,6 @@ export default function Page() {
         };
     }, []);
 
-    console.log(`$box large`, boxLarge);
     return (
         <div style={{ perspective: perspectiveAmt }} className={styles.persContainer}>
             <div className={styles.persBox}
