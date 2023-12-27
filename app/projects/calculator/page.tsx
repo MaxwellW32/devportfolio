@@ -1,18 +1,43 @@
 "use client"
 import { toast } from "react-hot-toast";
 import styles from "./page.module.css"
-
+import CryptoJS from 'crypto-js';
 import { useEffect, useRef, useState } from "react";
 import { retreiveFromLocalStorage, saveToLocalStorage } from "@/utility/saveToStorage";
 
-let pIncre = -1;
+const generateRandomString = (length: number) => {
+    const characters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let randomString = '';
+    for (let i = 0; i < length; i++) {
+        const randomIndex = Math.floor(Math.random() * characters.length);
+        randomString += characters.charAt(randomIndex);
+    }
+    return randomString;
+};
+
 function Calcultor() {
     const [input, setInput] = useState("");
     const [result, setResult] = useState();
-
+    const [pressedEnter, setPressedEnter] = useState(false);
     const isMathExpression = /^[\d()+\-*/%.]+$/.test(input);
     const endsWithOperator = /^[()+\-*/%.]+$/.test(input[input.length - 1])
 
+    //chain on answer on enter press
+    if (pressedEnter && endsWithOperator) {
+        setInput(result + input[input.length - 1]);
+        setPressedEnter(false)
+    }
+
+    const [showSecrets, showSecretsSet] = useState(false);
+    const [secretKey, secretKeySet] = useState(generateRandomString(32));
+    const [firstLogin, firstLoginSet] = useState(false)
+    const [showValidationScreen, showValidationScreenSet] = useState(false)
+
+
+    const passwordInput = useRef<HTMLInputElement>(null!)
+    const secretKeyInput = useRef<HTMLInputElement>(null!)
+
+    //map user input to actual values
     useEffect(() => {
         try {
             if (isMathExpression && !endsWithOperator) {
@@ -21,74 +46,34 @@ function Calcultor() {
         } catch (error) {
         }
     }, [input])
-    //calc result
-
-    const [pressedEnter, setPressedEnter] = useState(false);
-
-    //chain on answer on enter press
-    if (pressedEnter && endsWithOperator) {
-        setInput(result + input[input.length - 1]);
-        setPressedEnter(false)
-    }
-    const [passValid, setPassValid] = useState(false);
-    const [password, setPassword] = useState("");
-    const [matchedPass, setMatchedPass] = useState(false);
-    const [showSecrets, setShowSecrets] = useState(false);
-
-    const [firstLogin, setFirstLogin] = useState(false)
-
-    const passwordWasSet = password.length > 7
-
-    //check for saved pass
-    useEffect(() => {
-        const seenPass = localStorage.getItem("pass")
-        if (seenPass) {
-            setPassword(seenPass)
-        }
-
-    }, [])
 
     //check if first time using app
     useEffect(() => {
-        if (passwordWasSet) {
-            setFirstLogin(false)
-        } else {
-            setFirstLogin(true)
+        const seenEncryptedPass = retreiveFromLocalStorage("pass")
+        if (seenEncryptedPass === null) {
+            firstLoginSet(true)
         }
-    }, [passwordWasSet])
+    }, [])
 
-    //password check  
+    //check input for trigger  
     useEffect(() => {
-        if (!input) {
-            pIncre = -1
-            return
-        }
+        if (!input) return
 
-        if (password[pIncre] === input[pIncre]) {
-            if (password[pIncre] === undefined) {
-                setPassValid(false);
-            } else {
-                setPassValid(true)
-            }
+        const trigger = "()()()*"
+
+        if (input === trigger) {
+            showValidationScreenSet(true)
         } else {
-            setPassValid(false);
+            showValidationScreenSet(false)
         }
 
-        if (input === password && passValid) {
-            setMatchedPass(true);
-        }
-
-
-    }, [input, passValid])
+    }, [input])
 
     const handleClick: React.MouseEventHandler<HTMLButtonElement> = (e) => {
         const target = e.target as HTMLButtonElement;
 
-        pIncre++
-
-        if (target.value === "ignore" && matchedPass && passValid) {
-            //on equal pess
-            setShowSecrets(true);
+        //on equal pess
+        if (target.value === "ignore") {
             clearAll()
         }
 
@@ -117,9 +102,16 @@ function Calcultor() {
         }
     };
 
+    const encryptPassword = (password: string) => {
+        return CryptoJS.AES.encrypt(password, secretKey).toString();
+    };
+
+    const decryptPassword = (encryptedPassword: string, passedSecretKey: string) => {
+        return CryptoJS.AES.decrypt(encryptedPassword, passedSecretKey).toString(CryptoJS.enc.Utf8);
+    };
+
     function clearAll() {
         setInput("");
-        setPassValid(false)
         setResult(undefined)
         setPressedEnter(false)
     }
@@ -166,11 +158,7 @@ function Calcultor() {
         },
     ];
 
-    let rndI = Math.floor(Math.random() * secretImages.length);
-    let rndK = rndI + 2;
 
-
-    const passInput = useRef<HTMLInputElement>(null!)
 
     return (
         <div className={styles.calcMainDiv} style={{ display: "grid", height: "100svh" }}>
@@ -179,21 +167,49 @@ function Calcultor() {
                 <div style={{ position: "fixed", top: 0, left: 0, height: "100%", width: "100%", zIndex: 999, backgroundColor: "var(--backgroundColor)", padding: "1rem", display: "grid", alignContent: "flex-start", gap: "1rem", textAlign: "center" }}>
                     <p>This is a secret gallery, posing as a calculator</p>
 
-                    <p>Set a pin to trigger it - E.g 1234</p>
+                    <p>Set a pin to trigger the hidden gallery - E.g 1234</p>
 
-                    <p>Password will be appended with {"()()()*"} - E.g trigger with {"()()()*1234"}</p>
+                    <p>Password will be triggered by {"()()()*"}</p>
 
+                    <input type="number" ref={passwordInput} placeholder="Set a pin..." />
 
-                    <input type="number" ref={passInput} placeholder="Set a pin..." />
+                    <p>Note down your secret key - {secretKey}</p>
 
                     <button style={{ justifySelf: "center" }}
                         onClick={() => {
-                            if (passInput.current.value.length > 0 && /^[0-9]*$/.test(passInput.current.value)) {
+                            if (passwordInput.current.value.length > 0 && /^[0-9]*$/.test(passwordInput.current.value)) {
                                 toast.success("set")
-                                setPassword("()()()*" + passInput.current.value)
-                                localStorage.setItem("pass", "()()()*" + passInput.current.value)
+                                saveToLocalStorage("pass", encryptPassword(passwordInput.current.value))
+                                firstLoginSet(false)
                             } else {
                                 toast.error("Couldn't set pass")
+                            }
+                        }} >Submit</button>
+                </div>
+            )}
+
+            {showValidationScreen && (
+                <div style={{ position: "fixed", top: 0, left: 0, height: "100%", width: "100%", zIndex: 999, backgroundColor: "var(--backgroundColor)", padding: "1rem", display: "grid", alignContent: "flex-start", gap: "1rem", textAlign: "center" }}>
+
+                    <input type="number" ref={passwordInput} placeholder="pin..." />
+                    <input type="text" ref={secretKeyInput} placeholder="Secret Key..." />
+
+                    <button style={{ justifySelf: "center" }}
+                        onClick={() => {
+                            //run checks
+                            const retrievedEncryptedPassword = retreiveFromLocalStorage("pass")
+                            if (!retrievedEncryptedPassword) {
+                                toast.error("no password seen in storage")
+                                return
+                            }
+
+                            const userEnteredPass = passwordInput.current.value
+                            const decryptedPass = decryptPassword(retrievedEncryptedPassword, secretKeyInput.current.value)
+
+                            if (userEnteredPass === decryptedPass) {
+                                showSecretsSet(true)
+                            } else {
+                                toast.error("didn't match")
                             }
                         }} >Submit</button>
                 </div>
@@ -202,7 +218,7 @@ function Calcultor() {
             {showSecrets && (
                 <div className={styles.calcGallery}>
                     <button style={{ borderRadius: 0, marginLeft: "auto" }} onClick={() => {
-                        setShowSecrets(false)
+                        showSecretsSet(false)
                     }}>Close</button>
 
                     <h2>Gallery</h2>
