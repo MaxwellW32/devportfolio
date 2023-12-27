@@ -2,7 +2,7 @@
 import { toast } from "react-hot-toast";
 import styles from "./page.module.css"
 import CryptoJS from 'crypto-js';
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { retreiveFromLocalStorage, saveToLocalStorage } from "@/utility/saveToStorage";
 
 const generateRandomString = (length: number) => {
@@ -17,34 +17,34 @@ const generateRandomString = (length: number) => {
 
 function Calcultor() {
     const [input, setInput] = useState("");
-    const [result, setResult] = useState();
-    const [pressedEnter, setPressedEnter] = useState(false);
     const isMathExpression = /^[\d()+\-*/%.]+$/.test(input);
     const endsWithOperator = /^[()+\-*/%.]+$/.test(input[input.length - 1])
-
-    //chain on answer on enter press
-    if (pressedEnter && endsWithOperator) {
-        setInput(result + input[input.length - 1]);
-        setPressedEnter(false)
-    }
+    console.log(`$endsWithOperator`, endsWithOperator);
 
     const [showSecrets, showSecretsSet] = useState(false);
     const [secretKey, secretKeySet] = useState(generateRandomString(32));
     const [firstLogin, firstLoginSet] = useState(false)
     const [showValidationScreen, showValidationScreenSet] = useState(false)
+    const [equalClicked, equalClickedSet] = useState(false)
 
 
     const passwordInput = useRef<HTMLInputElement>(null!)
     const secretKeyInput = useRef<HTMLInputElement>(null!)
 
-    //map user input to actual values
-    useEffect(() => {
+    const lastResult = useRef(0)
+    const result = useMemo(() => {
+        let seenResult = lastResult.current
+
         try {
             if (isMathExpression && !endsWithOperator) {
-                setResult(eval(input))
+                seenResult = eval(input)
+                lastResult.current = seenResult
             }
         } catch (error) {
+            console.log(`$error seen evaluating input`, error);
         }
+
+        return seenResult
     }, [input])
 
     //check if first time using app
@@ -72,34 +72,39 @@ function Calcultor() {
     const handleClick: React.MouseEventHandler<HTMLButtonElement> = (e) => {
         const target = e.target as HTMLButtonElement;
 
-        //on equal pess
-        if (target.value === "ignore") {
-            clearAll()
-        }
-
         //set new values of input
-        if (target.value !== "ignore") {
-            setInput((prevInput) => {
 
-                if (target.value === ")" || target.value === "(") {
-                    let bracketCount = 0;
-                    for (let index = 0; index < prevInput.length; index++) {
-                        if (prevInput[index] === "(" || prevInput[index] === ")") {
-                            bracketCount++
-                        }
-                    }
+        if (equalClicked) {
+            const localEndsWithOperator = /^[()+\-*/%.]+$/.test(target.value[target.value.length - 1])
+            if (localEndsWithOperator) {
+                setInput(`${result}`)
+                console.log(`$result`, result);
+            } else {
+                setInput("")
+            }
 
-                    if (bracketCount % 2 === 1) {
-                        return prevInput + ")"
-                    } else {
-                        return prevInput + "("
-                    }
-
-                } else {
-                    return prevInput + target.value
-                }
-            });
+            equalClickedSet(false)
         }
+
+        setInput((prevInput) => {
+            if (target.value === ("(" || ")")) {
+                let bracketCount = 0;
+                for (let index = 0; index < prevInput.length; index++) {
+                    if (prevInput[index] === "(" || prevInput[index] === ")") {
+                        bracketCount++
+                    }
+                }
+
+                if (bracketCount % 2 === 1) {
+                    return prevInput + ")"
+                } else {
+                    return prevInput + "("
+                }
+
+            } else {
+                return prevInput + target.value
+            }
+        });
     };
 
     const encryptPassword = (password: string) => {
@@ -112,8 +117,6 @@ function Calcultor() {
 
     function clearAll() {
         setInput("");
-        setResult(undefined)
-        setPressedEnter(false)
     }
 
     function subLast() {
@@ -255,7 +258,7 @@ function Calcultor() {
                         });
                     }} />
 
-                <p className={styles.calcResult}>{result ?? ""}</p>
+                <p style={{ fontWeight: equalClicked ? "bold" : "" }} className={styles.calcResult}>{result ?? ""}</p>
 
                 <div className={styles.calcBttmLine}></div>
             </div>
@@ -343,8 +346,7 @@ function Calcultor() {
                 </button>
 
                 <button value="ignore" onClick={(e) => {
-                    handleClick(e);
-                    setPressedEnter(true);
+                    equalClickedSet(true)
                 }} className={`${styles.calcBttn} ${styles.calcBttnCirc}`}>
                     =
                 </button>
