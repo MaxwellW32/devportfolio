@@ -2,7 +2,7 @@
 import YoutubeUrlParse, { YoutubePlaylistParse } from "@/useful/YoutubeUrlParse";
 import styles from "./page.module.css"
 
-import React, { useEffect, useMemo, useState, useRef } from "react";
+import React, { useEffect, useMemo, useState, useRef, HTMLAttributes } from "react";
 import { toast } from "react-hot-toast";
 import { getPlaylist } from "./getPlaylist";
 import { removeFromLocalStorage, retreiveFromLocalStorage, saveToLocalStorage } from "@/utility/saveToStorage";
@@ -49,7 +49,6 @@ export default function Page() {
     const [perspectiveAmt, setPerspectiveAmt] = useState(500);
     const [currentVidIndex, setCurrentVidIndex] = useState(0);
     const [videosList, videosListSet] = useState<string[]>([])
-    const [clearedOldVideos, clearedOldVideosSet] = useState(false)
     const [confirmClearAll, confirmClearAllSet] = useState(false)
     const [boxStats, setBoxStats] = useState({
         boxRotationX: 0,
@@ -246,7 +245,7 @@ export default function Page() {
             </div>
 
             <div style={{ position: "fixed", bottom: 0, left: "50%", translate: "-50% 0", margin: "1rem auto", display: "flex", flexDirection: "row-reverse", gap: "1rem", flexWrap: "wrap", justifyContent: "center" }}>
-                {/* main controls */}
+                {/* main settings */}
                 <div style={{ display: !menuExpanded ? "none" : "", flex: "0 0 300px" }}>
                     {/* delete all */}
                     <div style={{ display: "grid", justifyItems: "flex-end" }}>
@@ -355,6 +354,7 @@ export default function Page() {
                     </div>
                 </div>
 
+                {/* show setting svg */}
                 <div style={{ flex: "0 0 auto", marginTop: "auto" }}
                     onClick={() => {
                         menuExpandedSet(prev => !prev)
