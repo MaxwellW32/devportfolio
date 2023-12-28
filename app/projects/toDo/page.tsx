@@ -29,6 +29,7 @@ export default function Page() {
 		}
 	}, [toDos])
 
+	console.log(`$de`);
 	return (
 		<main style={{ display: "grid", padding: "1rem" }}>
 			<div style={{ display: "flex", flexWrap: "wrap", justifyContent: "flex-end", gap: "1rem", alignItems: "center" }}>
