@@ -11,6 +11,7 @@
   --largeFontSize: 2rem;
   --mediumFontSize: 1.3rem;
   --regularFontSize: 1rem;
+  --smallFontSize: .7rem;
 }
 
 html {
@@ -148,6 +149,35 @@ h2::before {
 h3 {
   font-weight: bold;
 }
+
+.niceScrollBar::-webkit-scrollbar {
+  width: 0.25rem;
+  height: 0.25rem;
+}
+
+.niceScrollBar::-webkit-scrollbar-track {
+  background-color: var(--primaryColor);
+}
+
+.niceScrollBar::-webkit-scrollbar-thumb {
+  background-color: #a5a5a5;
+}
+
+
+::-webkit-scrollbar {
+  width: 0.25rem;
+  height: 0.25rem;
+}
+
+::-webkit-scrollbar-track {
+  background-color: var(--primaryColor);
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 1rem;
+}
+
 
 .noScrollBar::-webkit-scrollbar {
   display: none;

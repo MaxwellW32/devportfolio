@@ -1,4 +1,4 @@
-import { atom, useAtom } from 'jotai'
+import { atom } from 'jotai'
 import { useEffect } from 'react';
 
 export const screenSizeGlobal = atom<{
