@@ -1,11 +1,12 @@
 "use client"
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import DisplayToDo from "./DisplayToDo"
 import { retreiveFromLocalStorage, saveToLocalStorage } from "@/utility/saveToStorage"
 import { globalToDos, toDo } from './globalToDos'
 import { useAtom } from "jotai"
 import styles from "./page.module.css"
-import greetings from "./greetings.json"
+import greetingsJSON from "./greetings.json"
+import { shuffleArray } from "@/useful/shuffleArray"
 
 const defaultToDos: toDo[] = [
 	{
@@ -74,6 +75,14 @@ export default function Page() {
 	const [toDoToEdit, toDoToEditSet] = useState<toDo>()
 	const [selectedToDos, selectedToDosSet] = useState<{ [key: string]: boolean }>({})
 
+	const [greetings,] = useState(shuffleArray([...greetingsJSON]))
+	const greeting1 = useMemo(() => {
+		return shuffleArray([...greetingsJSON])
+	}, [makingNewToDo])
+	const greeting2 = useMemo(() => {
+		return shuffleArray([...greetingsJSON])
+	}, [toDoToEdit])
+
 	//get toDos from storage
 	useEffect(() => {
 		const seenToDos = retreiveFromLocalStorage("todos")
@@ -90,7 +99,6 @@ export default function Page() {
 			}
 		}
 	}, [])
-
 
 	//save changes to local storage
 	useEffect(() => {
@@ -123,11 +131,11 @@ export default function Page() {
 			</div>
 
 			{makingNewToDo && (
-				<DisplayToDo makingNewToDoSet={makingNewToDoSet} options="new" greetingsList={greetings} />
+				<DisplayToDo makingNewToDoSet={makingNewToDoSet} options="new" greetingsList={greeting2} />
 			)}
 
 			{toDoToEdit && (
-				<DisplayToDo passedToDo={toDoToEdit} toDoToEditSet={toDoToEditSet} options="update" greetingsList={greetings} />
+				<DisplayToDo passedToDo={toDoToEdit} toDoToEditSet={toDoToEditSet} options="update" greetingsList={greeting1} />
 			)}
 
 			<div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(300px, 100%),1fr))", gap: "1rem", alignItems: "flex-start" }}>

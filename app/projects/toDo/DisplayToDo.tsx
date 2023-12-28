@@ -5,7 +5,7 @@ import { globalToDos, greeting, toDo } from './globalToDos'
 import { useAtom } from 'jotai'
 import DisplayToDoVideo from './DisplayToDoVid'
 import styles from "./page.module.css"
-import wait from '@/utility/wait'
+import wait from '@/useful/wait'
 
 export default function DisplayToDo({ passedToDo, makingNewToDoSet, toDoToEditSet, options = "final", greetingsList }: { passedToDo?: toDo, makingNewToDoSet?: Dispatch<SetStateAction<boolean>>, toDoToEditSet?: Dispatch<SetStateAction<toDo | undefined>>, options?: "new" | "update" | "final", greetingsList: greeting[] }) {
 
@@ -122,9 +122,9 @@ export default function DisplayToDo({ passedToDo, makingNewToDoSet, toDoToEditSe
 
                     <h1>{passedToDo!.title}</h1>
 
-                    {passedToDo!.messages.filter(eachMessage => !eachMessage.complete).length > 0 && (
+                    {passedToDo!.messages.filter(each => !each.complete).length > 0 && (
                         <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-                            {passedToDo!.messages.filter(eachMessage => !eachMessage.complete).map(eachToDoMessageObj => {
+                            {passedToDo!.messages.filter(each => !each.complete).map((eachToDoMessageObj, eachToDoMessageObjIndex) => {
                                 return (
                                     <div className={styles.scaleBounce} key={eachToDoMessageObj.id} style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: ".5rem" }}>
                                         <div onClick={async (e) => {
@@ -137,7 +137,7 @@ export default function DisplayToDo({ passedToDo, makingNewToDoSet, toDoToEditSe
                                             toggleComplete(eachToDoMessageObj.id)
                                         }} style={{ aspectRatio: "1/1", width: "1rem", backgroundColor: eachToDoMessageObj.complete ? "green" : "yellowgreen" }}></div>
 
-                                        <p>{eachToDoMessageObj.text}</p>
+                                        <p style={{ opacity: !eachToDoMessageObj.text ? .5 : "" }}>{eachToDoMessageObj.text ? eachToDoMessageObj.text : `${greetingsList[eachToDoMessageObjIndex % greetingsList.length].text} ${greetingsList[eachToDoMessageObjIndex % greetingsList.length].author && `- ${greetingsList[eachToDoMessageObjIndex % greetingsList.length].author}`}`}</p>
                                     </div>
                                 )
                             })}
