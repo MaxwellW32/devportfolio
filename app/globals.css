@@ -27,6 +27,8 @@ html {
   /* border: 1px solid red !important; */
 }
 
+
+
 html {
   min-height: 100%;
   display: grid;
@@ -101,6 +103,19 @@ svg:hover {
 section {
   padding: 2rem 1rem;
 }
+
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+}
+
+/* Firefox */
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
+
 
 input,
 textarea {

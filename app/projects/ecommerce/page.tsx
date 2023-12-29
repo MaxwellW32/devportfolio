@@ -1,16 +1,147 @@
-"use client"
 import styles from "./page.module.css"
-import React, { useState } from 'react'
-import { useEffect } from 'react'
 import Link from "next/link"
 import Image from "next/image"
+import { products, type productCategory } from "./ecommerceGlobal"
+import Cart from "./Cart"
+import AddToCartButton from "./AddToCartButton"
+import { isInObj } from "@/useful/functions"
+import DisplayProduct from "./DisplayProduct"
+import Search from "./Search"
 
-interface RatingStarProps {
-    rating: number,
-    maxRating?: number
+type sortingMethods = "price-highlow" | "price-lowhigh" | "none"
+
+export default function TechHaven({ searchParams }: { searchParams: { product: string, sort: sortingMethods } }) {
+    const selectedCategory: productCategory = isInObj(products, searchParams.product) ?? "headphones"
+
+    const bestSeller = products[selectedCategory].find(eachProduct => eachProduct.bestSeller) ?? products[selectedCategory][0]
+
+    const sortingMethod: sortingMethods = searchParams.sort === ("price-highlow" || "price-lowhigh") ? searchParams.sort : "none"
+
+    console.log(`$searchParams.sort`, searchParams.sort);
+    console.log(`$sortingMethod`, sortingMethod);
+
+    return (
+        <div>
+            <nav style={{ backgroundColor: "#000", display: "flex", flexWrap: "wrap", justifyContent: "center", alignItems: "center", columnGap: "1rem" }}>
+                <ul className={styles.mainMenu}>
+                    <li>
+                        <Link href={"/"}>about us</Link>
+                    </li>
+
+                    <li>
+                        <Link href={"/"}>shipping</Link>
+                    </li>
+
+                    <li>
+                        <Link href={"/"}>find stores</Link>
+                    </li>
+                </ul>
+
+                <Cart />
+
+                <Search />
+            </nav>
+
+            <main>
+                <section style={{ position: "relative", paddingTop: 0 }}>
+                    <Image alt="bg" src="/projects/ecommerce/bg.jpg" priority={true} width={1920} height={1192} style={{ objectFit: "cover", width: "100%", height: "100%", position: "absolute", top: 0, left: 0, filter: "blur(4px)" }} />
+
+                    <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", backgroundColor: "rgba(255,0,0,.6)" }}></div>
+
+                    <div style={{ position: "relative", }}>
+                        <ul className={styles.secondNav}>
+                            <li style={{ backgroundColor: selectedCategory === "desktops" ? "var(--backgroundColor)" : "" }}>
+                                <Link href={`?product=desktops`}>desktops</Link>
+                            </li>
+
+                            <li style={{ backgroundColor: selectedCategory === "tablets" ? "var(--backgroundColor)" : "" }}>
+                                <Link href={`?product=tablets`}>tablets</Link>
+                            </li>
+
+                            <li style={{ backgroundColor: selectedCategory === "phones" ? "var(--backgroundColor)" : "" }}>
+                                <Link href={`?product=phones`}>phones</Link>
+                            </li>
+
+                            <li style={{ backgroundColor: selectedCategory === "cameras" ? "var(--backgroundColor)" : "" }}>
+                                <Link href={`?product=cameras`}>cameras</Link>
+                            </li>
+
+                            <li style={{ backgroundColor: selectedCategory === "headphones" ? "var(--backgroundColor)" : "" }}>
+                                <Link href={`?product=headphones`}>headphones</Link>
+                            </li>
+                        </ul>
+
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem" }}>
+                            <Image alt={`${bestSeller.name} image`} src={bestSeller.imgSrc} width={1920} height={1080} style={{ objectFit: "cover", flex: "1 1 300px", width: "min(300px, 100%)" }} />
+
+                            <div style={{ flex: "2 1 300px", display: "flex", flexDirection: "column", gap: "1rem", justifyContent: "center", padding: "1rem" }}>
+                                <h1>{bestSeller.name}</h1>
+
+                                <p>{bestSeller.desc}</p>
+
+                                <div style={{ display: "flex", gap: "1rem" }}>
+                                    <AddToCartButton product={bestSeller} />
+
+                                    <Link href={`/projects/ecommerce/${selectedCategory}/${bestSeller.slug}`}>
+                                        <button className={styles.utilityButton}>Details</button>
+                                    </Link>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section style={{ backgroundColor: "#eee", color: "#000", display: "flex", flexDirection: "column", }}>
+                    <h2 style={{ marginBottom: "2rem" }}>Other items</h2>
+
+                    {sortingMethod === "none" ? (
+                        <Link style={{ marginLeft: "auto" }} href={`?product=${selectedCategory}&sort=price-highlow`}>Sort price high-low</Link>
+                    ) : (
+                        <Link style={{ marginLeft: "auto" }} href={`?product=${selectedCategory}`}>Sort price low-high</Link>
+                    )}
+
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(250px, 100%), 1fr))", gap: "1rem" }}>
+                        {products[selectedCategory].sort((productA, productB) => {
+                            if (sortingMethod === "none") {
+                                return productA.price - productB.price
+                            } else {
+                                return productB.price - productA.price
+                            }
+                        }).map(eachProduct => {
+                            return (
+                                <DisplayProduct key={eachProduct.id} product={eachProduct} />
+                            )
+                        })}
+                    </div>
+                </section>
+
+                <section>
+                    <h2>Contact Us</h2>
+
+                    <h2>FAQ</h2>
+
+                    <div>
+                        <p>Question</p>
+
+                        <div>
+                            <p>answer</p>
+                        </div>
+                    </div>
+                </section>
+            </main>
+
+            <footer>
+                <div>
+                    small nav
+                </div>
+
+                <p>Contact US</p>
+            </footer>
+        </div>
+    )
 }
 
-const RatingStar: React.FC<RatingStarProps> = ({ rating, maxRating = 5 }) => {
+function DisplayStarRating({ rating, maxRating = 5 }: { rating: number, maxRating?: number }) {
     // Calculate the number of full stars
     const fullStars = Math.floor(rating);
 
@@ -57,384 +188,3 @@ const RatingStar: React.FC<RatingStarProps> = ({ rating, maxRating = 5 }) => {
         </div>
     );
 };
-
-
-const ProductDisplay = ({ chosenName }: { chosenName: string }) => {
-    type productObj = {
-        title: string;
-        desc: string;
-        imgSrc: string;
-        rating: number;
-        price: number;
-    }
-
-    const desktopProducts: productObj[] = [
-        {
-            title: "Lenovo ThinkBook 15 Premium Business Laptop",
-            desc: `Processor: AMD Ryzen 5 5500U 2.10GHz 6-Core Processor (11MB Cache, up to 4.00GHz)
-
-            Graphics: AMD Radeon Graphics
-            
-            Operating system: Windows 11 Pro 64-bit
-            
-            Memory: 12GB DDR4 SDRAM 
-            
-            Hard Drive: 512GB PCIe NVMe M.2 Solid State Drive
-            
-            Optical Drive: No
-            
-            Display: 15.6" FHD (1920x1080) TN 220nits Anti-glare, 45% NTSC
-            
-            Connectivity: Wi-Fi 6, (802.11ax) + Bluetooth 5.1
-            
-            Audio: High Definition (HD) Audio, Stereo speakers, 2W x2, Dolby Audio
-            
-            Keyboard: US English, Backlit Full Size Keyboard
-            
-            Built-in HD Webcam: HD 720p with Privacy Shutter
-            
-            Media Drive: Multi-format SD media card reader
-            
-            Ports: 
-            
-            2 x USB 3.2 Gen 1
-            2 x USB-C 3.2 Gen 2 (support data transfer, Power Delivery 3.0 and DisplayPort 1.4)
-            1 x HDMI 1.4b
-            1 x Ethernet (RJ-45)
-            1 x Headphone / Mic Combo Jack
-            Battery: Up to 7.5 Hours
-            
-            Color: Mineral Grey
-            
-            Dimensions L x W x H (inches): 14.1 x 9.25 x 0.74
-            
-            Weight: 3.75 lbs`,
-            imgSrc: "https://m.media-amazon.com/images/I/81xOIY45QwL._AC_UY327_FMwebp_QL65_.jpg",
-            rating: 4.7,
-            price: 547.36,
-        },
-        {
-            title: "HP Elite Desktop PC Computer Intel Core i5 3.1-GHz, 8 gb Ram",
-            desc: `This custom bundle includes 5 items...
-
-            - RENEWED HP Professional Desktop PC with Intel Quad Core i5 3.1 GHz processor, 8 GB RAM, 1 TB Hard Drive, DVD, Windows 10 Home (with all necessary cables)
-          
-            - WiFi Adapter - USB WiFi (300Mbps, compatible with Windows 10, WPA2 encryption)
-          
-            - RENEWED 19" LCD Monitor (Brand May Vary)
-          
-            - USB Keyboard (Brand May Vary)
-          
-            - USB Mouse (Brand May Vary)
-          
-          Every component is tested for full functionality and compatibility to ensure years of ongoing performance and reliability. Exterior cosmetics are restored to a like-new condition with little to no visible signs of previous use. A fresh and authentic installation of Microsoft Windows 10 is performed with the new activation license digitally rendered in the PC for an easy and secure start upon first use.
-          
-           
-          
-          PC Custom Configuration Specs
-          
-             -Model: HP Professional Desktop
-          
-             - CPU: Intel Quad Core i5 Processor
-          
-             - RAM: 8 GB DDR3
-          
-             - Hard Drive: 1 TB SATA
-          
-             - Operating System: Windows 10 Home
-          
-             - Optical: DVD
-          
-             - USB: (10) USB 2.0 ports for connectivity
-          
-             - Network: Onboard Gigabit Network Adapter
-          
-          * This computer bundle will arrive at your doorstep ready to use right out of the box with all necessary cables included.`,
-            imgSrc: "https://m.media-amazon.com/images/I/718sn7oOcfL._AC_SL1500_.jpg",
-            rating: 3.9,
-            price: 826.21,
-        },
-        {
-            title: "TechMaster Desktop",
-            desc: "Powerful desktop computer with Intel Core i9 processor, 32GB RAM, 1TB SSD, and NVIDIA GeForce RTX 3080 graphics card.",
-            imgSrc: "https://m.media-amazon.com/images/I/71B5z0eg2NL._AC_SL1500_.jpg",
-            rating: 4.8,
-            price: 2499.99
-        },
-        {
-            title: "Gaming Beast Desktop",
-            desc: "High-performance gaming desktop with AMD Ryzen 9 processor, 64GB RAM, 2TB SSD, and NVIDIA GeForce RTX 3090 graphics card.",
-            imgSrc: "https://m.media-amazon.com/images/I/91Fb+Pcxe-L._AC_SL1500_.jpg",
-            rating: 4.9,
-            price: 3999.99
-        },
-        {
-            title: "OfficePro Desktop",
-            desc: "Efficient desktop computer for office use with Intel Core i5 processor, 16GB RAM, 512GB SSD, and integrated Intel UHD Graphics 630.",
-            imgSrc: "https://m.media-amazon.com/images/I/61QGMX0Qy6L._AC_SL1352_.jpg",
-            rating: 4.5,
-            price: 899.99
-        },
-        {
-            title: "Dell XPS 8930 Desktop Computer",
-            desc: "Powerful desktop computer with Intel Core i7 processor, 16GB DDR4 RAM, 512GB SSD + 2TB HDD storage, NVIDIA GeForce GTX 1660 Ti graphics, and Windows 10 operating system.",
-            imgSrc: "https://m.media-amazon.com/images/I/61PLUeR9MoS._AC_SL1500_.jpg",
-            rating: 4.5,
-            price: 1199.99
-        },
-        {
-            title: "HP ENVY Desktop Computer",
-            desc: "Elegant desktop computer with Intel Core i5 processor, 8GB DDR4 RAM, 256GB SSD + 1TB HDD storage, NVIDIA GeForce GTX 1650 graphics, and Windows 10 operating system.",
-            imgSrc: "https://m.media-amazon.com/images/I/7183K6XIaeL._AC_SL1500_.jpg",
-            rating: 4.3,
-            price: 899.99
-        },
-        {
-            title: "Apple iMac 27-inch Retina 5K Display",
-            desc: "Sleek all-in-one desktop computer with Intel Core i5 processor, 8GB DDR4 RAM, 512GB SSD storage, AMD Radeon Pro 5500 XT graphics, and macOS operating system.",
-            imgSrc: "https://m.media-amazon.com/images/I/717q8QReNaL._AC_SX679_.jpg",
-            rating: 4.8,
-            price: 1799.00
-        },
-        {
-            title: "Lenovo IdeaCentre AIO 3 Desktop",
-            desc: "Space-saving all-in-one desktop computer with AMD Ryzen 5 processor, 8GB DDR4 RAM, 256GB SSD storage, AMD Radeon Graphics, and Windows 10 operating system.",
-            imgSrc: "https://m.media-amazon.com/images/I/71Ezvxd+uiL._AC_SL1500_.jpg",
-            rating: 4.4,
-            price: 649.99
-        },
-        {
-            title: "Acer Aspire TC-895-UA92 Desktop",
-            desc: "Affordable desktop computer with Intel Core i5 processor, 12GB DDR4 RAM, 512GB SSD storage, Intel UHD Graphics 630, and Windows 10 operating system.",
-            imgSrc: "https://m.media-amazon.com/images/I/718V28DwSjL._AC_SL1500_.jpg",
-            rating: 4.2,
-            price: 599.99
-        }
-
-    ]
-
-    const mobileProducts: productObj[] = [
-        {
-            title: "TechGuru Smartphone",
-            desc: "Latest smartphone with 6.5-inch Super AMOLED display, Snapdragon 888 processor, 12GB RAM, 256GB storage, and quad-camera setup.",
-            imgSrc: "https://m.media-amazon.com/images/I/61MBRtrVz9L._AC_SL1500_.jpg",
-            rating: 4.7,
-            price: 999.99
-        },
-        {
-            title: "PowerMax Pro Smartphone",
-            desc: "High-capacity battery smartphone with 7-inch display, MediaTek Dimensity 1200 processor, 8GB RAM, 128GB storage, and 64MP triple-camera setup.",
-            imgSrc: "https://m.media-amazon.com/images/I/61BgDOd6ViL._AC_SL1000_.jpg",
-            rating: 4.6,
-            price: 699.99
-        },
-        {
-            title: "CameraPro Smartphone",
-            desc: "Smartphone with advanced camera features, including a 108MP main camera, 8K video recording, Snapdragon 865 processor, 12GB RAM, and 512GB storage.",
-            imgSrc: "https://m.media-amazon.com/images/I/61ePWSuIfwL._AC_SL1500_.jpg",
-            rating: 4.8,
-            price: 1199.99
-        },
-        {
-            title: "Samsung Galaxy S21 Ultra",
-            desc: "Flagship smartphone with 6.8-inch QHD+ Dynamic AMOLED display, Exynos 2100 processor, 12GB RAM, 256GB storage, and quad-camera setup with 108MP main camera.",
-            imgSrc: "https://m.media-amazon.com/images/I/61muVHB96cS._AC_SL1500_.jpg",
-            rating: 4.8,
-            price: 1299.99
-        },
-        {
-            title: "iPhone 13 Pro Max",
-            desc: "Top-of-the-line iPhone with 6.7-inch Super Retina XDR display, A15 Bionic chip, 128GB storage, and triple-camera system with ProRAW support.",
-            imgSrc: "https://m.media-amazon.com/images/I/71hIjJkMqFL._AC_SL1500_.jpg",
-            rating: 4.9,
-            price: 1399.99
-        },
-        {
-            title: "Google Pixel 6 Pro",
-            desc: "Google's flagship smartphone with 6.7-inch LTPO OLED display, Google Tensor chip, 12GB RAM, 256GB storage, and dual-camera system with new computational photography features.",
-            imgSrc: "https://m.media-amazon.com/images/I/71iQQmucjgL._AC_SL1500_.jpg",
-            rating: 4.7,
-            price: 999.99
-        },
-        {
-            title: "OnePlus 9 Pro",
-            desc: "High-performance smartphone with 6.7-inch Fluid AMOLED display, Snapdragon 888 processor, 8GB RAM, 128GB storage, and Hasselblad quad-camera system.",
-            imgSrc: "https://m.media-amazon.com/images/I/81v-fUYu6zS._AC_SL1500_.jpg",
-            rating: 4.6,
-            price: 999.99
-        },
-        {
-            title: "Xiaomi Mi 11 Ultra",
-            desc: "Premium smartphone with 6.81-inch AMOLED display, Snapdragon 888 processor, 12GB RAM, 256GB storage, and triple-camera system with 50MP main camera and 120x zoom.",
-            imgSrc: "https://m.media-amazon.com/images/I/41wKBxAos4L._AC_.jpg",
-            rating: 4.8,
-            price: 1199.99
-        }
-
-    ]
-
-    const cameraProducts: productObj[] = [
-        {
-            title: "Nikon D850 DSLR Camera",
-            desc: "Professional-grade DSLR camera with 45.7MP full-frame sensor, EXPEED 5 image processor, 4K UHD video, and built-in Wi-Fi and Bluetooth.",
-            imgSrc: "https://m.media-amazon.com/images/I/617sGSjmC1L._AC_SL1500_.jpg",
-            rating: 4.9,
-            price: 2999.99
-        },
-        {
-            title: "Canon EOS R5 Mirrorless Camera",
-            desc: "High-resolution mirrorless camera with 45MP full-frame sensor, DIGIC X image processor, 8K video, and advanced autofocus system.",
-            imgSrc: "https://m.media-amazon.com/images/I/61FGU+Wyn4L._AC_SL1000_.jpg",
-            rating: 4.7,
-            price: 3499.99
-        },
-        {
-            title: "Fujifilm X-T4 Mirrorless Camera",
-            desc: "Advanced mirrorless camera with 26.1MP X-Trans CMOS 4 sensor, X-Processor 4 image processor, 5-axis in-body image stabilization, and 4K video recording.",
-            imgSrc: "https://m.media-amazon.com/images/I/71EWRyqzw0L._AC_SL1500_.jpg",
-            rating: 4.8,
-            price: 1699.99
-        },
-        {
-            title: "Sony A7S III Mirrorless Camera",
-            desc: "Full-frame mirrorless camera optimized for video with 12.1MP sensor, BIONZ XR image processor, 4K video at up to 120fps, and 9.44 million-dot OLED EVF.",
-            imgSrc: "https://m.media-amazon.com/images/I/711seEoUM9L._AC_SL1500_.jpg",
-            rating: 4.9,
-            price: 3499.99
-        },
-        {
-            title: "Nikon Z7 II Mirrorless Camera",
-            desc: "High-resolution mirrorless camera with 45.7MP full-frame CMOS sensor, Dual EXPEED 6 image processors, 4K UHD video recording, and 5-axis in-body image stabilization.",
-            imgSrc: "https://m.media-amazon.com/images/I/71zs+RZUggL._AC_SL1500_.jpg",
-            rating: 4.7,
-            price: 2999.99
-        },
-        {
-            title: "Panasonic Lumix GH5 Mark II Mirrorless Camera",
-            desc: "Professional mirrorless camera with 20.3MP Micro Four Thirds sensor, Venus Engine image processor, 4K video recording at up to 60fps, and 5-axis Dual I.S. II image stabilization.",
-            imgSrc: "https://m.media-amazon.com/images/I/81depb5FkhL._AC_SL1500_.jpg",
-            rating: 4.8,
-            price: 1799.99
-        },
-        {
-            title: "Sony RX100 VII Compact Camera",
-            desc: "Advanced compact camera with 1-inch Exmor RS CMOS sensor, BIONZ X image processor, 24-200mm zoom lens, and Real-time Eye AF for humans and animals.",
-            imgSrc: "https://m.media-amazon.com/images/I/71LG276t3aL._AC_SL1500_.jpg",
-            rating: 4.9,
-            price: 1299.99
-        },
-        {
-            title: "Canon EOS R6 Mirrorless Camera",
-            desc: "Full-frame mirrorless camera with 20.1MP CMOS sensor, DIGIC X image processor, 4K video recording, and 5-axis in-body image stabilization with up to 8 stops of shake correction.",
-            imgSrc: "https://m.media-amazon.com/images/I/71VzbJ7oZLL._AC_SL1500_.jpg",
-            rating: 4.7,
-            price: 2499.99
-        },
-        {
-            title: "Olympus OM-D E-M1 Mark III Mirrorless Camera",
-            desc: "Pro-level mirrorless camera with 20.4MP Live MOS sensor, TruePic IX image processor, 5-axis in-body image stabilization, and weather-sealed construction for durability.",
-            imgSrc: "https://m.media-amazon.com/images/I/71zTX1iQWSL._AC_SL1500_.jpg",
-            rating: 4.6,
-            price: 1799.99
-        }
-
-    ]
-
-    const [chosenObj, chosenObjSet] = useState(desktopProducts)
-
-    //focus at start of image scroll
-    useEffect(() => {
-        const imageScrollContainer = document.querySelector('#thProductsCont') as HTMLElement;
-
-        imageScrollContainer.scrollTo({
-            left: 0,
-            behavior: 'smooth'
-        });
-    }, [chosenObj]);
-
-
-    const changeOption = (option: string) => {
-        if (option === "desktop") {
-            chosenObjSet(desktopProducts)
-        } else if (option === "mobile") {
-            chosenObjSet(mobileProducts)
-        }
-        else if (option === "camera") {
-            chosenObjSet(cameraProducts)
-        }
-    }
-
-    return (
-        <div style={{ display: "grid" }}>
-            <article id="thProductsCont" className={styles.thProductsCont}>
-                {chosenObj?.map(eachItemObj => {
-                    return (
-                        <Link href="/techHaven" key={eachItemObj.title} className={styles.thIndivProduct}>
-                            <h4>{eachItemObj.title}</h4>
-                            <Image alt="" src={eachItemObj.imgSrc} width={800} height={800} style={{ width: "100%", aspectRatio: "1/1" }} />
-                            <p>${eachItemObj.price}</p>
-                            <RatingStar rating={eachItemObj.rating} />
-                        </Link>
-                    )
-                })}
-            </article>
-
-            <div className={styles.thOptionsCont}>
-                <article className={styles.thOptionsArticle}>
-                    <h3 style={{ textAlign: "start" }}>Browse Our Extensive Range of Electronics</h3>
-                    <p>At Tech Haven, we offer a comprehensive catalog of electronic products. From the latest smartphones to powerful laptops and cutting-edge cameras, we have something for everyone. Each product comes with detailed information, including images, descriptions, specifications, and pricing, to help you make an informed decision. Browse our extensive range of electronics and find the perfect gadget that suits your needs.</p>
-                    <button>Learn More</button>
-                </article>
-                <div className={styles.thOptions}>
-                    <div onClick={() => { changeOption("desktop") }}>
-                        <p>see desktop options</p>
-                        <Image src="https://images.pexels.com/photos/5082554/pexels-photo-5082554.jpeg?auhref=compress&cs=tinysrgb&w=1260&h=750&dpr=1" alt="" fill={true} />
-
-                    </div>
-                    <div onClick={() => { changeOption("mobile") }}>
-                        <p>see mobile options</p>
-                        <Image alt="" src='https://m.media-amazon.com/images/I/71Sa3dqTqzL._AC_SL1500_.jpg' fill={true} />
-                    </div>
-                    <div onClick={() => { changeOption("camera") }}>
-                        <p>see cameras options</p>
-                        <Image alt="" src='https://m.media-amazon.com/images/I/71avwaBMVDL._AC_SL1500_.jpg' fill={true} />
-                    </div>
-                </div>
-            </div>
-        </div>
-    )
-}
-
-
-export default function TechHaven() {
-
-    return (
-        <div id='techHavenMainDiv' className={styles.techHavenMainDiv}>
-            <section className={styles.thTopSection}>
-                <div className={styles.thtopsectionLeft}>
-                    <h1 className={styles.mainHeadTh}>Welcome to Tech Haven</h1>
-
-                    <div style={{ display: "flex", alignItems: "center" }}>
-                        <Image alt="tech desktop image" width={800} height={800} className={styles.thtopsectionLeftImg} src={require(`@/public/projects/ecommerce/smallpc.png`)} style={{ width: "200px", height: "200px" }} />
-
-                        <h3 className={styles.mainSubHeadTh}>Your Destination for Electronics Shopping</h3>
-                    </div>
-
-                    <p className={styles.thtopsectionLeftP}>We offer a wide range of products
-                        including smartphones, laptops, cameras, smartwatches, and accessories.
-                        With our user-friendly interface and secure checkout process, you can shop with
-                        confidence knowing that your personal information is safe. Stay up-to-date with the
-                        latest gadgets and electronics at Tech Haven, where your tech dreams come true!
-                    </p>
-                </div>
-            </section>
-            <section>
-                <h4 style={{ marginBlock: "1rem", fontWeight: "bold" }} >Explore the Latest Gadgets and Electronics at Tech Haven</h4>
-                <ProductDisplay chosenName='desktop' />
-            </section>
-            <section>
-
-            </section>
-        </div>
-    )
-}
