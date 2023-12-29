@@ -3,7 +3,7 @@ import { useAtom } from 'jotai'
 import React from 'react'
 import { productCartGlobal } from '../ecommerceGlobal'
 
-export default function page() {
+export default function Page() {
     const [cartProducts, cartProductsSet] = useAtom(productCartGlobal)
 
     return (

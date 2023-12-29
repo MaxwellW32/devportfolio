@@ -3,7 +3,7 @@ import React from 'react'
 import { productCategory, products } from '../../ecommerceGlobal';
 import DisplayProduct from '../../DisplayProduct';
 
-export default function page({ params }: { params: { category: string, slug: string } }) {
+export default function Page({ params }: { params: { category: string, slug: string } }) {
     const category = isInObj(products, params.category) as productCategory
     if (!category) return <p>Category not seen</p>
 
