@@ -47,7 +47,7 @@ export default function TechHaven({ searchParams }: { searchParams: { product: s
                     </ul>
 
                     <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem", alignItems: "center" }}>
-                        <Image alt={`${bestSeller.name} image`} src={bestSeller.imgSrc} width={1920} height={1080} style={{ flex: "1 1 300px", width: "min(300px, 100%)", height: "400px", objectFit: "contain" }} />
+                        <Image alt={`${bestSeller.name} image`} priority={true} src={bestSeller.imgSrc} width={1920} height={1080} style={{ flex: "1 1 300px", width: "min(300px, 100%)", height: "400px", objectFit: "contain" }} />
 
                         <div style={{ flex: "2 1 300px", display: "flex", flexDirection: "column", gap: "1rem", justifyContent: "center", padding: "1rem" }}>
                             <h1>{bestSeller.name}</h1>
