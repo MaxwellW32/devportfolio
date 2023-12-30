@@ -35,7 +35,7 @@ export const products: { [key in productCategory]: product[] } = {
             rating: 4.89,
             price: 2599.00,
             bestSeller: true,
-            slug: "HIGH_END_GAMING_PC_|_Core_i7-14700KF_20x3.40GHz_|_32GB_DDR5_|_RTX_4080_16GB_DLSS_3_|_1TB_M.2_SSD",
+            slug: "HIGH_END_GAMING_PC_Core_i7-14700KF_20x3.40GHz_32GB_DDR5_RTX_4080_16GB_DLSS_3_1TB_M2_SSD",
             forCategory: "desktops"
         },
         {
@@ -126,7 +126,7 @@ export const products: { [key in productCategory]: product[] } = {
             imgSrc: "https://m.media-amazon.com/images/I/718sn7oOcfL._AC_SL1500_.jpg",
             rating: 3.9,
             price: 826.21,
-            slug: "hp_elite_desktop_pc_computer_intel_core_i5_3.1-ghz,_8_gb_ram",
+            slug: "hp_elite_desktop_pc_computer_intel_core_i5_3.1-ghz_8_gb_ram",
             forCategory: "desktops"
         },
         {
