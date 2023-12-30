@@ -8,6 +8,7 @@ export type product = {
     rating: number;
     price: number;
     slug: string,
+    forCategory: productCategory,
     bestSeller?: boolean,
 }
 
@@ -23,7 +24,22 @@ export const productCartGlobal = atom<{ product: product, quantity: number }[] |
 export const products: { [key in productCategory]: product[] } = {
     desktops: [
         {
-            id: "70d27fd9-36e2-472a-b1ba-7ec1bb6a2337",
+            id: "sakslcksm-36e2-472a-b1ba-7ec1bb6a2337",
+            name: "HIGH END GAMING PC | Intel Core i7-14700KF 20x3.40GHz | 32GB DDR5 | RTX 4080 16GB DLSS 3 | 1TB M.2 SSD",
+            desc: ` Intel Core i7-14700KF, 20x 3.40GHz
+            32GB DDR5 RAM 5600 MHz ADATA
+            NVIDIA GeForce RTX 4080 - 16GB
+            MSI Pro Z790-P WIFI
+            1000 GB M.2 SSD Western Digital WD Black SN850X`,
+            imgSrc: require(`@/public/projects/ecommerce/desktopbestseller.webp`).default.src,
+            rating: 4.89,
+            price: 2599.00,
+            bestSeller: true,
+            slug: "HIGH_END_GAMING_PC_|_Core_i7-14700KF_20x3.40GHz_|_32GB_DDR5_|_RTX_4080_16GB_DLSS_3_|_1TB_M.2_SSD",
+            forCategory: "desktops"
+        },
+        {
+            id: "70d27fd9-36e2-472a-b1ba-slskckmksal",
             name: "Lenovo ThinkBook 15 Premium Business Laptop",
             desc: `Processor: AMD Ryzen 5 5500U 2.10GHz 6-Core Processor (11MB Cache, up to 4.00GHz)
     
@@ -66,8 +82,8 @@ export const products: { [key in productCategory]: product[] } = {
             imgSrc: "https://m.media-amazon.com/images/I/81xOIY45QwL._AC_UY327_FMwebp_QL65_.jpg",
             rating: 4.7,
             price: 547.36,
-            bestSeller: true,
             slug: "lenovo_thinkbook_15_premium_business_laptop",
+            forCategory: "desktops"
         },
         {
             id: "ed4486d3-5d50-44b9-a55c-c251ddd4dbe6",
@@ -110,7 +126,8 @@ export const products: { [key in productCategory]: product[] } = {
             imgSrc: "https://m.media-amazon.com/images/I/718sn7oOcfL._AC_SL1500_.jpg",
             rating: 3.9,
             price: 826.21,
-            slug: "hp_elite_desktop_pc_computer_intel_core_i5_3.1-ghz,_8_gb_ram"
+            slug: "hp_elite_desktop_pc_computer_intel_core_i5_3.1-ghz,_8_gb_ram",
+            forCategory: "desktops"
         },
         {
             id: "9e904485-eb5c-48c0-8a78-a60ac5e6e32f",
@@ -119,7 +136,8 @@ export const products: { [key in productCategory]: product[] } = {
             imgSrc: "https://m.media-amazon.com/images/I/71B5z0eg2NL._AC_SL1500_.jpg",
             rating: 4.8,
             price: 2499.99,
-            slug: "techmaster_desktop"
+            slug: "techmaster_desktop",
+            forCategory: "desktops"
         },
         {
             id: "1947bbb7-ca77-4d3e-b647-fb5967d726d1",
@@ -128,7 +146,8 @@ export const products: { [key in productCategory]: product[] } = {
             imgSrc: "https://m.media-amazon.com/images/I/91Fb+Pcxe-L._AC_SL1500_.jpg",
             rating: 4.9,
             price: 3999.99,
-            slug: "gaming_beast_desktop"
+            slug: "gaming_beast_desktop",
+            forCategory: "desktops"
         },
         {
             id: "8741c16e-b273-4f7f-a396-0e71a9497029",
@@ -137,7 +156,8 @@ export const products: { [key in productCategory]: product[] } = {
             imgSrc: "https://m.media-amazon.com/images/I/61QGMX0Qy6L._AC_SL1352_.jpg",
             rating: 4.5,
             price: 899.99,
-            slug: "officepro_desktop"
+            slug: "officepro_desktop",
+            forCategory: "desktops"
         },
         {
             id: "198bc026-7606-440b-a285-ecdb7fffa5fa",
@@ -146,7 +166,8 @@ export const products: { [key in productCategory]: product[] } = {
             imgSrc: "https://m.media-amazon.com/images/I/61PLUeR9MoS._AC_SL1500_.jpg",
             rating: 4.5,
             price: 1199.99,
-            slug: "dell_xps_8930_desktop_computer"
+            slug: "dell_xps_8930_desktop_computer",
+            forCategory: "desktops"
 
         },
         {
@@ -156,7 +177,8 @@ export const products: { [key in productCategory]: product[] } = {
             imgSrc: "https://m.media-amazon.com/images/I/7183K6XIaeL._AC_SL1500_.jpg",
             rating: 4.3,
             price: 899.99,
-            slug: "hp_envy_desktop_computer"
+            slug: "hp_envy_desktop_computer",
+            forCategory: "desktops"
 
         },
         {
@@ -166,7 +188,8 @@ export const products: { [key in productCategory]: product[] } = {
             imgSrc: "https://m.media-amazon.com/images/I/717q8QReNaL._AC_SX679_.jpg",
             rating: 4.8,
             price: 1799.00,
-            slug: "apple_imac_27-inch_retina_5k_display"
+            slug: "apple_imac_27-inch_retina_5k_display",
+            forCategory: "desktops"
 
         },
         {
@@ -176,7 +199,8 @@ export const products: { [key in productCategory]: product[] } = {
             imgSrc: "https://m.media-amazon.com/images/I/71Ezvxd+uiL._AC_SL1500_.jpg",
             rating: 4.4,
             price: 649.99,
-            slug: "lenovo_ideacentre_aio_3_desktop"
+            slug: "lenovo_ideacentre_aio_3_desktop",
+            forCategory: "desktops"
 
         },
         {
@@ -186,33 +210,37 @@ export const products: { [key in productCategory]: product[] } = {
             imgSrc: "https://m.media-amazon.com/images/I/718V28DwSjL._AC_SL1500_.jpg",
             rating: 4.2,
             price: 599.99,
-            slug: "acer_aspire_tc-895-ua92_desktop"
+            slug: "acer_aspire_tc-895-ua92_desktop",
+            forCategory: "desktops"
         }
 
     ],
     tablets: [
         {
-            id: "6c07c6a8-cd64-4c32-ac6a-ca361fa82f42",
-            name: "TechGuru smart tablet",
-            desc: "Latest smartphone with 6.5-inch Super AMOLED display, Snapdragon 888 processor, 12GB RAM, 256GB storage, and quad-camera setup.",
-            imgSrc: "https://m.media-amazon.com/images/I/61MBRtrVz9L._AC_SL1500_.jpg",
+            id: "dskaskckl-cd64-4c32-ac6a-ca361fa82f42",
+            name: "HiPad Max",
+            desc: "Providing a 10.36 inch 2K resolution display, the HiPad Max lets you enjoy realistic graphics to enhance your film and gaming experience. The high resolution display boasts an 84% screen-to-display ratio.",
+            imgSrc: "https://www.chuwi.com/public/upload/image/20221229/d7fb617f299fe7a44b47425df86d83c2.png",
             rating: 4.7,
             price: 999.99,
             bestSeller: true,
-            slug: "techguru_smart_tablet"
+            slug: "HiPad_Max",
+            forCategory: "tablets"
         },
     ],
     phones: [
         {
-            id: "54e9c0a2-b727-47a3-aaad-055d88c3b7d2",
-            name: "TechGuru Smartphone",
-            desc: "Latest smartphone with 6.5-inch Super AMOLED display, Snapdragon 888 processor, 12GB RAM, 256GB storage, and quad-camera setup.",
-            imgSrc: "https://m.media-amazon.com/images/I/61MBRtrVz9L._AC_SL1500_.jpg",
+            id: "54e9c0a2-b727-47a3-aaad-askcnslkamsl",
+            name: "Galaxy S23 Ultra",
+            desc: "Get the ultimate Galaxy experience with the S23 Ultra. The latest generation of mobile processing power: Qualcomm Snapdragon 8 Gen 2 for Galaxy. Capture perfect pics after sundown with the Quad rear 200MP camera. Relive every night in perfect clarity.",
+            imgSrc: "https://lmt-web.mstatic.lv/eshop/9770/Samsung-S23-Ultra-EE_black_back.png",
             rating: 4.7,
             price: 999.99,
             bestSeller: true,
-            slug: "powermax_pro_smartphone"
+            slug: "Galaxy_S23_Ultra",
+            forCategory: "phones"
         },
+
         {
             id: "751c8a50-2381-4757-81fd-c17baa16cbde",
             name: "PowerMax Pro Smartphone",
@@ -220,16 +248,19 @@ export const products: { [key in productCategory]: product[] } = {
             imgSrc: "https://m.media-amazon.com/images/I/61BgDOd6ViL._AC_SL1000_.jpg",
             rating: 4.6,
             price: 699.99,
-            slug: "powermax_pro_smartphone"
+            slug: "powermax_pro_smartphone",
+            forCategory: "phones"
+
         },
         {
-            id: "667de3f5-6555-44eb-b973-67cc1b0d369c",
+            id: "xasclmscal-6555-44eb-b973-67cc1b0d369c",
             name: "CameraPro Smartphone",
             desc: "Smartphone with advanced camera features, including a 108MP main camera, 8K video recording, Snapdragon 865 processor, 12GB RAM, and 512GB storage.",
             imgSrc: "https://m.media-amazon.com/images/I/61ePWSuIfwL._AC_SL1500_.jpg",
             rating: 4.8,
             price: 1199.99,
-            slug: "camerapro_smartphone"
+            slug: "camerapro_smartphone",
+            forCategory: "phones"
         },
         {
             id: "78e0d268-8ee6-4832-864f-b6d83c7e5eaa",
@@ -238,7 +269,8 @@ export const products: { [key in productCategory]: product[] } = {
             imgSrc: "https://m.media-amazon.com/images/I/61muVHB96cS._AC_SL1500_.jpg",
             rating: 4.8,
             price: 1299.99,
-            slug: "samsung_galaxy_s21_ultra"
+            slug: "samsung_galaxy_s21_ultra",
+            forCategory: "phones"
         },
         {
             id: "3b179541-d00c-425e-a597-566367c7f348",
@@ -247,8 +279,8 @@ export const products: { [key in productCategory]: product[] } = {
             imgSrc: "https://m.media-amazon.com/images/I/71hIjJkMqFL._AC_SL1500_.jpg",
             rating: 4.9,
             price: 1399.99,
-            slug: "iphone_13_pro_max"
-
+            slug: "iphone_13_pro_max",
+            forCategory: "phones"
         },
         {
             id: "cdfbb6b3-7aee-430d-9b57-6d8f00880ecc",
@@ -257,8 +289,8 @@ export const products: { [key in productCategory]: product[] } = {
             imgSrc: "https://m.media-amazon.com/images/I/71iQQmucjgL._AC_SL1500_.jpg",
             rating: 4.7,
             price: 999.99,
-            slug: "google_pixel_6_pro"
-
+            slug: "google_pixel_6_pro",
+            forCategory: "phones"
         },
         {
             id: "1c9259c9-8614-4814-bed0-a785d511cb90",
@@ -267,8 +299,8 @@ export const products: { [key in productCategory]: product[] } = {
             imgSrc: "https://m.media-amazon.com/images/I/81v-fUYu6zS._AC_SL1500_.jpg",
             rating: 4.6,
             price: 999.99,
-            slug: "oneplus_9_pro"
-
+            slug: "oneplus_9_pro",
+            forCategory: "phones"
         },
         {
             id: "83b2a2e9-2b1e-4850-b2c9-d100047f6d86",
@@ -277,22 +309,32 @@ export const products: { [key in productCategory]: product[] } = {
             imgSrc: "https://m.media-amazon.com/images/I/41wKBxAos4L._AC_.jpg",
             rating: 4.8,
             price: 1199.99,
-            slug: "xiaomi_mi_11_ultra"
-
+            slug: "xiaomi_mi_11_ultra",
+            forCategory: "phones"
         }
 
     ],
     cameras: [
         {
             id: "3665bb4f-6ffb-4f14-98fa-5ca2abf8d940",
+            name: "Nikon Z 6II Mirrorless Camera",
+            desc: "A peak moment frozen in a dramatic still image. A beautiful, flowing sequence captured in cinematic 4K UHD video. The new Nikon Z 6II, an upgrade of the Z 6 all-rounder, gives you both. Harnessing Dual EXPEED 6 image-processing engines.",
+            imgSrc: require(`@/public/projects/ecommerce/camerabestseller.webp`).default.src,
+            rating: 4.9,
+            price: 2999.99,
+            bestSeller: true,
+            slug: "Nikon_Z_6II_Mirrorless_Camera",
+            forCategory: "cameras"
+        },
+        {
+            id: "sakskdlsks-6ffb-4f14-98fa-5ca2abf8d940",
             name: "Nikon D850 DSLR Camera",
             desc: "Professional-grade DSLR camera with 45.7MP full-frame sensor, EXPEED 5 image processor, 4K UHD video, and built-in Wi-Fi and Bluetooth.",
             imgSrc: "https://m.media-amazon.com/images/I/617sGSjmC1L._AC_SL1500_.jpg",
             rating: 4.9,
             price: 2999.99,
-            bestSeller: true,
-            slug: "nikon_d850_dslr_camera"
-
+            slug: "nikon_d850_dslr_camera",
+            forCategory: "cameras"
         },
         {
             id: "1aef6fe3-bf98-48a4-92bf-cc5a97331821",
@@ -301,8 +343,8 @@ export const products: { [key in productCategory]: product[] } = {
             imgSrc: "https://m.media-amazon.com/images/I/61FGU+Wyn4L._AC_SL1000_.jpg",
             rating: 4.7,
             price: 3499.99,
-            slug: "canon_eos_r5_mirrorless_camera"
-
+            slug: "canon_eos_r5_mirrorless_camera",
+            forCategory: "cameras"
         },
         {
             id: "b11eacc1-b611-4c6f-b9d6-9dc8b390fad4",
@@ -311,8 +353,8 @@ export const products: { [key in productCategory]: product[] } = {
             imgSrc: "https://m.media-amazon.com/images/I/71EWRyqzw0L._AC_SL1500_.jpg",
             rating: 4.8,
             price: 1699.99,
-            slug: "fujifilm_x-t4_mirrorless_camera"
-
+            slug: "fujifilm_x-t4_mirrorless_camera",
+            forCategory: "cameras"
         },
         {
             id: "dc1c2974-b7ee-4c36-8fd6-27d9d8c8677c",
@@ -321,8 +363,8 @@ export const products: { [key in productCategory]: product[] } = {
             imgSrc: "https://m.media-amazon.com/images/I/711seEoUM9L._AC_SL1500_.jpg",
             rating: 4.9,
             price: 3499.99,
-            slug: "sony_a7s_iii_mirrorless_camera"
-
+            slug: "sony_a7s_iii_mirrorless_camera",
+            forCategory: "cameras"
         },
         {
             id: "03fda86b-2f02-4184-8a9a-32aa78d16889",
@@ -331,8 +373,8 @@ export const products: { [key in productCategory]: product[] } = {
             imgSrc: "https://m.media-amazon.com/images/I/71zs+RZUggL._AC_SL1500_.jpg",
             rating: 4.7,
             price: 2999.99,
-            slug: "nikon_z7_ii_mirrorless_camera"
-
+            slug: "nikon_z7_ii_mirrorless_camera",
+            forCategory: "cameras"
         },
         {
             id: "444ce0cc-dc92-4ccc-8c38-2c3e1e1faa0d",
@@ -341,8 +383,8 @@ export const products: { [key in productCategory]: product[] } = {
             imgSrc: "https://m.media-amazon.com/images/I/81depb5FkhL._AC_SL1500_.jpg",
             rating: 4.8,
             price: 1799.99,
-            slug: "panasonic_lumix_gh5_mark_ii_mirrorless_camera"
-
+            slug: "panasonic_lumix_gh5_mark_ii_mirrorless_camera",
+            forCategory: "cameras"
         },
         {
             id: "f3df3b2d-474b-4736-a58c-036a5f5e228e",
@@ -351,8 +393,8 @@ export const products: { [key in productCategory]: product[] } = {
             imgSrc: "https://m.media-amazon.com/images/I/71LG276t3aL._AC_SL1500_.jpg",
             rating: 4.9,
             price: 1299.99,
-            slug: "sony_rx100_vii_compact_camera"
-
+            slug: "sony_rx100_vii_compact_camera",
+            forCategory: "cameras"
         },
         {
             id: "b1f0c897-aa63-4a46-9c0b-c8b7edcecf04",
@@ -361,8 +403,8 @@ export const products: { [key in productCategory]: product[] } = {
             imgSrc: "https://m.media-amazon.com/images/I/71VzbJ7oZLL._AC_SL1500_.jpg",
             rating: 4.7,
             price: 2499.99,
-            slug: "canon_eos_r6_mirrorless_camera"
-
+            slug: "canon_eos_r6_mirrorless_camera",
+            forCategory: "cameras"
         },
         {
             id: "91aed8da-813f-48e5-bc47-7afd3f6a56c8",
@@ -371,8 +413,8 @@ export const products: { [key in productCategory]: product[] } = {
             imgSrc: "https://m.media-amazon.com/images/I/71zTX1iQWSL._AC_SL1500_.jpg",
             rating: 4.6,
             price: 1799.99,
-            slug: "olympus_om-d_e-m1_mark_iii_mirrorless_camera"
-
+            slug: "olympus_om-d_e-m1_mark_iii_mirrorless_camera",
+            forCategory: "cameras"
         }
 
     ],
@@ -385,7 +427,8 @@ export const products: { [key in productCategory]: product[] } = {
             rating: 4.9,
             price: 2999.99,
             bestSeller: true,
-            slug: "akg_acoustics_n90q"
+            slug: "akg_acoustics_n90q",
+            forCategory: "headphones"
         },
     ],
 }

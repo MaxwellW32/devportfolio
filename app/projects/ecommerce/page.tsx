@@ -2,11 +2,10 @@ import styles from "./page.module.css"
 import Link from "next/link"
 import Image from "next/image"
 import { products, type productCategory } from "./ecommerceGlobal"
-import Cart from "./Cart"
 import AddToCartButton from "./AddToCartButton"
 import { isInObj } from "@/useful/functions"
 import DisplayProduct from "./DisplayProduct"
-import Search from "./Search"
+import FAQ from "./FAQ"
 
 type sortingMethods = "price-highlow" | "price-lowhigh" | "none"
 
@@ -15,129 +14,125 @@ export default function TechHaven({ searchParams }: { searchParams: { product: s
 
     const bestSeller = products[selectedCategory].find(eachProduct => eachProduct.bestSeller) ?? products[selectedCategory][0]
 
-    const sortingMethod: sortingMethods = searchParams.sort === ("price-highlow" || "price-lowhigh") ? searchParams.sort : "none"
-
-    console.log(`$searchParams.sort`, searchParams.sort);
-    console.log(`$sortingMethod`, sortingMethod);
+    const sortingMethod: sortingMethods = searchParams.sort === "price-highlow" || searchParams.sort === "price-lowhigh" ? searchParams.sort : "none"
 
     return (
-        <div>
-            <nav style={{ backgroundColor: "#000", display: "flex", flexWrap: "wrap", justifyContent: "center", alignItems: "center", columnGap: "1rem" }}>
-                <ul className={styles.mainMenu}>
-                    <li>
-                        <Link href={"/"}>about us</Link>
-                    </li>
+        <main>
+            <section style={{ position: "relative", paddingTop: 0 }}>
+                <Image alt="bg" src="/projects/ecommerce/bg.jpg" priority={true} width={1920} height={1192} style={{ objectFit: "cover", width: "100%", height: "100%", position: "absolute", top: 0, left: 0, filter: "blur(4px)" }} />
 
-                    <li>
-                        <Link href={"/"}>shipping</Link>
-                    </li>
+                <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", backgroundColor: "rgb(126 0 0 / 80%)" }}></div>
 
-                    <li>
-                        <Link href={"/"}>find stores</Link>
-                    </li>
-                </ul>
+                <div style={{ position: "relative", display: "grid" }}>
+                    <ul className={styles.secondNav}>
+                        <li style={{ backgroundColor: selectedCategory === "desktops" ? "var(--backgroundColor)" : "" }}>
+                            <Link href={`?product=desktops`}>desktops</Link>
+                        </li>
 
-                <Cart />
+                        <li style={{ backgroundColor: selectedCategory === "tablets" ? "var(--backgroundColor)" : "" }}>
+                            <Link href={`?product=tablets`}>tablets</Link>
+                        </li>
 
-                <Search />
-            </nav>
+                        <li style={{ backgroundColor: selectedCategory === "phones" ? "var(--backgroundColor)" : "" }}>
+                            <Link href={`?product=phones`}>phones</Link>
+                        </li>
 
-            <main>
-                <section style={{ position: "relative", paddingTop: 0 }}>
-                    <Image alt="bg" src="/projects/ecommerce/bg.jpg" priority={true} width={1920} height={1192} style={{ objectFit: "cover", width: "100%", height: "100%", position: "absolute", top: 0, left: 0, filter: "blur(4px)" }} />
+                        <li style={{ backgroundColor: selectedCategory === "cameras" ? "var(--backgroundColor)" : "" }}>
+                            <Link href={`?product=cameras`}>cameras</Link>
+                        </li>
 
-                    <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", backgroundColor: "rgba(255,0,0,.6)" }}></div>
+                        <li style={{ backgroundColor: selectedCategory === "headphones" ? "var(--backgroundColor)" : "" }}>
+                            <Link href={`?product=headphones`}>headphones</Link>
+                        </li>
+                    </ul>
 
-                    <div style={{ position: "relative", }}>
-                        <ul className={styles.secondNav}>
-                            <li style={{ backgroundColor: selectedCategory === "desktops" ? "var(--backgroundColor)" : "" }}>
-                                <Link href={`?product=desktops`}>desktops</Link>
-                            </li>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem", alignItems: "center" }}>
+                        <Image alt={`${bestSeller.name} image`} src={bestSeller.imgSrc} width={1920} height={1080} style={{ flex: "1 1 300px", width: "min(300px, 100%)", height: "400px", objectFit: "contain" }} />
 
-                            <li style={{ backgroundColor: selectedCategory === "tablets" ? "var(--backgroundColor)" : "" }}>
-                                <Link href={`?product=tablets`}>tablets</Link>
-                            </li>
+                        <div style={{ flex: "2 1 300px", display: "flex", flexDirection: "column", gap: "1rem", justifyContent: "center", padding: "1rem" }}>
+                            <h1>{bestSeller.name}</h1>
 
-                            <li style={{ backgroundColor: selectedCategory === "phones" ? "var(--backgroundColor)" : "" }}>
-                                <Link href={`?product=phones`}>phones</Link>
-                            </li>
+                            <p style={{ maxHeight: "200px", overflowY: "auto" }}>{bestSeller.desc}</p>
 
-                            <li style={{ backgroundColor: selectedCategory === "cameras" ? "var(--backgroundColor)" : "" }}>
-                                <Link href={`?product=cameras`}>cameras</Link>
-                            </li>
+                            <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+                                <AddToCartButton product={bestSeller} />
 
-                            <li style={{ backgroundColor: selectedCategory === "headphones" ? "var(--backgroundColor)" : "" }}>
-                                <Link href={`?product=headphones`}>headphones</Link>
-                            </li>
-                        </ul>
-
-                        <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem" }}>
-                            <Image alt={`${bestSeller.name} image`} src={bestSeller.imgSrc} width={1920} height={1080} style={{ objectFit: "cover", flex: "1 1 300px", width: "min(300px, 100%)" }} />
-
-                            <div style={{ flex: "2 1 300px", display: "flex", flexDirection: "column", gap: "1rem", justifyContent: "center", padding: "1rem" }}>
-                                <h1>{bestSeller.name}</h1>
-
-                                <p>{bestSeller.desc}</p>
-
-                                <div style={{ display: "flex", gap: "1rem" }}>
-                                    <AddToCartButton product={bestSeller} />
-
-                                    <Link href={`/projects/ecommerce/${selectedCategory}/${bestSeller.slug}`}>
-                                        <button className={styles.utilityButton}>Details</button>
-                                    </Link>
-                                </div>
+                                <Link href={`/projects/ecommerce/${selectedCategory}/${bestSeller.slug}`}>
+                                    <button className={styles.utilityButton}>Details</button>
+                                </Link>
                             </div>
                         </div>
                     </div>
-                </section>
-
-                <section style={{ backgroundColor: "#eee", color: "#000", display: "flex", flexDirection: "column", }}>
-                    <h2 style={{ marginBottom: "2rem" }}>Other items</h2>
-
-                    {sortingMethod === "none" ? (
-                        <Link style={{ marginLeft: "auto" }} href={`?product=${selectedCategory}&sort=price-highlow`}>Sort price high-low</Link>
-                    ) : (
-                        <Link style={{ marginLeft: "auto" }} href={`?product=${selectedCategory}`}>Sort price low-high</Link>
-                    )}
-
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(250px, 100%), 1fr))", gap: "1rem" }}>
-                        {products[selectedCategory].sort((productA, productB) => {
-                            if (sortingMethod === "none") {
-                                return productA.price - productB.price
-                            } else {
-                                return productB.price - productA.price
-                            }
-                        }).map(eachProduct => {
-                            return (
-                                <DisplayProduct key={eachProduct.id} product={eachProduct} />
-                            )
-                        })}
-                    </div>
-                </section>
-
-                <section>
-                    <h2>Contact Us</h2>
-
-                    <h2>FAQ</h2>
-
-                    <div>
-                        <p>Question</p>
-
-                        <div>
-                            <p>answer</p>
-                        </div>
-                    </div>
-                </section>
-            </main>
-
-            <footer>
-                <div>
-                    small nav
                 </div>
+            </section>
 
-                <p>Contact US</p>
-            </footer>
-        </div>
+            <section style={{ backgroundColor: "#eee", color: "#000", display: "flex", flexDirection: "column", }}>
+                <h2 style={{ marginBottom: "2rem" }}>Other items</h2>
+
+                {sortingMethod === "none" ? (
+                    <Link style={{ marginLeft: "auto" }} href={`?product=${selectedCategory}&sort=price-highlow`}>Sort price high-low</Link>
+                ) : (
+                    <Link style={{ marginLeft: "auto" }} href={`?product=${selectedCategory}`}>Sort price low-high</Link>
+                )}
+
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(250px, 100%), 1fr))", gap: "1rem" }}>
+                    {products[selectedCategory].sort((productA, productB) => {
+                        if (sortingMethod === "none") {
+                            return productA.price - productB.price
+                        } else {
+                            return productB.price - productA.price
+                        }
+                    }).map(eachProduct => {
+                        return (
+                            <DisplayProduct key={eachProduct.id} product={eachProduct} fullscreen={false} />
+                        )
+                    })}
+                </div>
+            </section>
+
+            <section>
+                <h2>FAQ</h2>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: "1rem", marginTop: "1rem" }}>
+                    <FAQ
+                        question="Can I place my order online?"
+                        answer={
+                            <p>
+                                Yes, you can!!! If the item status colour is &apos;ORANGE&apos;, you may [order online]
+                            </p>
+                        }
+                    />
+
+                    <FAQ
+                        question="What is the timeline before my order expires?"
+                        answer={
+                            <p>
+                                All orders are valid for 48hrs! Orders have to be collected within [48 hrs if the order is placed on Sunday] and [24 hrs, Mon-Sat].
+                            </p>
+                        }
+                    />
+
+                    <FAQ
+                        question="Can my order be shipped?"
+                        answer={
+                            <p>
+                                all orders can be shipped
+                            </p>
+                        }
+                    />
+
+                    <FAQ
+                        question="How do I pay for my order?"
+                        answer={
+                            <p>
+                                All payments are processed at the time of checkout at the location, [in-store].
+
+                            </p>
+                        }
+                    />
+                </div>
+            </section>
+        </main>
     )
 }
 
