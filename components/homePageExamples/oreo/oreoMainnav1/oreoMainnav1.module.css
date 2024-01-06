@@ -1,0 +1,172 @@
+.mainNav :where(*) {
+    /* local reset for styled components */
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    list-style: none;
+}
+
+.mainNav {
+    background-color: var(--RU_secondaryColor);
+    color: #fff;
+    display: grid;
+    padding: 0 1rem;
+    position: relative;
+    top: 0;
+    grid-auto-flow: column;
+    justify-content: space-between;
+    align-items: center;
+    text-transform: capitalize;
+    z-index: 999;
+    font-weight: bold;
+    translate: 0 -100%;
+    transition: translate 1s;
+}
+
+
+.mainNav a {
+    all: unset
+}
+
+.mainNav svg {
+    aspect-ratio: 1/1;
+    fill: #fff;
+}
+
+.mainMenu {
+    display: grid;
+    justify-content: center;
+    grid-auto-flow: column;
+    white-space: nowrap;
+    background-color: var(--RU_secondaryColor);
+}
+
+.mainMenuItem {
+    position: relative;
+    cursor: pointer;
+}
+
+.mainMenuItem>div:first-of-type {
+    padding: 1rem;
+}
+
+.mainMenuItem:hover>.subMenu {
+    display: block;
+}
+
+.mainMenuItem:hover>div>a,
+.mainMenuItem:hover>div>svg {
+    color: var(--RU_primaryColor);
+    fill: var(--RU_primaryColor);
+}
+
+.subMenu {
+    display: none;
+    position: absolute;
+    left: 0;
+    background-color: var(--RU_secondaryColor);
+}
+
+.subMenuItem {
+    padding: 1rem;
+    cursor: pointer;
+}
+
+.subMenuItem:hover>.subSubMenu {
+    display: block;
+}
+
+
+.subMenuItem:hover>div>a,
+.subMenuItem:hover>div>svg {
+    color: var(--RU_primaryColor);
+    fill: var(--RU_primaryColor);
+}
+
+.subSubMenu {
+    display: none;
+    position: absolute;
+    top: 0;
+    right: 0;
+    translate: 100% 0;
+    background-color: var(--RU_secondaryColor);
+}
+
+.subSubMenuItem {
+    padding: 1rem;
+    cursor: pointer;
+}
+
+.subSubMenuItem:hover>a,
+.subSubMenuItem:hover>svg {
+    color: var(--RU_primaryColor);
+    fill: var(--RU_primaryColor);
+}
+
+
+
+
+
+
+
+
+
+
+/* all but desktop styles */
+
+.mainNav:where(:not(.desktopMode)) .mainMenu {
+    display: grid;
+    justify-content: stretch;
+    grid-auto-flow: row;
+    height: auto;
+    max-height: 60vh;
+    overflow-y: auto;
+    position: absolute;
+    top: 3rem;
+    left: 50%;
+    translate: -50% 0%;
+    width: 80%;
+    border: 1px solid black;
+}
+
+.mainNav:where(:not(.desktopMode)) .mainMenuItem {
+    position: relative;
+    padding: 1rem;
+    border-bottom: 1px solid #000;
+}
+
+.mainNav:where(:not(.desktopMode)) .mainMenuItem>div:first-of-type {
+    padding: 0;
+}
+
+.mainNav:where(:not(.desktopMode)) .mainMenuItem:hover>.subMenu {
+    display: block;
+}
+
+.mainNav:where(:not(.desktopMode)) .subMenu {
+    display: block;
+    position: relative;
+    top: 0rem;
+    left: 0rem;
+}
+
+
+.mainNav:where(:not(.desktopMode)) .subMenuItem>div:first-of-type {
+    padding: 0;
+}
+
+.mainNav:where(:not(.desktopMode)) .subMenuItem:hover>.subSubMenu {
+    display: block;
+}
+
+.mainNav:where(:not(.desktopMode)) .subSubMenu {
+    display: block;
+    position: relative;
+    top: 0rem;
+    left: 0rem;
+    translate: 0px 0px;
+}
+
+.mainNav:where(:not(.desktopMode)) .subSubMenuItem {
+    padding: 1rem;
+}

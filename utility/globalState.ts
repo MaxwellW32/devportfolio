@@ -10,3 +10,6 @@ export const screenSizeGlobal = atom<{
     tablet: false,
     phone: false
 });
+
+
+export const themeGlobal = atom<{ light: boolean, dark: boolean, custom: boolean } | undefined>(undefined);

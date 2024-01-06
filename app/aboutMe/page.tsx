@@ -181,9 +181,9 @@ export default function Page() {
                 </div>
             </section>
 
-            <section>
+            {/* <section>
                 <Testimonials />
-            </section>
+            </section> */}
 
             <section style={{ backgroundColor: "var(--backgroundColor)" }}>
                 <div style={{ display: "grid" }}>

@@ -19,19 +19,14 @@ html {
   color: #fff;
   scroll-behavior: smooth;
   scroll-padding-top: 10rem;
+  min-height: 100%;
+  display: grid;
 }
 
 *,
 *::before,
 *::after {
   /* border: 1px solid red !important; */
-}
-
-
-
-html {
-  min-height: 100%;
-  display: grid;
 }
 
 body {

@@ -1,11 +1,12 @@
 import CompanyGraph from "@/components/homePageExamples/companyGraph/CompanyGraph"
 import FashionStore from "@/components/homePageExamples/fashionStore/FashionStore"
+import Oreo from "@/components/homePageExamples/oreo/Oreo"
 import PizzaSlice from "@/components/homePageExamples/pizzaSlice/PizzaSlice"
 import Stars from "@/components/homePageExamples/stars/Stars"
 
 export type homePage = {
     image: string,
-    category: string,//website type
+    category: string,
     title: string,
     slug: string,
     seenComponent: JSX.Element,
@@ -38,5 +39,12 @@ export const homePageExamples: homePage[] = [
         title: "Pizza Slice",
         slug: "pizzaSlice",
         seenComponent: <PizzaSlice />
+    },
+    {
+        image: require(`@/public/homePageExamples/oreo/oreoslideimage.png`).default.src,
+        category: "Food",
+        title: "Oreo",
+        slug: "Oreo",
+        seenComponent: <Oreo />
     }
 ]

@@ -1,13 +1,12 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
 import './globals.css'
 import Navbar from '@/components/navbar/Navbar'
 import AtomLoader from '@/utility/AtomLoader'
 import { Toaster } from 'react-hot-toast'
 import Footer from '@/components/footer/Footer'
 import PlayMusic from '@/components/playMusic/PlayMusic'
+import ThemeProvider from '@/utility/ThemeProvider'
 
-const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: 'Portfolio',
@@ -21,17 +20,21 @@ export default function ProjectLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <ThemeProvider>
         <AtomLoader />
-        <PlayMusic />
-        <Navbar />
+
+        <div>
+          <PlayMusic />
+          <Navbar />
+        </div>
+
         <Toaster
           position="top-center"
           reverseOrder={false}
         />
         {children}
         <Footer />
-      </body>
+      </ThemeProvider>
     </html>
   )
 }

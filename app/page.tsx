@@ -31,6 +31,14 @@ export default function page() {
 
             <p className="extraLargeText">Maxwell Wedderburn</p>
 
+            <div>
+              <h1 style={{ color: "rgb(var(--color1))" }}>each</h1>
+              <h1 style={{ color: "rgb(var(--color2))" }}>word</h1>
+              <h1 style={{ color: "rgb(var(--color3))" }}>is a</h1>
+              <h1 style={{ color: "rgb(var(--color4))" }}>different</h1>
+              <h1 style={{ color: "rgb(var(--color5))" }}>color</h1>
+            </div>
+
             <div style={{ display: "flex", flexDirection: "column", gap: "2rem", marginTop: "1rem" }}>
               <TextChanger />
 
@@ -138,9 +146,9 @@ export default function page() {
         <MyProjects />
       </section>
 
-      <section>
+      {/* <section>
         <Testimonials />
-      </section>
+      </section> */}
 
       <section style={{ backgroundColor: "var(--backgroundColor)" }}>
         <div style={{ display: "grid" }}>
