@@ -63,7 +63,7 @@ export default function ThemeBar({ showingThemeNavSet }: { showingThemeNavSet: R
     }, [])
 
     return (
-        <div style={{ position: "absolute", top: 0, right: 0, width: "min(400px, 100%)", backgroundColor: "var(--primaryColor)", padding: "3rem 1rem", display: "flex", flexDirection: "column", gap: "1rem", color: "#fff", border: "1px solid #fff" }}>
+        <div style={{ position: "absolute", top: 0, right: 0, width: "min(400px, 100%)", backgroundColor: "var(--primaryColor)", padding: "3rem 1rem", display: "flex", flexDirection: "column", gap: "1rem", color: "#fff", border: "1px solid rgb(var(--color2))" }}>
             <svg style={{ marginLeft: "auto" }} onClick={() => {
                 showingThemeNavSet && showingThemeNavSet(false)
             }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M64 32C28.7 32 0 60.7 0 96V416c0 35.3 28.7 64 64 64H448c35.3 0 64-28.7 64-64V96c0-35.3-28.7-64-64-64H64zM175 175c9.4-9.4 24.6-9.4 33.9 0l47 47 47-47c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9l-47 47 47 47c9.4 9.4 9.4 24.6 0 33.9s-24.6 9.4-33.9 0l-47-47-47 47c-9.4 9.4-24.6 9.4-33.9 0s-9.4-24.6 0-33.9l47-47-47-47c-9.4-9.4-9.4-24.6 0-33.9z" /></svg>
