@@ -22,11 +22,8 @@ export default function ProjectLayout({
     <html lang="en">
       <ThemeProvider>
         <AtomLoader />
-
-        <div>
-          <PlayMusic />
-          <Navbar />
-        </div>
+        <PlayMusic />
+        <Navbar />
 
         <Toaster
           position="top-center"

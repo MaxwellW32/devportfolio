@@ -11,8 +11,8 @@ export default function ThemeBar({ showingThemeNavSet }: { showingThemeNavSet: R
     const colorOptionsArr: colorOptionsType[] = ["complementary", "analogous", "triad"]
     const [colorModeSelection, colorModeSelectionSet] = useState<colorOptionsType>("complementary")
     const [lastColorModeSelected, lastColorModeSelectedSet] = useState("")
+    const [checkedOldColors, checkedOldColorsSet] = useState(false)
     const [baseColor, baseColorSet] = useState("#ff0000")
-    const [checkedOldBaseColorVal, checkedOldBaseColorValSet] = useState(false)
 
     const implementedColors = useMemo(() => {
         const seenHSL = hexToHSL(baseColor)
@@ -38,26 +38,28 @@ export default function ThemeBar({ showingThemeNavSet }: { showingThemeNavSet: R
         const firstColorHSL = hexToHSL(baseColor)
         const firstColorRGB = HSLToRGB(firstColorHSL[0], firstColorHSL[1], firstColorHSL[2])
 
-        checkedOldBaseColorVal && saveToLocalStorage("customTheme", { colors: [`${firstColorRGB[0]}, ${firstColorRGB[1]}, ${firstColorRGB[2]}`, ...rgbColors], options: { lowContrast: lowContrast, lowBrightness: lowBrightness } })
+        if (theme && theme.custom && checkedOldColors) {
+            saveToLocalStorage("customTheme", { colors: [`${firstColorRGB[0]}, ${firstColorRGB[1]}, ${firstColorRGB[2]}`, ...rgbColors], options: { lowContrast: lowContrast, lowBrightness: lowBrightness } })
 
-        if (lastColorModeSelected !== colorModeSelection) {
-            lastColorModeSelectedSet(colorModeSelection)
-            themeSet({ light: false, dark: false, custom: true })
+            if (lastColorModeSelected !== colorModeSelection) {
+                lastColorModeSelectedSet(colorModeSelection)
+                themeSet({ light: false, dark: false, custom: true })
+            }
         }
 
         return colors
-    }, [baseColor, colorModeSelection])
+    }, [baseColor, colorModeSelection, theme, checkedOldColors])
 
     //load up current custom
     useEffect(() => {
         const customSettings = retreiveFromLocalStorage("customTheme")
 
-        if (theme && theme.custom && customSettings !== null) {
+        if (customSettings !== null) {
             const splitString = customSettings.colors[0].split(",")
             baseColorSet(rgbToHex(parseInt(splitString[0]), parseInt(splitString[1]), parseInt(splitString[2])))
         }
 
-        checkedOldBaseColorValSet(true)
+        checkedOldColorsSet(true)
     }, [])
 
     return (

@@ -39,23 +39,23 @@
     }
 
     15% {
-        fill: #FF5F6D;
+        fill: rgb(var(--color1))
     }
 
     30% {
-        fill: #FFC371;
+        fill: rgb(var(--color2))
     }
 
     45% {
-        fill: #6B5B95;
+        fill: rgb(var(--color3))
     }
 
     60% {
-        fill: #B565A7;
+        fill: rgb(var(--color4))
     }
 
     75% {
-        fill: #88B04B;
+        fill: rgb(var(--color5))
     }
 
     100% {
