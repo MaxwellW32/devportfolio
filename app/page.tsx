@@ -27,17 +27,18 @@ export default function page() {
           <Image alt="profile" priority={true} width={400} height={400} src={require(`@/public/cat1.png`).default.src} style={{ flex: "1 1 400px", }} />
 
           <article style={{ flex: "1 1 500px" }}>
-            <h1>Hello I&apos;m</h1>
+            <h1 style={{ display: "flex", gap: "1rem" }}>
+              <div style={{ display: "flex", gap: ".1rem" }}>
+                <h1 style={{ color: "rgb(var(--color1))" }}>H</h1>
+                <h1 style={{ color: "rgb(var(--color2))" }}>e</h1>
+                <h1 style={{ color: "rgb(var(--color3))" }}>l</h1>
+                <h1 style={{ color: "rgb(var(--color4))" }}>l</h1>
+                <h1 style={{ color: "rgb(var(--color5))" }}>o</h1>
+              </div>
+
+              I&apos;m</h1>
 
             <p className="extraLargeText">Maxwell Wedderburn</p>
-
-            <div>
-              <h1 style={{ color: "rgb(var(--color1))" }}>each</h1>
-              <h1 style={{ color: "rgb(var(--color2))" }}>word</h1>
-              <h1 style={{ color: "rgb(var(--color3))" }}>is a</h1>
-              <h1 style={{ color: "rgb(var(--color4))" }}>different</h1>
-              <h1 style={{ color: "rgb(var(--color5))" }}>color</h1>
-            </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "2rem", marginTop: "1rem" }}>
               <TextChanger />

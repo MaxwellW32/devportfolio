@@ -3,17 +3,14 @@ import React, { useState } from 'react'
 import styles from "./navbar.module.css"
 import Link from 'next/link'
 import { useAtom } from 'jotai'
-import { screenSizeGlobal, themeGlobal } from '@/utility/globalState'
+import { screenSizeGlobal } from '@/utility/globalState'
 import Logo from '../logo/Logo'
 import { getProjectsForNav } from '@/lib/ProjectsData'
 import ThemeBar from '../themeBar/ThemeBar'
 
 export default function Navbar() {
     const [screenSize] = useAtom(screenSizeGlobal)
-    const [, themeSet] = useAtom(themeGlobal)
-
     const [showingThemeNav, showingThemeNavSet] = useState(false)
-
 
     type mainMenuItem = {
         title: string,
@@ -113,7 +110,6 @@ export default function Navbar() {
 
         return newObj
     })
-
 
     return (
         <nav className={styles.navBar}>

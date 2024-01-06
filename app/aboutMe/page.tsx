@@ -22,9 +22,7 @@ export default function Page() {
                     <div style={{ flex: "999 1 400px" }}>
                         <p className='extraLargeText'>I&apos;m Maxwell Wedderburn</p>
 
-                        {/* <p style={{ color: "#aaa", fontSize: "var(--largeFontSize)" }}>Fullstack Developer specializing in React</p> */}
                         <TextChanger />
-
 
                         <p style={{ marginTop: "1rem" }}>I love learning, and I have many app ideas that I want to bring to life. So I am always learning the newest technology, the best industry practises so I can bring these ideas to life, and use them to enrich my clients websites.</p>
                     </div>
