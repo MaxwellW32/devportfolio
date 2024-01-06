@@ -25,16 +25,6 @@ export const getColors: (h: number, s: number, l: number, colorOptions: colorOpt
         const spread = 12
         const spread2 = 36
 
-        if (s < 20) {
-            toast.success("getting outline")
-        }
-
-        if (l < 30) {
-            toast.success("getting darkMode")
-        }
-
-
-
         return [
             { h: (h + spread) % 360, s: s, l: l },
             { h: (h + spread * 2) % 360, s: s, l: l },
