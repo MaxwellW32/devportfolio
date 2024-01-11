@@ -16,7 +16,7 @@ const colors = {
     tirtiaryColor: "#046766"
 }
 
-export default function CompanyGraph() {
+export default function Page() {
 
 
     return (

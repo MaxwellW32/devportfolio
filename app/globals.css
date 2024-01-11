@@ -4,8 +4,6 @@
 
 :root {
   --primaryColor: #252734;
-  --backgroundColor: #2a2c39;
-
   /* text sizes */
   --extraLargeFontSize: 3rem;
   --largeFontSize: 2rem;
@@ -115,7 +113,7 @@ input[type=number] {
 input,
 textarea {
   padding: 1rem;
-  background-color: var(--backgroundColor);
+  background-color: rgb(var(--backgroundColor));
   border: 1px solid #777;
   border-radius: 0;
   position: relative;

@@ -12,7 +12,7 @@ import Socials from "@/components/socials/Socials";
 import Testimonials from "@/components/testimonials/Testimonials";
 import TextChanger from "@/components/textChanger/TextChanger";
 import TrustedCompanies from "@/components/trustedCompanies/TrustedCompanies";
-import { homePageExamples } from "@/lib/HomePageData";
+import { landingPageExamples } from "@/lib/landingPageExamplesData";
 import { madeWebsites } from "@/lib/MadeWebsitesData";
 import Image from "next/image";
 import Link from "next/link";
@@ -83,13 +83,13 @@ export default function page() {
       </section>
 
       <section style={{ backgroundColor: "var(--backgroundColor)" }}>
-        <h2>HomePage Examples</h2>
+        <h2>Landing Page Examples</h2>
 
-        <p style={{ marginBottom: "1rem" }} className="extraLargeText">Find a Homepage You&apos;ll Love.</p>
+        <p style={{ marginBottom: "1rem" }} className="extraLargeText">Your website could look like this.</p>
 
         <InfiniteScroll amountOfTrains={3} initialTimeToLoop={20}>
           <div className="noScrollBar" style={{ display: "grid", gridAutoFlow: "column", gridAutoColumns: "250px", overflowX: "auto", gap: "1rem", marginRight: "1rem" }}>
-            {homePageExamples.map((eachHomePageExample, eachHomePageExampleIndex) => {
+            {landingPageExamples.map((eachHomePageExample, eachHomePageExampleIndex) => {
               return (
                 <ShowHomePageExample key={eachHomePageExampleIndex} {...eachHomePageExample} />
               )

@@ -167,7 +167,7 @@ function Calcultor() {
         <div className={styles.calcMainDiv} style={{ display: "grid", height: "100svh" }}>
 
             {firstLogin && (
-                <div style={{ position: "fixed", top: 0, left: 0, height: "100%", width: "100%", zIndex: 2, backgroundColor: "var(--backgroundColor)", padding: "1rem", display: "grid", alignContent: "flex-start", gap: "1rem", textAlign: "center" }}>
+                <div style={{ position: "fixed", top: 0, left: 0, height: "100%", width: "100%", zIndex: 2, backgroundColor: "rgb(var(--backgroundColor))", padding: "1rem", display: "grid", alignContent: "flex-start", gap: "1rem", textAlign: "center" }}>
                     <p>This is a secret gallery, posing as a calculator</p>
 
                     <p>Set a pin to trigger the hidden gallery - E.g 1234</p>
@@ -192,7 +192,7 @@ function Calcultor() {
             )}
 
             {showValidationScreen && (
-                <div style={{ position: "fixed", top: 0, left: 0, height: "100%", width: "100%", zIndex: 2, backgroundColor: "var(--backgroundColor)", padding: "1rem", display: "grid", alignContent: "flex-start", gap: "1rem", textAlign: "center" }}>
+                <div style={{ position: "fixed", top: 0, left: 0, height: "100%", width: "100%", zIndex: 2, backgroundColor: "rgb(var(--backgroundColor))", padding: "1rem", display: "grid", alignContent: "flex-start", gap: "1rem", textAlign: "center" }}>
 
                     <input type="number" ref={passwordInput} placeholder="pin..." />
                     <input type="text" ref={secretKeyInput} placeholder="Secret Key..." />

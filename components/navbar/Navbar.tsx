@@ -39,8 +39,8 @@ export default function Navbar() {
                     link: "/websites"
                 },
                 {
-                    title: "Homepage Examples",
-                    link: "/homepages"
+                    title: "Landing Page Examples",
+                    link: "/landingPageExamples"
                 }
             ]
         },

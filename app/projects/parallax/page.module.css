@@ -1,9 +1,9 @@
 .artDrawDiv {
-    background-color: var(--backgroundColor);
+    background-color: rgb(var(--backgroundColor));
 }
 
 .artDrawDiv section {
-    background-color: var(--backgroundColor);
+    background-color: rgb(var(--backgroundColor));
 }
 
 .wrapper::-webkit-scrollbar {
@@ -21,7 +21,7 @@
 
 .wrapper h1 {
     animation: move 3s;
-    transform: translateZ(-4px) translateY(-100px);
+    /* transform: translateZ(-4px) translateY(-100px); */
 }
 
 .wrapper header {
@@ -46,7 +46,7 @@
 
 .sectionCont {
     display: grid;
-    background-color: var(--backgroundColor);
+    background-color: rgb(var(--backgroundColor));
 }
 
 .sectionCont>section {
@@ -134,9 +134,5 @@
         opacity: 0;
         scale: 4;
         translate: 0 -100vh;
-    }
-
-    to {
-        opacity: 1;
     }
 }

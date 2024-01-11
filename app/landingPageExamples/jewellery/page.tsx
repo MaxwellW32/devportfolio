@@ -70,7 +70,7 @@ const arrivalItems = [
 ]
 
 
-export default function FashionStore() {
+export default function Page() {
 
     const navItemsContainer = useRef<HTMLUListElement>(null!)
     const arrivalItemsRefs = useRef<HTMLDivElement[]>([])
@@ -136,7 +136,7 @@ export default function FashionStore() {
         <div className={`${styles.artisticMainDiv} ${playfair_display.variable}`} style={{ backgroundColor: "#fff" }}>
             <nav style={{ background: "linear-gradient(to right, pink, #d48592)", display: "grid", gridTemplateColumns: "min(1020px, 100%)", justifyContent: "center", zIndex: "10", position: "relative" }}>
                 <div className={styles.transformTopDown} style={{ backgroundColor: "#fff", display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-around", padding: '.5rem 1rem', gap: "1rem" }}>
-                    <Image width={200} height={70} style={{ height: "4rem" }} src={require("@/public/homePageExamples/fashionStore/artlogo.png").default.src} alt='logo' />
+                    <Image width={200} height={70} style={{ height: "4rem" }} src={require("@/public/landingPageExamples/fashionStore/artlogo.png").default.src} alt='logo' />
 
                     <p style={{ color: "#cd7b86" }} className={styles.makeBold}>FREE INSURED SHIPPING ON ALL DOMESTIC U.S ORDERS!</p>
 
@@ -179,7 +179,7 @@ export default function FashionStore() {
                 </ul>
             </nav>
 
-            <section className={`${styles.darkBackdrop}`} style={{ paddingBlock: "5rem", backgroundImage: `url(${require("@/public/homePageExamples/fashionStore/artsectionbg1.png").default.src})`, backgroundColor: "pink" }}>
+            <section className={`${styles.darkBackdrop}`} style={{ paddingBlock: "5rem", backgroundImage: `url(${require("@/public/landingPageExamples/fashionStore/artsectionbg1.png").default.src})`, backgroundColor: "pink" }}>
                 <h2 className={`${styles.fadeRotateIn}`}>ANTIQUE JEWELRY!</h2>
 
                 <div style={{ display: 'grid', gridTemplateColumns: "repeat(auto-fit, minmax(min(200px, 100%), 400px) )", gap: "1rem", marginTop: "2rem", marginBottom: "3rem", justifyContent: "space-around" }}>
@@ -204,7 +204,7 @@ export default function FashionStore() {
                     {arrivalItems.map((eachItem, eachItemIndex) => {
 
                         return (
-                            <div key={eachItemIndex} ref={(e) => addToArrivalItemsRefs(e, eachItemIndex)} className={`${styles.arrivalItem} ${styles.itemAnim}`} style={{ animationDelay: `${eachItemIndex * 100}ms` }}>
+                            <div key={eachItemIndex} ref={(e) => addToArrivalItemsRefs(e, eachItemIndex)} className={`${styles.arrivalItem} ${styles.itemAnim}`} style={{ animationDelay: `${eachItemIndex * 50}ms` }}>
                                 <div style={{ position: "relative" }}>
                                     <img style={{ objectFit: "cover", width: "100%", aspectRatio: "1/1", position: "relative" }} src={eachItem.image} alt='itemImg'
 

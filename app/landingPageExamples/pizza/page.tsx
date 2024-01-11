@@ -8,7 +8,7 @@ const colors = {
     primary: "#df4f2d"
 }
 
-export default function PizzaSlice() {
+export default function Page() {
     const [amtOfPizzaSlices, amtOfPizzaSlicesSet] = useState(9)
     const [rndIndexChosen, rndIndexChosenSet] = useState(Math.floor(Math.random() * amtOfPizzaSlices))
     const [mouseOverPizzaBox, mouseOverPizzaBoxSet] = useState(false)
@@ -71,8 +71,8 @@ export default function PizzaSlice() {
     }, [])
     return (
         <div className={styles.pizzaMainDiv} style={{ backgroundColor: "#000", position: "relative", overflowX: "hidden" }}>
-            <div ref={pizzaTableBackground} className={styles.pizzaTableBackground} style={{ aspectRatio: "16/9", background: `url(${require("@/public/homePageExamples/pizzaSlice/pizzaTable.png").default.src}) left top`, backgroundSize: "contain", position: "relative", overflow: "hidden" }}>
-                <div className={styles.woodenPizzaPeel} style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", background: `url(${require("@/public/homePageExamples/pizzaSlice/woodenpizzapeel.png").default.src}) left top`, backgroundSize: "contain" }}></div>
+            <div ref={pizzaTableBackground} className={styles.pizzaTableBackground} style={{ aspectRatio: "16/9", background: `url(${require("@/public/landingPageExamples/pizzaSlice/pizzaTable.png").default.src}) left top`, backgroundSize: "contain", position: "relative", overflow: "hidden" }}>
+                <div className={styles.woodenPizzaPeel} style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", background: `url(${require("@/public/landingPageExamples/pizzaSlice/woodenpizzapeel.png").default.src}) left top`, backgroundSize: "contain" }}></div>
 
                 <div className={styles.pizzaBox} style={{ height: "55%", aspectRatio: "1/1", position: 'absolute', rotate: "-90deg", top: "15%", left: '17%' }} onMouseEnter={() => { mouseOverPizzaBoxSet(true) }} onMouseLeave={() => { mouseOverPizzaBoxSet(false) }}>
                     {activeFlavor === "pepperoni" ? (
@@ -88,24 +88,24 @@ export default function PizzaSlice() {
                                 if (eachPizzaIndex === 6) { offset = 1, translateOffset = 3 }
 
                                 return (
-                                    <EachPizzaSlice key={eachPizzaIndex} imgSrc={require(`@/public/homePageExamples/pizzaSlice/pizzaslices/slice ${eachPizzaIndex + 1}.png`).default.src} rotation={((-360 / amtOfPizzaSlices) * eachPizzaIndex) + offset} translateAmt={translateOffset} randomlyPull={eachPizzaIndex === rndIndexChosen && !mouseOverPizzaBox ? true : false} />
+                                    <EachPizzaSlice key={eachPizzaIndex} imgSrc={require(`@/public/landingPageExamples/pizzaSlice/pizzaslices/slice ${eachPizzaIndex + 1}.png`).default.src} rotation={((-360 / amtOfPizzaSlices) * eachPizzaIndex) + offset} translateAmt={translateOffset} randomlyPull={eachPizzaIndex === rndIndexChosen && !mouseOverPizzaBox ? true : false} />
                                 )
                             })}
                         </>
                     ) : activeFlavor === "cheese" ? (
                         <>
-                            <img className={styles.pizzaImage} alt="Cheese pizza" src={require(`@/public/homePageExamples/pizzaSlice/cheesepizza.png`).default.src} />
+                            <img className={styles.pizzaImage} alt="Cheese pizza" src={require(`@/public/landingPageExamples/pizzaSlice/cheesepizza.png`).default.src} />
                         </>
                     ) : activeFlavor === "mushroom" ? (
                         <>
-                            <img className={styles.pizzaImage} alt="Cheese pizza" src={require(`@/public/homePageExamples/pizzaSlice/mushroompizza.png`).default.src} />
+                            <img className={styles.pizzaImage} alt="Cheese pizza" src={require(`@/public/landingPageExamples/pizzaSlice/mushroompizza.png`).default.src} />
                         </>
                     ) : null}
                 </div>
             </div>
 
             <div className={styles.menu} ref={menu} style={{}}>
-                <img alt="pizzaLogo" style={{ height: "7rem" }} src={require(`@/public/homePageExamples/pizzaSlice/pizza slice logo.png`).default.src} />
+                <img alt="pizzaLogo" style={{ height: "7rem" }} src={require(`@/public/landingPageExamples/pizzaSlice/pizza slice logo.png`).default.src} />
 
                 <div style={{ textAlign: "center" }}>
                     <h2 style={{ marginTop: "1rem" }}>Welcome to CraveSlice</h2><br />
@@ -130,7 +130,7 @@ export default function PizzaSlice() {
                 </div>
 
 
-                <div style={{ background: `url(${require("@/public/homePageExamples/pizzaSlice/splashbg.png").default.src})`, backgroundSize: "cover", height: "200px", aspectRatio: "16/9", display: "grid", justifyItems: "center", alignItems: "center", alignContent: "center" }}>
+                <div style={{ background: `url(${require("@/public/landingPageExamples/pizzaSlice/splashbg.png").default.src})`, backgroundSize: "cover", height: "200px", aspectRatio: "16/9", display: "grid", justifyItems: "center", alignItems: "center", alignContent: "center" }}>
                     <p>Choose your Pizza</p>
                     <br />
 

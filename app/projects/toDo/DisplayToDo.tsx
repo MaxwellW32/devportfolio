@@ -31,7 +31,7 @@ export default function DisplayToDo({ passedToDo, makingNewToDoSet, toDoToEditSe
         width: "100%",
         height: "100svh",
         zIndex: 1,
-        backgroundColor: "var(--backgroundColor)",
+        backgroundColor: "rgb(var(--backgroundColor))",
         padding: "1rem",
         overflowY: "scroll"
     } as React.CSSProperties
@@ -186,7 +186,7 @@ export default function DisplayToDo({ passedToDo, makingNewToDoSet, toDoToEditSe
                     )}
                 </div>
             ) : (
-                <div className={styles.mainCont} style={{ position: "fixed", top: 0, left: 0, width: "100%", height: "100svh", zIndex: 1, backgroundColor: "var(--backgroundColor)", overflowY: "scroll" }}>
+                <div className={styles.mainCont} style={{ position: "fixed", top: 0, left: 0, width: "100%", height: "100svh", zIndex: 1, backgroundColor: "rgb(var(--backgroundColor))", overflowY: "scroll" }}>
                     <div style={{ display: "flex", justifyContent: "flex-end" }}>
                         <button className={styles.utilityButton} style={{ justifySelf: "flex-start" }} onClick={handleSave}>Save</button>
                         <button className={styles.utilityButton} style={{ justifySelf: "flex-start" }} onClick={() => {

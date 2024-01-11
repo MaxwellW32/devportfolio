@@ -26,7 +26,7 @@ export type boardInfoType = {
     mouseY: number | undefined,
 }
 
-export default function Stars() {
+export default function Page() {
     const boardInfo = useRef<boardInfoType | undefined>({
         maxHeight: 0,
         maxWidth: 0,
@@ -44,7 +44,7 @@ export default function Stars() {
 
     return (
         <div ref={scrollCont} className={`${styles.starsMainDiv} ${roboto_mono.variable} ${comin_nue.variable}`} style={{ backgroundColor: "#000", overflowY: "auto", display: "grid", gridAutoRows: "80vh", }}>
-            <div ref={wormParent} style={{ overflow: "hidden", position: "relative", backgroundImage: `url(${require("@/public/homePageExamples/stars/mountain.png").default.src})`, backgroundSize: "cover", display: "grid", gridTemplateRows: "1fr" }}
+            <div ref={wormParent} style={{ overflow: "hidden", position: "relative", backgroundImage: `url(${require("@/public/landingPageExamples/stars/mountain.png").default.src})`, backgroundSize: "cover", display: "grid", gridTemplateRows: "1fr" }}
                 onMouseMove={(e) => {
                     boardInfo.current!.mouseX = e.clientX - wormParent.current!.offsetLeft
                     boardInfo.current!.mouseY = (e.pageY - wormParent.current!.offsetTop) + scrollCont.current!.scrollTop

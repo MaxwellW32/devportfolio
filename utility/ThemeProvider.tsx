@@ -54,7 +54,7 @@ export default function ThemeProvider({ children }: { children: ReactNode }) {
                 '--color4': theme.light ? "0, 255, 22" : "8, 156, 255",
                 '--color5': theme.light ? "0, 149, 255" : "178, 8, 255",
                 '--textColor': theme.light ? "30, 30, 30" : "255, 255, 255",
-                '--backgroundColor': theme.light ? "50, 50, 50" : "30, 30, 30",
+                '--backgroundColor': theme.light ? "42, 44, 57" : "42, 44, 57",
             }
 
             return newThemeObj
@@ -70,7 +70,7 @@ export default function ThemeProvider({ children }: { children: ReactNode }) {
                 '--color4': customSettings.colors[3],
                 '--color5': customSettings.colors[4],
                 '--textColor': customSettings.options.lowBrightness < 30 ? "30, 30, 30" : "255, 255, 255",
-                '--backgroundColor': customSettings.options.lowBrightness < 30 ? "50, 50, 50" : "30, 30, 30",
+                '--backgroundColor': customSettings.options.lowBrightness < 30 ? "42, 44, 57" : "42, 44, 57",
                 '--lowContrastBorder': customSettings.options.lowContrast < 20 ? `3px solid ${customSettings.options.lowBrightness ? "#fff" : "#000"}` : "none"
             }
 

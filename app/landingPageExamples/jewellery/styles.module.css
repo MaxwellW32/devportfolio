@@ -4,6 +4,10 @@
     font-family: var(--font-playfair_display);
 }
 
+.artisticMainDiv h2::before {
+    content: none;
+}
+
 .makeBold {
     font-weight: 700;
 }
@@ -148,14 +152,13 @@
     position: absolute;
     height: 100%;
     width: 100%;
-    background-image: url("../../../public/homePageExamples/fashionStore/defaultjewel.png");
+    background-image: url("../../../public/landingPageExamples/fashionStore/defaultjewel.png");
     background-size: cover;
 }
 
 .itemAnim {
-    animation: itemAnimationKeyframes 1s;
-    animation-fill-mode: both;
-    animation-play-state: paused;
+    animation: itemAnimationKeyframes 1s both paused;
+    transform-origin: top left;
 }
 
 @keyframes itemAnimationKeyframes {

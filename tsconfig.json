@@ -33,7 +33,7 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "components/homePageExamples/companyGraph/s"
+    "app/homepages/graph/s"
   ],
   "exclude": [
     "node_modules"
