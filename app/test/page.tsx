@@ -67,11 +67,11 @@ export default function Page() {
             points: 9
         },
         "king": {
-            piece: "queen",
+            piece: "king",
             points: 0
         },
         "pawn": {
-            piece: "queen",
+            piece: "pawn",
             points: 1
         },
     }
@@ -230,7 +230,7 @@ export default function Page() {
         if (checkmatedKing) clearInterval(autoPlayLoop.current)
 
         autoPlayLoop.current = setInterval(() => {
-            play(chessPieces)
+            // play(chessPieces)
             autoMovingSet(true)
         }, 800)
 
