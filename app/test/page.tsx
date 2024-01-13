@@ -21,28 +21,9 @@ export default function Page() {
     }
     type newSquare = undefined | { state: null | chessPiece, position: [number, number] }
 
-    // type chessPieceStatChoicesType = {
-    //     rook: {
-    //         image: undefined;
-    //         piece: piece;
-    //         points: number;
-    //     };
-    //     knight: {
-    //         image: undefined;
-    //         piece: piece;
-    //         points: number;
-    //     };
-    //     bishop: {
-    //         image: undefined;
-    //         piece: piece;
-    //         points: number;
-    //     };
-    //     queen: {
-    //         image: undefined;
-    //         piece: piece;
-    //         points: number;
-    //     };
-    // }
+    const [playerTeamSelection, playerTeamSelectionSet] = useState<"black" | "white">("white")
+    const [showingSettings, showingSettingsSet] = useState(false)
+    const [gameMode, gameModeSet] = useState<"auto" | "manual" | "verse">("auto")
 
     const chessPieceStatChoices: {
         [key: string]: {
@@ -82,12 +63,11 @@ export default function Page() {
 
     const [currentTurn, currentTurnSet] = useState<"black" | "white">("white")
     const [checkmatedKing, checkmatedKingSet] = useState<chessPiece>()
-    const [autoMoving, autoMovingSet] = useState(false)
+    const [staleMate, staleMateSet] = useState(false)
     const [enpassantInPlay, enpassantInPlaySet] = useState<{
         position: [number, number],
         pieceToCollect: chessPiece
     }>()
-
     const [canCastle, canCastleSet] = useState<{
         position: [number, number],
         pieceToCollect: chessPiece
@@ -119,7 +99,7 @@ export default function Page() {
         }
     }
 
-    const [chessPieces, chessPiecesSet] = useState<chessPiece[]>([
+    const initialChessPieces: chessPiece[] = [
         { id: 1, ...chessPieceStatChoices["rook"], currentPos: [0, 0], validSquaresToMove: [], team: "black", image: getChessPieceImage("rook", "black"), movedAmount: 0 },
         { id: 2, ...chessPieceStatChoices["knight"], currentPos: [0, 1], validSquaresToMove: [], team: "black", image: getChessPieceImage("knight", "black"), },
         { id: 3, ...chessPieceStatChoices["bishop"], currentPos: [0, 2], validSquaresToMove: [], team: "black", image: getChessPieceImage("bishop", "black"), },
@@ -157,7 +137,8 @@ export default function Page() {
         { id: 30, ...chessPieceStatChoices["bishop"], currentPos: [7, 5], validSquaresToMove: [], team: "white", image: getChessPieceImage("bishop", "white"), },
         { id: 31, ...chessPieceStatChoices["knight"], currentPos: [7, 6], validSquaresToMove: [], team: "white", image: getChessPieceImage("knight", "white"), },
         { id: 32, ...chessPieceStatChoices["rook"], currentPos: [7, 7], validSquaresToMove: [], team: "white", image: getChessPieceImage("rook", "white"), movedAmount: 0 },
-    ])
+    ]
+    const [chessPieces, chessPiecesSet] = useState<chessPiece[]>([...initialChessPieces])
 
     const [capturedPieces, capturedPiecesSet] = useState<chessPiece[]>([])
     const [tilesBeingAttacked, tilesBeingAttackedSet] = useState<[number, number][]>([])
@@ -229,18 +210,40 @@ export default function Page() {
     useEffect(() => {
         if (checkmatedKing) return clearInterval(autoPlayLoop.current)
 
+        if (gameMode === "manual") return clearInterval(autoPlayLoop.current)
+
+        if (chessPieces.length === 2 && chessPieces[0].piece === "king" && chessPieces[1].piece === "king") {
+            staleMateSet(true)
+
+            setTimeout(resetAll, 5000);
+            return clearInterval(autoPlayLoop.current)
+        }
+
         autoPlayLoop.current = setInterval(() => {
             play(chessPieces)
-            autoMovingSet(true)
+            console.log(`$ran interval`);
         }, 800)
 
         return () => { if (autoPlayLoop.current) clearInterval(autoPlayLoop.current) }
-    }, [chessPieces, currentTurn, chessBoardArr, checkmatedKing])
+    }, [chessPieces, currentTurn, chessBoardArr, checkmatedKing, gameMode, playerTeamSelection])
 
     const play = (passedChessPieces: chessPiece[]) => {
-        let currentTeamPieces = passedChessPieces.filter(eachPiece => eachPiece.team === currentTurn)
+        if (gameMode === "manual") return
+
+        const autoEnemyTeam = playerTeamSelection === "white" ? "black" : "white" //oposite of player selection
+        if (gameMode === "verse" && autoEnemyTeam !== currentTurn) {
+            return
+        }
+
+        console.log(`$ran normal down here`);
+
+        let currentTeamPieces = passedChessPieces.filter(eachPiece => eachPiece.team === (gameMode === "auto" ? currentTurn : autoEnemyTeam
+        ))
+
         const rndIndex = Math.floor(Math.random() * currentTeamPieces.length)
-        if (currentTeamPieces.length === 0) {
+        if (currentTeamPieces.length === 0 && !checkmatedKing) {
+            staleMateSet(true)
+
             if (autoPlayLoop.current) clearInterval(autoPlayLoop.current)
             console.log(`$nothing more to do`);
             return
@@ -614,7 +617,7 @@ export default function Page() {
         if (finalCheck) return [...safeTiles] //end list of truly safe tiles
 
         //handle click on invalid move piece if king is in check
-        if (safeTiles.length === 0 && kingIsInCheck && !autoMoving) toast.error("Can't Move this piece. King is in check")
+        if (safeTiles.length === 0 && kingIsInCheck && gameMode !== "auto" && currentTurn === playerTeamSelection) toast.error("Can't Move this piece. King is in check")
 
         //aply valid moves to piece
         chessPiecesSet(prevChessPieces => {
@@ -959,9 +962,18 @@ export default function Page() {
         }
     }
 
+    const resetAll = () => {
+        if (checkmatedKing) checkmatedKingSet(undefined)
+
+        if (staleMate) staleMateSet(false)
+
+        chessPiecesSet([...initialChessPieces])
+        capturedPiecesSet([])
+    }
+
     return (
         <HideNav>
-            <div style={{ display: "grid", gridTemplateColumns: "1rem auto" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1rem auto auto" }}>
                 <div style={{ display: "grid", gridTemplateRows: `${whitePiecesCaptured[1] === 0 ? 0.5 : whitePiecesCaptured[1]}fr ${blackPiecesCaptured[1] === 0 ? 0.5 : blackPiecesCaptured[1]}fr` }}>
                     <div style={{ backgroundColor: "purple" }}></div>
                     <div style={{ backgroundColor: "gold" }}></div>
@@ -969,19 +981,19 @@ export default function Page() {
 
                 <div>
                     {checkmatedKing && (
-                        <>
-                            <p>We have a winnder</p>
-
+                        <div>
                             {checkmatedKing.team === "white" ? (
-                                <>
-                                    <p>Black is our winner</p>
-                                </>
+                                <p>Black is our winner</p>
                             ) : (
-                                <>
-                                    <p>White is our winner</p>
-                                </>
+                                <p>White is our winner</p>
                             )}
-                        </>
+                        </div>
+                    )}
+
+                    {staleMate && (
+                        <div>
+                            <p>Draw</p>
+                        </div>
                     )}
 
                     <div className={styles.chessBoard} ref={chessBoardRef}>
@@ -1011,8 +1023,6 @@ export default function Page() {
                                         onClick={() => {
                                             //select an item
                                             //move an item if active chess piece is there and valid move
-
-                                            autoMovingSet(false)
                                             handleInteractions(eachSquare, validSquareToMove, [eachRowArrIndex, eachSquareIndex])
                                         }}
                                     >
@@ -1022,6 +1032,39 @@ export default function Page() {
                             })
                         })}
                     </div>
+                </div>
+
+                <div>
+                    <div style={{ position: "relative" }}>
+                        <div onClick={() => { showingSettingsSet(prev => !prev) }}>
+                            <svg style={{ width: "1.5rem", marginBlock: "1rem" }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M495.9 166.6c3.2 8.7 .5 18.4-6.4 24.6l-43.3 39.4c1.1 8.3 1.7 16.8 1.7 25.4s-.6 17.1-1.7 25.4l43.3 39.4c6.9 6.2 9.6 15.9 6.4 24.6c-4.4 11.9-9.7 23.3-15.8 34.3l-4.7 8.1c-6.6 11-14 21.4-22.1 31.2c-5.9 7.2-15.7 9.6-24.5 6.8l-55.7-17.7c-13.4 10.3-28.2 18.9-44 25.4l-12.5 57.1c-2 9.1-9 16.3-18.2 17.8c-13.8 2.3-28 3.5-42.5 3.5s-28.7-1.2-42.5-3.5c-9.2-1.5-16.2-8.7-18.2-17.8l-12.5-57.1c-15.8-6.5-30.6-15.1-44-25.4L83.1 425.9c-8.8 2.8-18.6 .3-24.5-6.8c-8.1-9.8-15.5-20.2-22.1-31.2l-4.7-8.1c-6.1-11-11.4-22.4-15.8-34.3c-3.2-8.7-.5-18.4 6.4-24.6l43.3-39.4C64.6 273.1 64 264.6 64 256s.6-17.1 1.7-25.4L22.4 191.2c-6.9-6.2-9.6-15.9-6.4-24.6c4.4-11.9 9.7-23.3 15.8-34.3l4.7-8.1c6.6-11 14-21.4 22.1-31.2c5.9-7.2 15.7-9.6 24.5-6.8l55.7 17.7c13.4-10.3 28.2-18.9 44-25.4l12.5-57.1c2-9.1 9-16.3 18.2-17.8C227.3 1.2 241.5 0 256 0s28.7 1.2 42.5 3.5c9.2 1.5 16.2 8.7 18.2 17.8l12.5 57.1c15.8 6.5 30.6 15.1 44 25.4l55.7-17.7c8.8-2.8 18.6-.3 24.5 6.8c8.1 9.8 15.5 20.2 22.1 31.2l4.7 8.1c6.1 11 11.4 22.4 15.8 34.3zM256 336a80 80 0 1 0 0-160 80 80 0 1 0 0 160z" /></svg>
+                        </div>
+
+                        <div style={{ display: !showingSettings ? "none" : "grid", position: "absolute", right: 0, backgroundColor: "rgb(var(--color1))", padding: "1rem", whiteSpace: "nowrap", gap: "1rem", justifyItems: "center" }}>
+                            <p>Set GameMode To</p>
+
+                            <button onClick={() => gameModeSet("auto")}>Auto</button>
+                            <button onClick={() => gameModeSet("manual")}>Manual</button>
+                            <button onClick={() => gameModeSet("verse")}>Verse</button>
+
+                            <div style={{ display: "grid", gap: "1rem", justifyItems: "center" }}>
+                                {playerTeamSelection === "white" ? (
+                                    <>
+                                        <p>Player Team White</p>
+                                        <button onClick={() => playerTeamSelectionSet("black")}>Switch</button>
+                                    </>
+                                ) : (
+                                    <>
+                                        <p>Player Team Black</p>
+                                        <button onClick={() => playerTeamSelectionSet("white")}>Switch</button>
+                                    </>
+                                )}
+                            </div>
+
+                            <button onClick={resetAll}>Reset Game</button>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </HideNav>
