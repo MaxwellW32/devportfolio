@@ -828,37 +828,29 @@ export default function Page() {
         if (seenPiece.team === "white") {
             if (seenPiece.currentPos[0] === 0) {
                 //promotion time
-                chessPiecesSet(prevPieces => {
-                    return prevPieces.map(eachPiece => {
-                        if (eachPiece.id === seenPiece.id) {
-                            const newPieceStats = chessPieceStatChoices[promotionOptions[randPromoIndex]]
-                            console.log(`$newpice`, newPieceStats);
-                            eachPiece = { ...eachPiece, ...newPieceStats, image: getChessPieceImage(newPieceStats.piece, seenPiece.team) }
-                        }
-
-                        return eachPiece
-                    })
-                })
+                makeChanges(seenPiece)
             }
         } else {
             //promotion time
             //black promotion
-
             if (seenPiece.currentPos[0] === 7) {
-                chessPiecesSet(prevPieces => {
-                    return prevPieces.map(eachPiece => {
-                        if (eachPiece.id === seenPiece.id) {
-                            const newPieceStats = chessPieceStatChoices[promotionOptions[randPromoIndex]]
-                            eachPiece = { ...eachPiece, ...newPieceStats }
-                        }
-
-                        return eachPiece
-                    })
-                })
+                makeChanges(seenPiece)
             }
-
         }
 
+        function makeChanges(seenPiece: chessPiece) {
+            //promotion time
+            chessPiecesSet(prevPieces => {
+                return prevPieces.map(eachPiece => {
+                    if (eachPiece.id === seenPiece.id) {
+                        const newPieceStats = chessPieceStatChoices[promotionOptions[randPromoIndex]]
+                        eachPiece = { ...eachPiece, ...newPieceStats, image: getChessPieceImage(newPieceStats.piece, seenPiece.team) }
+                    }
+
+                    return eachPiece
+                })
+            })
+        }
     }
 
     const capturePiece = (seenPiece: chessPiece) => {
@@ -914,10 +906,9 @@ export default function Page() {
             const positionYAttacked = attackYX[0]
             const positionXAttacked = attackYX[1]
 
-
             if (positionYAttacked === king.currentPos[0] && positionXAttacked === king.currentPos[1]) {
                 kingBeingAttacked = true
-                console.log(`$king would be in check, cant move piece`);
+                // console.log(`$king would be in check, cant move piece`);
             }
         })
 
