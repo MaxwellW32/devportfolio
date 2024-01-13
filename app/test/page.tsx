@@ -222,11 +222,10 @@ export default function Page() {
 
         autoPlayLoop.current = setInterval(() => {
             play(chessPieces)
-            console.log(`$ran interval`);
         }, 800)
 
         return () => { if (autoPlayLoop.current) clearInterval(autoPlayLoop.current) }
-    }, [chessPieces, currentTurn, chessBoardArr, checkmatedKing, gameMode, playerTeamSelection])
+    }, [chessPieces, currentTurn, chessBoardArr, checkmatedKing, gameMode, playerTeamSelection, kingInCheck])
 
     const play = (passedChessPieces: chessPiece[]) => {
         if (gameMode === "manual") return
@@ -235,8 +234,6 @@ export default function Page() {
         if (gameMode === "verse" && autoEnemyTeam !== currentTurn) {
             return
         }
-
-        console.log(`$ran normal down here`);
 
         let currentTeamPieces = passedChessPieces.filter(eachPiece => eachPiece.team === (gameMode === "auto" ? currentTurn : autoEnemyTeam
         ))
@@ -599,7 +596,7 @@ export default function Page() {
         // check safe tiles positions to see if the king is in check
         let kingIsInCheck = false
         safeTiles = safeTiles.filter(eachXYPos => {
-            kingIsInCheck = isKingInCheck([...eachXYPos], { ...seenPiece })
+            kingIsInCheck = checkIfKingIsInCheck([...eachXYPos], { ...seenPiece })
             return !kingIsInCheck
         })
 
@@ -856,7 +853,7 @@ export default function Page() {
         })
     }
 
-    const isKingInCheck = (position: [number, number], seenChessPiece: chessPiece): boolean => {
+    const checkIfKingIsInCheck = (position: [number, number], seenChessPiece: chessPiece): boolean => {
         //update positions of chess pieces
         const chessPiecesLocal = (JSON.parse(JSON.stringify(chessPieces)) as chessPiece[]).filter(eachPiece => {
             let returning = true
