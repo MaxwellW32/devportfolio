@@ -230,7 +230,7 @@ export default function Page() {
         if (checkmatedKing) clearInterval(autoPlayLoop.current)
 
         autoPlayLoop.current = setInterval(() => {
-            // play(chessPieces)
+            play(chessPieces)
             autoMovingSet(true)
         }, 800)
 
