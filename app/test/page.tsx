@@ -227,7 +227,7 @@ export default function Page() {
 
     //start off
     useEffect(() => {
-        if (checkmatedKing) clearInterval(autoPlayLoop.current)
+        if (checkmatedKing) return clearInterval(autoPlayLoop.current)
 
         autoPlayLoop.current = setInterval(() => {
             play(chessPieces)
