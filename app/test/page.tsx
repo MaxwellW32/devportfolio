@@ -64,6 +64,7 @@ export default function Page() {
     const [currentTurn, currentTurnSet] = useState<"black" | "white">("white")
     const [checkmatedKing, checkmatedKingSet] = useState<chessPiece>()
     const [staleMate, staleMateSet] = useState(false)
+    const [kingInCheck, kingInCheckSet] = useState(false)
     const [enpassantInPlay, enpassantInPlaySet] = useState<{
         position: [number, number],
         pieceToCollect: chessPiece
@@ -241,7 +242,7 @@ export default function Page() {
         ))
 
         const rndIndex = Math.floor(Math.random() * currentTeamPieces.length)
-        if (currentTeamPieces.length === 0 && !checkmatedKing) {
+        if (currentTeamPieces.length === 0 && !kingInCheck) {
             staleMateSet(true)
 
             if (autoPlayLoop.current) clearInterval(autoPlayLoop.current)
@@ -383,7 +384,7 @@ export default function Page() {
             //check double move
             if (seenPiece.movedAmount === 0 && frontTile) {
                 const doubleFrontTile = checkMove("front", passedChessBoardArr, frontTile.position, seenPiece.team)
-                if (doubleFrontTile && doubleFrontTile.state === null) {
+                if (frontTile.state === null && doubleFrontTile && doubleFrontTile.state === null) {
                     safeTiles.push(doubleFrontTile.position)
                 }
             }
@@ -419,18 +420,6 @@ export default function Page() {
                         pieceToCollect: rightTile.state
                     })
                 }
-
-                // const enpessantCheckRight = chessBoardArr[currentYPos][currentXPos + 1]
-
-                // console.log(`$enpessantCheckLeft`, enpessantCheckLeft);
-                // console.log(`$enpessantCheckRight`, enpessantCheckRight);
-                // if (enpessantCheckLeft && enpessantCheckLeft.movedAmount === 1 && enpessantCheckLeft.team !== seenPiece.team) {
-                //     safeTiles.push([newY, currentXPos - 1])
-                // }
-
-                // if (enpessantCheckRight && enpessantCheckRight.movedAmount === 1 && enpessantCheckRight.team !== seenPiece.team) {
-                //     safeTiles.push([newY, currentXPos + 1])
-                // }
             }
         }
 
@@ -905,12 +894,14 @@ export default function Page() {
 
         //check if king attacked
         let kingBeingAttacked = false
+        kingInCheckSet(false)
         tilesBeingAttacked.forEach(attackYX => {
             const positionYAttacked = attackYX[0]
             const positionXAttacked = attackYX[1]
 
             if (positionYAttacked === king.currentPos[0] && positionXAttacked === king.currentPos[1]) {
                 kingBeingAttacked = true
+                kingInCheckSet(true)
                 // console.log(`$king would be in check, cant move piece`);
             }
         })
