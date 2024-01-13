@@ -20,7 +20,6 @@ export default function HompagesRootLayout({
         return true
       }
     })
-    if (seenIndex < 0) seenIndex = 0
 
     return seenIndex
   }

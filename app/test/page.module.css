@@ -1,0 +1,27 @@
+.chessBoard {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    grid-template-rows: repeat(8, 1fr);
+    color: gold;
+    aspect-ratio: 1/1;
+    margin: 0 auto;
+    user-select: none;
+}
+
+.chessSquare {
+    display: grid;
+    justify-items: center;
+    align-items: center;
+}
+
+.darkSquare {
+    background-color: #333;
+}
+
+.lightSquare {
+    background-color: #fff;
+}
+
+.showMoveSuggestion {
+    background-color: orange;
+}
