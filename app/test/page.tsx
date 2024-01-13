@@ -832,6 +832,7 @@ export default function Page() {
                     return prevPieces.map(eachPiece => {
                         if (eachPiece.id === seenPiece.id) {
                             const newPieceStats = chessPieceStatChoices[promotionOptions[randPromoIndex]]
+                            console.log(`$newpice`, newPieceStats);
                             eachPiece = { ...eachPiece, ...newPieceStats, image: getChessPieceImage(newPieceStats.piece, seenPiece.team) }
                         }
 
