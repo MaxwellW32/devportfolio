@@ -403,7 +403,7 @@ export default function Page() {
     }
 
     const getPossibleMoves = (seenPiece: chessPiece, passedChessBoardArr: (chessPiece | null)[][]) => {
-        let validTilesToMove: [number, number][] = []//yx - row column
+        const validTilesToMove: [number, number][] = []//yx - row column
 
         if (seenPiece.piece === "pawn") {
             //check front
@@ -533,17 +533,15 @@ export default function Page() {
 
                     if (positionsClearCheck1 === null && positionsClearCheck2 === null && positionsClearCheck3 === null) {
                         canCastleSet(prev => {
-                            const newArr = [...prev]
                             let newPositionY = whiteLeftRook.currentPos[0]
                             let newPositionX = whiteLeftRook.currentPos[1] + 1
 
-                            validTilesToMove.push([newPositionY, newPositionX])
-
-                            newArr.push({
+                            const newArr = [...prev, {
                                 pieceToCollect: whiteLeftRook,
-                                position: [newPositionY, newPositionX]
-                            })
+                                position: [newPositionY, newPositionX] as [number, number]
+                            }]
 
+                            validTilesToMove.push([newPositionY, newPositionX])
 
                             return newArr
                         })
@@ -558,17 +556,15 @@ export default function Page() {
 
                     if (positionsClearCheck1 === null && positionsClearCheck2 === null) {
                         canCastleSet(prev => {
-                            const newArr = [...prev]
                             let newPositionY = whiteRightRook.currentPos[0]
                             let newPositionX = whiteRightRook.currentPos[1] - 1
 
-                            validTilesToMove.push([newPositionY, newPositionX])
-
-                            newArr.push({
+                            const newArr = [...prev, {
                                 pieceToCollect: whiteRightRook,
-                                position: [newPositionY, newPositionX]
-                            })
+                                position: [newPositionY, newPositionX] as [number, number]
+                            }]
 
+                            validTilesToMove.push([newPositionY, newPositionX])
 
                             return newArr
                         })
@@ -726,12 +722,12 @@ export default function Page() {
     }
 
     const findValidMoves = (seenPiece: chessPiece, passedChessBoardArr: (chessPiece | null)[][]) => {
-        const possibleMoves = getPossibleMoves({ ...seenPiece }, [...passedChessBoardArr])
+        const possibleMoves = getPossibleMoves(deepClone(seenPiece), deepClone(passedChessBoardArr))
 
         // safe tiles where king is not in check
         let tileCausesCheck = false
         const safeTiles = possibleMoves.filter(eachXYPos => {
-            tileCausesCheck = checkIfFuturePositionCausesCheck([...eachXYPos], { ...seenPiece }, chessPieces)
+            tileCausesCheck = checkIfFuturePositionCausesCheck(deepClone(eachXYPos), deepClone(seenPiece), chessPieces)
             return !tileCausesCheck
         })
 
@@ -739,11 +735,8 @@ export default function Page() {
     }
 
     const checkIfFuturePositionCausesCheck = (futurePosition: [number, number], seenChessPiece: chessPiece, seenChessPieces: chessPiece[]): boolean => {
-        //if causes check to my piece - return no
-        //if causes check to other - note it
-
         //update positions of chess pieces
-        const chessPiecesLocal = (JSON.parse(JSON.stringify(seenChessPieces)) as chessPiece[]).filter(eachPiece => {
+        const chessPiecesLocal = deepClone(seenChessPieces).filter(eachPiece => {
             let returning = true
 
             if (eachPiece.currentPos[0] === futurePosition[0] && eachPiece.currentPos[1] === futurePosition[1]) {
@@ -759,6 +752,7 @@ export default function Page() {
             return eachPiece
         })
 
+
         //get new chess board at hypothetical position
         const chessBoardLocal = makeNewChessBoard(chessPiecesLocal)
         //get kings from board
@@ -769,7 +763,7 @@ export default function Page() {
         chessPiecesLocal.forEach(eachChessPiece => {
             const seenTiles = getPossibleMoves(deepClone(eachChessPiece), deepClone(chessBoardLocal))
 
-            tilesBeingAttacked.push(...seenTiles)
+            tilesBeingAttacked.push(...deepClone(seenTiles))
         })
 
         //check if king is being attacked
@@ -966,7 +960,6 @@ export default function Page() {
 
     return (
         <HideNav>
-            <p>sup</p>
             <div style={{ display: "grid", gridTemplateColumns: "1rem auto auto" }}>
                 <div style={{ display: "grid", gridTemplateRows: `${whitePiecesCaptured[1] === 0 ? 0.5 : whitePiecesCaptured[1]}fr ${blackPiecesCaptured[1] === 0 ? 0.5 : blackPiecesCaptured[1]}fr` }}>
                     <div style={{ backgroundColor: "purple" }}></div>
