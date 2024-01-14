@@ -961,6 +961,7 @@ export default function Page() {
         capturedPiecesSet([])
         checkMatedKingSet(undefined)
         stalemateSet(false)
+        autoPlayLoop.current && clearInterval(autoPlayLoop.current)
     }
 
     return (
