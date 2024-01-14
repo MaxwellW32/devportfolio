@@ -160,7 +160,7 @@ export default function Page() {
         if (gameMode === "manual") return clearInterval(autoPlayLoop.current)
 
         if (chessPieces.length === 2 && chessPieces[0].piece === "king" && chessPieces[1].piece === "king") {
-            noMovesLeftSet(true)
+            return noMovesLeftSet(true)
         }
 
         if (noMovesLeft) {
@@ -916,6 +916,8 @@ export default function Page() {
     const resetAll = () => {
         chessPiecesSet([...initialChessPieces])
         capturedPiecesSet([])
+        noMovesLeftSet(false)
+        autoPlayLoop.current = undefined
     }
 
     return (
