@@ -164,7 +164,7 @@ export default function Page() {
         }
 
         if (noMovesLeft) {
-            setTimeout(resetAll, 10000);
+            setTimeout(resetAll, 30000);
 
             return clearInterval(autoPlayLoop.current)
         }
