@@ -957,7 +957,7 @@ export default function Page() {
 
     const resetAll = () => {
 
-        chessPiecesSet([...(Math.random() * 1 > 0.3 ? initialChessPieces : initialChessPieces.filter(each => each.id === 5 || each.id > 16))])
+        chessPiecesSet([...(Math.random() * 1 > 0.3 ? initialChessPieces : initialChessPieces.filter(each => each.id === 5 || each.id === 14 || each.id > 16))])
         capturedPiecesSet([])
         checkMatedKingSet(undefined)
         stalemateSet(false)
@@ -966,6 +966,7 @@ export default function Page() {
 
     return (
         <HideNav>
+            <p>sup</p>
             <div style={{ display: "grid", gridTemplateColumns: "1rem auto auto" }}>
                 <div style={{ display: "grid", gridTemplateRows: `${whitePiecesCaptured[1] === 0 ? 0.5 : whitePiecesCaptured[1]}fr ${blackPiecesCaptured[1] === 0 ? 0.5 : blackPiecesCaptured[1]}fr` }}>
                     <div style={{ backgroundColor: "purple" }}></div>
