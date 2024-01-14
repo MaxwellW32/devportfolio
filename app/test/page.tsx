@@ -55,12 +55,12 @@ export default function Page() {
     }
     const initialChessPieces: chessPiece[] = [
         { id: 1, ...chessPieceStatChoices["rook"], currentPos: [0, 0], validSquaresToMove: [], team: "black", image: getChessPieceImage("rook", "black"), movedAmount: 0 },
-        { id: 2, ...chessPieceStatChoices["knight"], currentPos: [0, 1], validSquaresToMove: [], team: "black", image: getChessPieceImage("knight", "black"), },
-        { id: 3, ...chessPieceStatChoices["bishop"], currentPos: [0, 2], validSquaresToMove: [], team: "black", image: getChessPieceImage("bishop", "black"), },
-        { id: 4, ...chessPieceStatChoices["queen"], currentPos: [0, 3], validSquaresToMove: [], team: "black", image: getChessPieceImage("queen", "black"), },
+        { id: 2, ...chessPieceStatChoices["knight"], currentPos: [3, 1], validSquaresToMove: [], team: "black", image: getChessPieceImage("knight", "black"), },
+        { id: 3, ...chessPieceStatChoices["bishop"], currentPos: [3, 2], validSquaresToMove: [], team: "black", image: getChessPieceImage("bishop", "black"), },
+        { id: 4, ...chessPieceStatChoices["queen"], currentPos: [5, 4], validSquaresToMove: [], team: "black", image: getChessPieceImage("queen", "black"), },
         { id: 5, ...chessPieceStatChoices["king"], currentPos: [0, 4], validSquaresToMove: [], team: "black", image: getChessPieceImage("king", "black"), movedAmount: 0 },
-        { id: 6, ...chessPieceStatChoices["bishop"], currentPos: [0, 5], validSquaresToMove: [], team: "black", image: getChessPieceImage("bishop", "black"), },
-        { id: 7, ...chessPieceStatChoices["knight"], currentPos: [0, 6], validSquaresToMove: [], team: "black", image: getChessPieceImage("knight", "black"), },
+        { id: 6, ...chessPieceStatChoices["bishop"], currentPos: [3, 5], validSquaresToMove: [], team: "black", image: getChessPieceImage("bishop", "black"), },
+        { id: 7, ...chessPieceStatChoices["knight"], currentPos: [3, 6], validSquaresToMove: [], team: "black", image: getChessPieceImage("knight", "black"), },
         { id: 8, ...chessPieceStatChoices["rook"], currentPos: [0, 7], validSquaresToMove: [], team: "black", image: getChessPieceImage("rook", "black"), movedAmount: 0 },
 
         { id: 9, ...chessPieceStatChoices["pawn"], currentPos: [1, 0], validSquaresToMove: [], team: "black", image: getChessPieceImage("pawn", "black"), movedAmount: 0 },
@@ -75,19 +75,19 @@ export default function Page() {
         { id: 17, ...chessPieceStatChoices["pawn"], currentPos: [6, 0], validSquaresToMove: [], team: "white", image: getChessPieceImage("pawn", "white"), movedAmount: 0 },
         { id: 18, ...chessPieceStatChoices["pawn"], currentPos: [6, 1], validSquaresToMove: [], team: "white", image: getChessPieceImage("pawn", "white"), movedAmount: 0 },
         { id: 19, ...chessPieceStatChoices["pawn"], currentPos: [6, 2], validSquaresToMove: [], team: "white", image: getChessPieceImage("pawn", "white"), movedAmount: 0 },
-        { id: 20, ...chessPieceStatChoices["pawn"], currentPos: [6, 3], validSquaresToMove: [], team: "white", image: getChessPieceImage("pawn", "white"), movedAmount: 0 },
-        { id: 21, ...chessPieceStatChoices["pawn"], currentPos: [6, 4], validSquaresToMove: [], team: "white", image: getChessPieceImage("pawn", "white"), movedAmount: 0 },
-        { id: 22, ...chessPieceStatChoices["pawn"], currentPos: [6, 5], validSquaresToMove: [], team: "white", image: getChessPieceImage("pawn", "white"), movedAmount: 0 },
+        { id: 20, ...chessPieceStatChoices["pawn"], currentPos: [4, 3], validSquaresToMove: [], team: "white", image: getChessPieceImage("pawn", "white"), movedAmount: 0 },
+        { id: 21, ...chessPieceStatChoices["pawn"], currentPos: [4, 5], validSquaresToMove: [], team: "white", image: getChessPieceImage("pawn", "white"), movedAmount: 0 },
+        { id: 22, ...chessPieceStatChoices["pawn"], currentPos: [5, 5], validSquaresToMove: [], team: "white", image: getChessPieceImage("pawn", "white"), movedAmount: 0 },
         { id: 23, ...chessPieceStatChoices["pawn"], currentPos: [6, 6], validSquaresToMove: [], team: "white", image: getChessPieceImage("pawn", "white"), movedAmount: 0 },
         { id: 24, ...chessPieceStatChoices["pawn"], currentPos: [6, 7], validSquaresToMove: [], team: "white", image: getChessPieceImage("pawn", "white"), movedAmount: 0 },
 
         { id: 25, ...chessPieceStatChoices["rook"], currentPos: [7, 0], validSquaresToMove: [], team: "white", image: getChessPieceImage("rook", "white"), movedAmount: 0 },
-        { id: 26, ...chessPieceStatChoices["knight"], currentPos: [7, 1], validSquaresToMove: [], team: "white", image: getChessPieceImage("knight", "white"), },
-        { id: 27, ...chessPieceStatChoices["bishop"], currentPos: [7, 2], validSquaresToMove: [], team: "white", image: getChessPieceImage("bishop", "white"), },
-        { id: 28, ...chessPieceStatChoices["queen"], currentPos: [7, 3], validSquaresToMove: [], team: "white", image: getChessPieceImage("queen", "white"), },
+        { id: 26, ...chessPieceStatChoices["knight"], currentPos: [5, 1], validSquaresToMove: [], team: "white", image: getChessPieceImage("knight", "white"), },
+        { id: 27, ...chessPieceStatChoices["bishop"], currentPos: [4, 2], validSquaresToMove: [], team: "white", image: getChessPieceImage("bishop", "white"), },
+        { id: 28, ...chessPieceStatChoices["queen"], currentPos: [5, 3], validSquaresToMove: [], team: "white", image: getChessPieceImage("queen", "white"), },
         { id: 29, ...chessPieceStatChoices["king"], currentPos: [7, 4], validSquaresToMove: [], team: "white", image: getChessPieceImage("king", "white"), movedAmount: 0 },
-        { id: 30, ...chessPieceStatChoices["bishop"], currentPos: [7, 5], validSquaresToMove: [], team: "white", image: getChessPieceImage("bishop", "white"), },
-        { id: 31, ...chessPieceStatChoices["knight"], currentPos: [7, 6], validSquaresToMove: [], team: "white", image: getChessPieceImage("knight", "white"), },
+        { id: 30, ...chessPieceStatChoices["bishop"], currentPos: [5, 5], validSquaresToMove: [], team: "white", image: getChessPieceImage("bishop", "white"), },
+        { id: 31, ...chessPieceStatChoices["knight"], currentPos: [5, 6], validSquaresToMove: [], team: "white", image: getChessPieceImage("knight", "white"), },
         { id: 32, ...chessPieceStatChoices["rook"], currentPos: [7, 7], validSquaresToMove: [], team: "white", image: getChessPieceImage("rook", "white"), movedAmount: 0 },
     ]
 
@@ -97,7 +97,7 @@ export default function Page() {
 
     const [playerTeamSelection, playerTeamSelectionSet] = useState<"black" | "white">("white")
     const [showingSettings, showingSettingsSet] = useState(false)
-    const [gameMode, gameModeSet] = useState<"auto" | "manual" | "verse">("auto")
+    const [gameMode, gameModeSet] = useState<"auto" | "manual" | "verse">("verse")
     const [currentTurn, currentTurnSet] = useState<"black" | "white">("white")
     const [enpassantInPlay, enpassantInPlaySet] = useState<{
         position: [number, number],
@@ -111,6 +111,7 @@ export default function Page() {
     const [capturedPieces, capturedPiecesSet] = useState<chessPiece[]>([])
     const [activePiece, activePieceSet] = useState<chessPiece | null>(null)
     const [positionsThatCheckEnemyKing, positionsThatCheckEnemyKingSet] = useState<[number, number][]>([])
+    const [positionsThatAttackCastleSquares, positionsThatAttackCastleSquaresSet] = useState<[number, number][]>([])
 
     const [stalemate, stalemateSet] = useState(false)
     const [checkMatedKing, checkMatedKingSet] = useState<chessPiece>()
@@ -532,19 +533,20 @@ export default function Page() {
                     const positionsClearCheck3 = passedChessBoardArr[seenPiece.currentPos[0]][seenPiece.currentPos[1] - 3]
 
                     if (positionsClearCheck1 === null && positionsClearCheck2 === null && positionsClearCheck3 === null) {
-                        canCastleSet(prev => {
-                            let newPositionY = whiteLeftRook.currentPos[0]
-                            let newPositionX = whiteLeftRook.currentPos[1] + 1
+                        let newPositionY = whiteLeftRook.currentPos[0]
+                        let newPositionX = whiteLeftRook.currentPos[1] + 1
 
+                        canCastleSet(prev => {
                             const newArr = [...prev, {
                                 pieceToCollect: whiteLeftRook,
                                 position: [newPositionY, newPositionX] as [number, number]
                             }]
 
-                            validTilesToMove.push([newPositionY, newPositionX])
 
                             return newArr
                         })
+
+                        validTilesToMove.push([newPositionY, newPositionX])
                     }
 
                 }
@@ -555,19 +557,18 @@ export default function Page() {
                     const positionsClearCheck2 = passedChessBoardArr[seenPiece.currentPos[0]][seenPiece.currentPos[1] + 2]
 
                     if (positionsClearCheck1 === null && positionsClearCheck2 === null) {
-                        canCastleSet(prev => {
-                            let newPositionY = whiteRightRook.currentPos[0]
-                            let newPositionX = whiteRightRook.currentPos[1] - 1
+                        let newPositionY = whiteRightRook.currentPos[0]
+                        let newPositionX = whiteRightRook.currentPos[1] - 1
 
+                        canCastleSet(prev => {
                             const newArr = [...prev, {
                                 pieceToCollect: whiteRightRook,
                                 position: [newPositionY, newPositionX] as [number, number]
                             }]
-
-                            validTilesToMove.push([newPositionY, newPositionX])
-
                             return newArr
                         })
+
+                        validTilesToMove.push([newPositionY, newPositionX])
                     }
                 }
 
@@ -577,12 +578,12 @@ export default function Page() {
                     const positionsClearCheck3 = passedChessBoardArr[seenPiece.currentPos[0]][seenPiece.currentPos[1] - 3]
 
                     if (positionsClearCheck1 === null && positionsClearCheck2 === null && positionsClearCheck3 === null) {
+                        let newPositionY = blackLeftRook.currentPos[0]
+                        let newPositionX = blackLeftRook.currentPos[1] + 1
+
                         canCastleSet(prev => {
                             const newArr = [...prev]
-                            let newPositionY = blackLeftRook.currentPos[0]
-                            let newPositionX = blackLeftRook.currentPos[1] + 1
 
-                            validTilesToMove.push([newPositionY, newPositionX])
 
                             newArr.push({
                                 pieceToCollect: blackLeftRook,
@@ -592,6 +593,9 @@ export default function Page() {
 
                             return newArr
                         })
+
+                        validTilesToMove.push([newPositionY, newPositionX])
+
                     }
                 }
 
@@ -600,21 +604,20 @@ export default function Page() {
                     const positionsClearCheck2 = passedChessBoardArr[seenPiece.currentPos[0]][seenPiece.currentPos[1] + 2]
 
                     if (positionsClearCheck1 === null && positionsClearCheck2 === null) {
+                        let newPositionY = blackRightRook.currentPos[0]
+                        let newPositionX = blackRightRook.currentPos[1] - 1
+
                         canCastleSet(prev => {
                             const newArr = [...prev]
-                            let newPositionY = blackRightRook.currentPos[0]
-                            let newPositionX = blackRightRook.currentPos[1] - 1
-
-                            validTilesToMove.push([newPositionY, newPositionX])
-
                             newArr.push({
                                 pieceToCollect: blackRightRook,
                                 position: [newPositionY, newPositionX]
                             })
 
-
                             return newArr
                         })
+
+                        validTilesToMove.push([newPositionY, newPositionX])
                     }
                 }
             }
@@ -752,9 +755,9 @@ export default function Page() {
             return eachPiece
         })
 
-
         //get new chess board at hypothetical position
         const chessBoardLocal = makeNewChessBoard(chessPiecesLocal)
+
         //get kings from board
         const kings = chessPiecesLocal.filter(eachPiece => eachPiece.piece === "king")
 
@@ -764,10 +767,15 @@ export default function Page() {
             const seenTiles = getPossibleMoves(deepClone(eachChessPiece), deepClone(chessBoardLocal))
 
             tilesBeingAttacked.push(...deepClone(seenTiles))
+
+            //maybe get this working to prevent castling across attacked position
+            // if (eachChessPiece.team !== seenChessPiece.team) {
+            //     tilesBeingAttackedByEnemy.push(...deepClone(seenTiles.filter(e => e[0] === 7 || e[0] === 0)))
+            // }
         })
 
-        //check if king is being attacked
 
+        //check if king is being attacked
         let needToDeleteThisPosition = false
         kings.forEach(eachKing => {
             tilesBeingAttacked.forEach(attackYX => {
@@ -789,9 +797,7 @@ export default function Page() {
                     }
                 }
             })
-
         })
-
 
         return needToDeleteThisPosition
     }
