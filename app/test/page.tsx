@@ -21,10 +21,6 @@ export default function Page() {
     }
     type newSquare = undefined | { state: null | chessPiece, position: [number, number] }
 
-    const [playerTeamSelection, playerTeamSelectionSet] = useState<"black" | "white">("white")
-    const [showingSettings, showingSettingsSet] = useState(false)
-    const [gameMode, gameModeSet] = useState<"auto" | "manual" | "verse">("auto")
-
     const chessPieceStatChoices: {
         [key: string]: {
             piece: piece;
@@ -56,50 +52,6 @@ export default function Page() {
             points: 1
         },
     }
-
-    const chessBoardRef = useRef<HTMLDivElement>(null!)
-    const checkingFinalMovesLeft = useRef(false)
-    const autoPlayLoop = useRef<NodeJS.Timeout>()
-
-    const [currentTurn, currentTurnSet] = useState<"black" | "white">("white")
-    const [checkmatedKing, checkmatedKingSet] = useState<chessPiece>()
-    const [staleMate, staleMateSet] = useState(false)
-    const [kingInCheck, kingInCheckSet] = useState(false)
-    const [enpassantInPlay, enpassantInPlaySet] = useState<{
-        position: [number, number],
-        pieceToCollect: chessPiece
-    }>()
-    const [canCastle, canCastleSet] = useState<{
-        position: [number, number],
-        pieceToCollect: chessPiece
-    }[]>([])
-
-    const getChessPieceImage = (piece: piece, team: "black" | "white") => {
-        if (piece === "bishop") {
-            return team === "black" ? require(`@/public/chess/bbishop.png`).default.src : require(`@/public/chess/wbishop.png`).default.src
-        }
-
-        if (piece === "king") {
-            return team === "black" ? require(`@/public/chess/bking.png`).default.src : require(`@/public/chess/wking.png`).default.src
-        }
-
-        if (piece === "knight") {
-            return team === "black" ? require(`@/public/chess/bknight.png`).default.src : require(`@/public/chess/wknight.png`).default.src
-        }
-
-        if (piece === "pawn") {
-            return team === "black" ? require(`@/public/chess/bpawn.png`).default.src : require(`@/public/chess/wpawn.png`).default.src
-        }
-
-        if (piece === "queen") {
-            return team === "black" ? require(`@/public/chess/bqueen.png`).default.src : require(`@/public/chess/wqueen.png`).default.src
-        }
-
-        if (piece === "rook") {
-            return team === "black" ? require(`@/public/chess/brook.png`).default.src : require(`@/public/chess/wrook.png`).default.src
-        }
-    }
-
     const initialChessPieces: chessPiece[] = [
         { id: 1, ...chessPieceStatChoices["rook"], currentPos: [0, 0], validSquaresToMove: [], team: "black", image: getChessPieceImage("rook", "black"), movedAmount: 0 },
         { id: 2, ...chessPieceStatChoices["knight"], currentPos: [0, 1], validSquaresToMove: [], team: "black", image: getChessPieceImage("knight", "black"), },
@@ -139,35 +91,31 @@ export default function Page() {
         { id: 31, ...chessPieceStatChoices["knight"], currentPos: [7, 6], validSquaresToMove: [], team: "white", image: getChessPieceImage("knight", "white"), },
         { id: 32, ...chessPieceStatChoices["rook"], currentPos: [7, 7], validSquaresToMove: [], team: "white", image: getChessPieceImage("rook", "white"), movedAmount: 0 },
     ]
+
+    const chessBoardRef = useRef<HTMLDivElement>(null!)
+    const autoPlayLoop = useRef<NodeJS.Timeout>()
+
+
+    const [playerTeamSelection, playerTeamSelectionSet] = useState<"black" | "white">("white")
+    const [showingSettings, showingSettingsSet] = useState(false)
+    const [noMovesLeft, noMovesLeftSet] = useState(false)
+    const [gameMode, gameModeSet] = useState<"auto" | "manual" | "verse">("auto")
+    const [currentTurn, currentTurnSet] = useState<"black" | "white">("white")
+    const [enpassantInPlay, enpassantInPlaySet] = useState<{
+        position: [number, number],
+        pieceToCollect: chessPiece
+    }>()
+    const [canCastle, canCastleSet] = useState<{
+        position: [number, number],
+        pieceToCollect: chessPiece
+    }[]>([])
     const [chessPieces, chessPiecesSet] = useState<chessPiece[]>([...initialChessPieces])
-
     const [capturedPieces, capturedPiecesSet] = useState<chessPiece[]>([])
-    const [tilesBeingAttacked, tilesBeingAttackedSet] = useState<[number, number][]>([])
-
-    const makeNewChessBoard = (seenChessPieces: chessPiece[]) => {
-        const newArr: (chessPiece | null)[][] = [
-            [null, null, null, null, null, null, null, null],
-            [null, null, null, null, null, null, null, null],
-            [null, null, null, null, null, null, null, null],
-            [null, null, null, null, null, null, null, null],
-            [null, null, null, null, null, null, null, null],
-            [null, null, null, null, null, null, null, null],
-            [null, null, null, null, null, null, null, null],
-            [null, null, null, null, null, null, null, null],
-        ]
-
-        seenChessPieces.forEach(eachChessPiece => {
-            newArr[eachChessPiece.currentPos[0]][eachChessPiece.currentPos[1]] = eachChessPiece
-        })
-
-        return newArr
-    }
+    const [activePiece, activePieceSet] = useState<chessPiece | null>(null)
 
     const chessBoardArr = useMemo<(chessPiece | null)[][]>(() => {
         return makeNewChessBoard(chessPieces)
     }, [chessPieces])
-
-    const [activePiece, activePieceSet] = useState<chessPiece | null>(null)
 
     const blackPiecesCaptured = useMemo(() => {
         let totalPoints = 0
@@ -209,64 +157,142 @@ export default function Page() {
 
     //start off
     useEffect(() => {
-        if (checkmatedKing) return clearInterval(autoPlayLoop.current)
-
         if (gameMode === "manual") return clearInterval(autoPlayLoop.current)
 
         if (chessPieces.length === 2 && chessPieces[0].piece === "king" && chessPieces[1].piece === "king") {
-            staleMateSet(true)
+            noMovesLeftSet(true)
+        }
 
-            setTimeout(resetAll, 5000);
+        if (noMovesLeft) {
+            setTimeout(resetAll, 10000);
+
             return clearInterval(autoPlayLoop.current)
         }
 
         autoPlayLoop.current = setInterval(() => {
-            play(chessPieces)
+            autoPlay(chessPieces)
         }, 800)
 
         return () => { if (autoPlayLoop.current) clearInterval(autoPlayLoop.current) }
-    }, [chessPieces, currentTurn, chessBoardArr, checkmatedKing, gameMode, playerTeamSelection, kingInCheck])
+    }, [chessPieces, currentTurn, chessBoardArr, noMovesLeft, gameMode, playerTeamSelection])
 
-    const play = (passedChessPieces: chessPiece[]) => {
+
+
+
+
+
+    function makeNewChessBoard(seenChessPieces: chessPiece[]) {
+        const newArr: (chessPiece | null)[][] = [
+            [null, null, null, null, null, null, null, null],
+            [null, null, null, null, null, null, null, null],
+            [null, null, null, null, null, null, null, null],
+            [null, null, null, null, null, null, null, null],
+            [null, null, null, null, null, null, null, null],
+            [null, null, null, null, null, null, null, null],
+            [null, null, null, null, null, null, null, null],
+            [null, null, null, null, null, null, null, null],
+        ]
+
+        seenChessPieces.forEach(eachChessPiece => {
+            newArr[eachChessPiece.currentPos[0]][eachChessPiece.currentPos[1]] = eachChessPiece
+        })
+
+        return newArr
+    }
+
+    function getChessPieceImage(piece: piece, team: "black" | "white") {
+        if (piece === "bishop") {
+            return team === "black" ? require(`@/public/chess/bbishop.png`).default.src : require(`@/public/chess/wbishop.png`).default.src
+        }
+
+        if (piece === "king") {
+            return team === "black" ? require(`@/public/chess/bking.png`).default.src : require(`@/public/chess/wking.png`).default.src
+        }
+
+        if (piece === "knight") {
+            return team === "black" ? require(`@/public/chess/bknight.png`).default.src : require(`@/public/chess/wknight.png`).default.src
+        }
+
+        if (piece === "pawn") {
+            return team === "black" ? require(`@/public/chess/bpawn.png`).default.src : require(`@/public/chess/wpawn.png`).default.src
+        }
+
+        if (piece === "queen") {
+            return team === "black" ? require(`@/public/chess/bqueen.png`).default.src : require(`@/public/chess/wqueen.png`).default.src
+        }
+
+        if (piece === "rook") {
+            return team === "black" ? require(`@/public/chess/brook.png`).default.src : require(`@/public/chess/wrook.png`).default.src
+        }
+    }
+
+    const autoPlay = (passedChessPieces: chessPiece[]) => {
         if (gameMode === "manual") return
 
-        const autoEnemyTeam = playerTeamSelection === "white" ? "black" : "white" //oposite of player selection
+        //oposite of player selection
+        const autoEnemyTeam = playerTeamSelection === "white" ? "black" : "white"
+
+        //ensures auto play only works on its turn
         if (gameMode === "verse" && autoEnemyTeam !== currentTurn) {
             return
         }
 
-        let currentTeamPieces = passedChessPieces.filter(eachPiece => eachPiece.team === (gameMode === "auto" ? currentTurn : autoEnemyTeam
-        ))
+        checkIfValidMovesLeft(chessBoardArr, passedChessPieces)
+    }
 
-        const rndIndex = Math.floor(Math.random() * currentTeamPieces.length)
-        if (currentTeamPieces.length === 0 && !kingInCheck) {
-            staleMateSet(true)
+    const checkIfValidMovesLeft = (chessBoardArr: (chessPiece | null)[][], chessPieces: chessPiece[]) => {
+        const currentBlackTeamPieces = chessPieces.filter(eachPiece => eachPiece.team === "black")//5
+        const currentWhiteTeamPieces = chessPieces.filter(eachPiece => eachPiece.team === "white")//1
+
+        const currentTeamPieces = currentTurn === "white" ? currentWhiteTeamPieces : currentBlackTeamPieces//1
+        const otherTeamPieces = currentTurn === "white" ? currentBlackTeamPieces : currentWhiteTeamPieces//1
+
+        const rndTeamIndex = Math.floor(Math.random() * currentTeamPieces.length)//0
+
+        const chosenChessPiece = currentTeamPieces[rndTeamIndex]//king
+
+        const safeTiles = findValidMoves(chosenChessPiece, chessBoardArr)//none
+        const rndTileIndex = Math.floor(Math.random() * safeTiles.length)
+
+
+        if (safeTiles.length === 0) {
+            console.log(`$no moves to make on`, chosenChessPiece);
+            const newTeamPieces = currentTeamPieces.filter(eachPiece => eachPiece.id !== chosenChessPiece.id)//0
+            const newPiecesArr = [...newTeamPieces, ...otherTeamPieces]
+
+            if (newTeamPieces.length === 0) {
+                // check stalemate checkmate
+                toast.success("no more moves")
+                noMovesLeftSet(true)
+                return
+            }
 
             if (autoPlayLoop.current) clearInterval(autoPlayLoop.current)
-            console.log(`$nothing more to do`);
+            checkIfValidMovesLeft(chessBoardArr, [...newPiecesArr])
             return
         }
 
-        const chosenChessPiece = currentTeamPieces[rndIndex]
+        //assign updated valid moves
+        chessPiecesSet(prevChessPieces => {
+            const newChessPieces = prevChessPieces.map(eachChessPiece => {
+                if (eachChessPiece.id === chosenChessPiece.id) {
+                    eachChessPiece.validSquaresToMove = [...safeTiles]
+                }
 
-        const safeTiles = findValidMoves(chosenChessPiece, chessBoardArr)
-        if (safeTiles.length === 0) {
-            currentTeamPieces = currentTeamPieces.filter(eachPiece => eachPiece.id !== chosenChessPiece.id)
-            play(currentTeamPieces)
-            console.log(`$no moves to make on`, chosenChessPiece);
-            return
-        }
+                return eachChessPiece
+            })
 
-        const rndSafeTileIndex = Math.floor(Math.random() * safeTiles.length)
+            return newChessPieces
+        })
 
         activePieceSet(chosenChessPiece)
 
         setTimeout(() => {
-            moveToSquare(chosenChessPiece, safeTiles[rndSafeTileIndex])
+            moveToSquare(chosenChessPiece, safeTiles[rndTileIndex])
         }, 400);
     }
 
-    const checkMove = (option: "front" | "left" | "bottom" | "right" | "topLeft" | "bottomLeft" | "bottomRight" | "topRight", passedChessBoardArr: (chessPiece | null)[][], currentPos: [number, number], team: "black" | "white") => {
+    const pieceMoves = (option: "front" | "left" | "bottom" | "right" | "topLeft" | "bottomLeft" | "bottomRight" | "topRight", passedChessBoardArr: (chessPiece | null)[][], currentPos: [number, number], team: "black" | "white") => {
         const entireRowOffsetUp = team === "black" ? 1 : -1
         const entireRowOffsetDown = team === "black" ? -1 : 1
         const entireColumnOffsetLeft = team === "black" ? 1 : -1
@@ -368,50 +394,50 @@ export default function Page() {
         }
     }
 
-    const findValidMoves = (seenPiece: chessPiece, passedChessBoardArr: (chessPiece | null)[][], justCheck = false, finalCheck = false) => {
-        let safeTiles: [number, number][] = []//yx - row column
+    const getPossibleMoves = (seenPiece: chessPiece, passedChessBoardArr: (chessPiece | null)[][]) => {
+        let validTilesToMove: [number, number][] = []//yx - row column
 
         if (seenPiece.piece === "pawn") {
             //check front
-            const frontTile = checkMove("front", passedChessBoardArr, seenPiece.currentPos, seenPiece.team)
+            const frontTile = pieceMoves("front", passedChessBoardArr, seenPiece.currentPos, seenPiece.team)
             if (frontTile && frontTile.state === null) {
-                safeTiles.push(frontTile.position)
+                validTilesToMove.push(frontTile.position)
             }
 
             //check double move
             if (seenPiece.movedAmount === 0 && frontTile) {
-                const doubleFrontTile = checkMove("front", passedChessBoardArr, frontTile.position, seenPiece.team)
+                const doubleFrontTile = pieceMoves("front", passedChessBoardArr, frontTile.position, seenPiece.team)
                 if (frontTile.state === null && doubleFrontTile && doubleFrontTile.state === null) {
-                    safeTiles.push(doubleFrontTile.position)
+                    validTilesToMove.push(doubleFrontTile.position)
                 }
             }
 
             //check topleftDiag
-            const topLeft = checkMove("topLeft", passedChessBoardArr, seenPiece.currentPos, seenPiece.team)
+            const topLeft = pieceMoves("topLeft", passedChessBoardArr, seenPiece.currentPos, seenPiece.team)
             if (topLeft && (topLeft.state && topLeft.state.team !== seenPiece.team)) {
-                safeTiles.push(topLeft.position)
+                validTilesToMove.push(topLeft.position)
             }
 
             //check topRightDiag
-            const topRight = checkMove("topRight", passedChessBoardArr, seenPiece.currentPos, seenPiece.team)
+            const topRight = pieceMoves("topRight", passedChessBoardArr, seenPiece.currentPos, seenPiece.team)
             if (topRight && (topRight.state && topRight.state.team !== seenPiece.team)) {
-                safeTiles.push(topRight.position)
+                validTilesToMove.push(topRight.position)
             }
 
             //en pessant check
             if ((seenPiece.currentPos[0] === 3 || seenPiece.currentPos[0] === 4)) {
-                const leftTile = checkMove("left", passedChessBoardArr, seenPiece.currentPos, seenPiece.team)
+                const leftTile = pieceMoves("left", passedChessBoardArr, seenPiece.currentPos, seenPiece.team)
                 if (leftTile && topLeft && (leftTile.state && leftTile.state.team !== seenPiece.team && leftTile.state.movedAmount === 1)) {
-                    safeTiles.push(topLeft.position)
+                    validTilesToMove.push(topLeft.position)
                     enpassantInPlaySet({
                         position: topLeft.position,
                         pieceToCollect: leftTile.state
                     })
                 }
 
-                const rightTile = checkMove("right", passedChessBoardArr, seenPiece.currentPos, seenPiece.team)
+                const rightTile = pieceMoves("right", passedChessBoardArr, seenPiece.currentPos, seenPiece.team)
                 if (rightTile && topRight && (rightTile.state && rightTile.state.team !== seenPiece.team && rightTile.state.movedAmount === 1)) {
-                    safeTiles.push(topRight.position)
+                    validTilesToMove.push(topRight.position)
                     enpassantInPlaySet({
                         position: topRight.position,
                         pieceToCollect: rightTile.state
@@ -460,15 +486,13 @@ export default function Page() {
                     const square = passedChessBoardArr[newRow][newColumn]
 
                     if (square === null || square.team !== seenPiece.team) {
-                        safeTiles.push([newRow, newColumn])
+                        validTilesToMove.push([newRow, newColumn])
                     }
                 }
             })
         }
 
         if (seenPiece.piece === "king") {
-            //do eight checks from current position
-            //check undefined null or here
             const kingMovementArr = [[-1, -1], [-1, 0], [-1, 1], [0, 1], [1, 1], [1, 0], [1, -1], [0, -1]]
             const currentPosY = seenPiece.currentPos[0]
             const currentPosX = seenPiece.currentPos[1]
@@ -481,11 +505,12 @@ export default function Page() {
                     const square = passedChessBoardArr[newRow][newColumn]
 
                     if (square === null || square.team !== seenPiece.team) {
-                        safeTiles.push([newRow, newColumn])
+                        validTilesToMove.push([newRow, newColumn])
                     }
                 }
             })
 
+            //castle
             if (seenPiece.movedAmount === 0) {
                 const whiteLeftRook = chessPieces.find(eachPiece => eachPiece.id === 25)
                 const whiteRightRook = chessPieces.find(eachPiece => eachPiece.id === 32)
@@ -504,7 +529,7 @@ export default function Page() {
                             let newPositionY = whiteLeftRook.currentPos[0]
                             let newPositionX = whiteLeftRook.currentPos[1] + 1
 
-                            safeTiles.push([newPositionY, newPositionX])
+                            validTilesToMove.push([newPositionY, newPositionX])
 
                             newArr.push({
                                 pieceToCollect: whiteLeftRook,
@@ -529,7 +554,7 @@ export default function Page() {
                             let newPositionY = whiteRightRook.currentPos[0]
                             let newPositionX = whiteRightRook.currentPos[1] - 1
 
-                            safeTiles.push([newPositionY, newPositionX])
+                            validTilesToMove.push([newPositionY, newPositionX])
 
                             newArr.push({
                                 pieceToCollect: whiteRightRook,
@@ -553,7 +578,7 @@ export default function Page() {
                             let newPositionY = blackLeftRook.currentPos[0]
                             let newPositionX = blackLeftRook.currentPos[1] + 1
 
-                            safeTiles.push([newPositionY, newPositionX])
+                            validTilesToMove.push([newPositionY, newPositionX])
 
                             newArr.push({
                                 pieceToCollect: blackLeftRook,
@@ -576,7 +601,7 @@ export default function Page() {
                             let newPositionY = blackRightRook.currentPos[0]
                             let newPositionX = blackRightRook.currentPos[1] - 1
 
-                            safeTiles.push([newPositionY, newPositionX])
+                            validTilesToMove.push([newPositionY, newPositionX])
 
                             newArr.push({
                                 pieceToCollect: blackRightRook,
@@ -591,132 +616,167 @@ export default function Page() {
             }
         }
 
-        if (justCheck) return [...safeTiles]
-
-        // check safe tiles positions to see if the king is in check
-        let kingIsInCheck = false
-        safeTiles = safeTiles.filter(eachXYPos => {
-            kingIsInCheck = checkIfKingIsInCheck([...eachXYPos], { ...seenPiece })
-            return !kingIsInCheck
-        })
-
-        if (finalCheck) return [...safeTiles] //end list of truly safe tiles
-
-        //handle click on invalid move piece if king is in check
-        if (safeTiles.length === 0 && kingIsInCheck && gameMode !== "auto" && currentTurn === playerTeamSelection) toast.error("Can't Move this piece. King is in check")
-
-        //aply valid moves to piece
-        chessPiecesSet(prevChessPieces => {
-            const newChessPieces = prevChessPieces.map(eachChessPiece => {
-                if (eachChessPiece.id === seenPiece.id) {
-                    eachChessPiece.validSquaresToMove = [...safeTiles]
-                }
-
-                return eachChessPiece
-            })
-
-            return newChessPieces
-        })
-
         //small functions
         function recuriveFrontCheck(passedPosition: [number, number]) {
-            const frontTile = checkMove("front", passedChessBoardArr, passedPosition, seenPiece.team)
+            const frontTile = pieceMoves("front", passedChessBoardArr, passedPosition, seenPiece.team)
             if (!frontTile) return
 
             if (frontTile.state === null) {
-                safeTiles.push(frontTile.position)
+                validTilesToMove.push(frontTile.position)
                 recuriveFrontCheck(frontTile.position)
 
             } else if (frontTile.state && frontTile.state.team !== seenPiece.team) {
-                safeTiles.push(frontTile.position)
+                validTilesToMove.push(frontTile.position)
             }
         }
         function recuriveBottomCheck(passedPosition: [number, number]) {
-            const bottomTile = checkMove("bottom", passedChessBoardArr, passedPosition, seenPiece.team)
+            const bottomTile = pieceMoves("bottom", passedChessBoardArr, passedPosition, seenPiece.team)
             if (!bottomTile) return
 
             if (bottomTile.state === null) {
-                safeTiles.push(bottomTile.position)
+                validTilesToMove.push(bottomTile.position)
                 recuriveBottomCheck(bottomTile.position)
 
             } else if (bottomTile.state && bottomTile.state.team !== seenPiece.team) {
-                safeTiles.push(bottomTile.position)
+                validTilesToMove.push(bottomTile.position)
             }
         }
         function recuriveLeftCheck(passedPosition: [number, number]) {
-            const leftTile = checkMove("left", passedChessBoardArr, passedPosition, seenPiece.team)
+            const leftTile = pieceMoves("left", passedChessBoardArr, passedPosition, seenPiece.team)
             if (!leftTile) return
 
             if (leftTile.state === null) {
-                safeTiles.push(leftTile.position)
+                validTilesToMove.push(leftTile.position)
                 recuriveLeftCheck(leftTile.position)
 
             } else if (leftTile.state && leftTile.state.team !== seenPiece.team) {
-                safeTiles.push(leftTile.position)
+                validTilesToMove.push(leftTile.position)
             }
         }
         function recuriveRightCheck(passedPosition: [number, number]) {
-            const rightTile = checkMove("right", passedChessBoardArr, passedPosition, seenPiece.team)
+            const rightTile = pieceMoves("right", passedChessBoardArr, passedPosition, seenPiece.team)
             if (!rightTile) return
 
             if (rightTile.state === null) {
-                safeTiles.push(rightTile.position)
+                validTilesToMove.push(rightTile.position)
                 recuriveRightCheck(rightTile.position)
 
             } else if (rightTile.state && rightTile.state.team !== seenPiece.team) {
-                safeTiles.push(rightTile.position)
+                validTilesToMove.push(rightTile.position)
             }
         }
         function recuriveTopLeftCheck(passedPosition: [number, number]) {
-            const topLeftTile = checkMove("topLeft", passedChessBoardArr, passedPosition, seenPiece.team)
+            const topLeftTile = pieceMoves("topLeft", passedChessBoardArr, passedPosition, seenPiece.team)
             if (!topLeftTile) return
 
             if (topLeftTile.state === null) {
-                safeTiles.push(topLeftTile.position)
+                validTilesToMove.push(topLeftTile.position)
                 recuriveTopLeftCheck(topLeftTile.position)
 
             } else if (topLeftTile.state && topLeftTile.state.team !== seenPiece.team) {
-                safeTiles.push(topLeftTile.position)
+                validTilesToMove.push(topLeftTile.position)
             }
         }
         function recuriveTopRightCheck(passedPosition: [number, number]) {
-            const topRightTile = checkMove("topRight", passedChessBoardArr, passedPosition, seenPiece.team)
+            const topRightTile = pieceMoves("topRight", passedChessBoardArr, passedPosition, seenPiece.team)
             if (!topRightTile) return
 
             if (topRightTile.state === null) {
-                safeTiles.push(topRightTile.position)
+                validTilesToMove.push(topRightTile.position)
                 recuriveTopRightCheck(topRightTile.position)
 
             } else if (topRightTile.state && topRightTile.state.team !== seenPiece.team) {
-                safeTiles.push(topRightTile.position)
+                validTilesToMove.push(topRightTile.position)
             }
         }
         function recuriveBottomLeftCheck(passedPosition: [number, number]) {
-            const bottomLeftTile = checkMove("bottomLeft", passedChessBoardArr, passedPosition, seenPiece.team)
+            const bottomLeftTile = pieceMoves("bottomLeft", passedChessBoardArr, passedPosition, seenPiece.team)
             if (!bottomLeftTile) return
 
             if (bottomLeftTile.state === null) {
-                safeTiles.push(bottomLeftTile.position)
+                validTilesToMove.push(bottomLeftTile.position)
                 recuriveBottomLeftCheck(bottomLeftTile.position)
 
             } else if (bottomLeftTile.state && bottomLeftTile.state.team !== seenPiece.team) {
-                safeTiles.push(bottomLeftTile.position)
+                validTilesToMove.push(bottomLeftTile.position)
             }
         }
         function recuriveBottomRightCheck(passedPosition: [number, number]) {
-            const bottomRightTile = checkMove("bottomRight", passedChessBoardArr, passedPosition, seenPiece.team)
+            const bottomRightTile = pieceMoves("bottomRight", passedChessBoardArr, passedPosition, seenPiece.team)
             if (!bottomRightTile) return
 
             if (bottomRightTile.state === null) {
-                safeTiles.push(bottomRightTile.position)
+                validTilesToMove.push(bottomRightTile.position)
                 recuriveBottomRightCheck(bottomRightTile.position)
 
             } else if (bottomRightTile.state && bottomRightTile.state.team !== seenPiece.team) {
-                safeTiles.push(bottomRightTile.position)
+                validTilesToMove.push(bottomRightTile.position)
             }
         }
 
+        return validTilesToMove
+    }
+
+    const findValidMoves = (seenPiece: chessPiece, passedChessBoardArr: (chessPiece | null)[][]) => {
+        const possibleMoves = getPossibleMoves({ ...seenPiece }, [...passedChessBoardArr])
+
+        // safe tiles where king is not in check
+        let tileCausesCheck = false
+        const safeTiles = possibleMoves.filter(eachXYPos => {
+            tileCausesCheck = checkIfPositionCausesCheck([...eachXYPos], { ...seenPiece }, chessPieces)
+            return !tileCausesCheck
+        })
+
         return safeTiles
+    }
+
+    const checkIfPositionCausesCheck = (position: [number, number], seenChessPiece: chessPiece, seenChessPieces: chessPiece[]): boolean => {
+        //update positions of chess pieces
+        const chessPiecesLocal = (JSON.parse(JSON.stringify(seenChessPieces)) as chessPiece[]).filter(eachPiece => {
+            let returning = true
+
+            if (eachPiece.currentPos[0] === position[0] && eachPiece.currentPos[1] === position[1]) {
+                returning = false
+            }
+
+            return returning
+        }).map(eachPiece => {
+            if (eachPiece.id === seenChessPiece.id) {
+                eachPiece.currentPos = [...position]
+            }
+
+            return eachPiece
+        })
+
+        //get new chess board at hypothetical position
+        const chessBoardLocal = makeNewChessBoard(chessPiecesLocal)
+
+        //get king from board
+        const king = chessPiecesLocal.find(eachPiece => eachPiece.piece === "king" && eachPiece.team === seenChessPiece.team)
+        if (!king) return false
+
+        //get tile positions that attack the kings
+        let tilesBeingAttacked: [number, number][] = []
+        chessPiecesLocal.forEach(eachChessPiece => {
+            if (eachChessPiece.team !== seenChessPiece.team) {
+                const seenTiles = getPossibleMoves({ ...eachChessPiece }, chessBoardLocal)
+
+                tilesBeingAttacked.push(...seenTiles)
+            }
+        })
+
+        //check if king attacked
+        let kingBeingAttacked = false
+        tilesBeingAttacked.forEach(attackYX => {
+            const positionYAttacked = attackYX[0]
+            const positionXAttacked = attackYX[1]
+
+            if (positionYAttacked === king.currentPos[0] && positionXAttacked === king.currentPos[1]) {
+                kingBeingAttacked = true
+            }
+        })
+
+        return kingBeingAttacked
     }
 
     const moveToSquare = (seenPiece: chessPiece, posYX: [number, number], dontSwitchTurn = false) => {
@@ -853,108 +913,7 @@ export default function Page() {
         })
     }
 
-    const checkIfKingIsInCheck = (position: [number, number], seenChessPiece: chessPiece): boolean => {
-        //update positions of chess pieces
-        const chessPiecesLocal = (JSON.parse(JSON.stringify(chessPieces)) as chessPiece[]).filter(eachPiece => {
-            let returning = true
-
-            if (eachPiece.currentPos[0] === position[0] && eachPiece.currentPos[1] === position[1]) {
-                returning = false
-            }
-
-            return returning
-        }).map(eachPiece => {
-            if (eachPiece.id === seenChessPiece.id) {
-                eachPiece.currentPos = [...position]
-            }
-
-            return eachPiece
-        })
-
-        //get new chess board at hypothetical position
-        const newChessBoard = makeNewChessBoard(chessPiecesLocal)
-
-        //get kings from board
-        const king = chessPiecesLocal.find(eachPiece => eachPiece.piece === "king" && eachPiece.team === seenChessPiece.team)
-        if (!king) return false
-
-        //get tile positions that attack the kings
-        let tilesBeingAttacked: [number, number][] = []
-        chessPiecesLocal.forEach(eachChessPiece => {
-            if (eachChessPiece.team !== seenChessPiece.team) {
-                const seenTiles = findValidMoves({ ...eachChessPiece }, newChessBoard, true)
-
-                if (seenTiles) tilesBeingAttacked.push(...seenTiles)
-            }
-        })
-        tilesBeingAttackedSet(tilesBeingAttacked)
-
-        //check if king attacked
-        let kingBeingAttacked = false
-        kingInCheckSet(false)
-        tilesBeingAttacked.forEach(attackYX => {
-            const positionYAttacked = attackYX[0]
-            const positionXAttacked = attackYX[1]
-
-            if (positionYAttacked === king.currentPos[0] && positionXAttacked === king.currentPos[1]) {
-                kingBeingAttacked = true
-                kingInCheckSet(true)
-                // console.log(`$king would be in check, cant move piece`);
-            }
-        })
-
-        if (kingBeingAttacked && !checkingFinalMovesLeft.current) {
-            checkingFinalMovesLeft.current = true
-
-            //check my team for any possible moves
-            let movesLeft = false
-            chessPiecesLocal.forEach(eachChessPiece => {
-                if (eachChessPiece.team === seenChessPiece.team) {
-                    const seenTiles = findValidMoves({ ...eachChessPiece }, newChessBoard, false, true)
-
-                    if (seenTiles && seenTiles.length > 0) movesLeft = true
-                }
-            })
-
-            console.log(`$king being attacked`, king);
-            console.log(`$are moves left`, movesLeft);
-
-            checkingFinalMovesLeft.current = false
-            if (!movesLeft) {
-                toast.error("checkmated")
-                checkmatedKingSet(king)
-            }
-        }
-
-
-        return kingBeingAttacked
-    }
-
-    //set up an autoplayer
-    const handleInteractions = (passedSquare: chessPiece | null, isValidSquare: boolean, posYX: [number, number]) => {
-        if (passedSquare && !activePiece) {
-            if (currentTurn === passedSquare.team) {
-                findValidMoves(passedSquare, chessBoardArr)
-                activePieceSet(passedSquare)
-            } else {
-                toast.success(`${currentTurn}'s play`)
-            }
-        }
-
-        if (activePiece) {
-            if (isValidSquare) {
-                moveToSquare(activePiece, posYX)
-            }
-
-            activePieceSet(null)
-        }
-    }
-
     const resetAll = () => {
-        if (checkmatedKing) checkmatedKingSet(undefined)
-
-        if (staleMate) staleMateSet(false)
-
         chessPiecesSet([...initialChessPieces])
         capturedPiecesSet([])
     }
@@ -968,50 +927,49 @@ export default function Page() {
                 </div>
 
                 <div>
-                    {checkmatedKing && (
-                        <div>
-                            {checkmatedKing.team === "white" ? (
-                                <p>Black is our winner</p>
-                            ) : (
-                                <p>White is our winner</p>
-                            )}
-                        </div>
-                    )}
-
-                    {staleMate && (
-                        <div>
-                            <p>Draw</p>
-                        </div>
-                    )}
-
                     <div className={styles.chessBoard} ref={chessBoardRef}>
                         {chessBoardArr.map((eachRowArr, eachRowArrIndex) => {
                             return eachRowArr.map((eachSquare, eachSquareIndex) => {
                                 let validSquareToMove = false
-
                                 activePiece?.validSquaresToMove.forEach(eachPos => {
-                                    //yx
-
                                     if (eachPos[0] === eachRowArrIndex && eachPos[1] === eachSquareIndex) {
                                         validSquareToMove = true
                                     }
                                 })
 
-                                let foundInArr = false
-                                tilesBeingAttacked.forEach((eachAddress) => {
-                                    if (eachAddress[0] === eachRowArrIndex && eachAddress[1] === eachSquareIndex) {
-                                        foundInArr = true
-                                    }
-                                })
-
                                 return (
-                                    <div key={`row${eachRowArrIndex}column${eachSquareIndex}`}
+                                    <div key={`${eachRowArrIndex}${eachSquareIndex}`}
                                         style={{ backgroundColor: validSquareToMove ? "orange" : "", color: eachSquare && eachSquare.team === "black" ? "purple" : "", }}
                                         className={`${styles.chessSquare} ${eachRowArrIndex % 2 === 0 ? eachSquareIndex % 2 === 0 ? styles.lightSquare : styles.darkSquare : eachSquareIndex % 2 === 0 ? styles.darkSquare : styles.lightSquare}`}
                                         onClick={() => {
-                                            //select an item
-                                            //move an item if active chess piece is there and valid move
-                                            handleInteractions(eachSquare, validSquareToMove, [eachRowArrIndex, eachSquareIndex])
+                                            if (eachSquare && !activePiece) {
+                                                if (currentTurn === eachSquare.team) {
+                                                    const validMoves = findValidMoves(eachSquare, chessBoardArr)
+
+                                                    //asign valid moves to active piece
+                                                    chessPiecesSet(prevChessPieces => {
+                                                        const newChessPieces = prevChessPieces.map(eachChessPiece => {
+                                                            if (eachChessPiece.id === eachSquare.id) {
+                                                                eachChessPiece.validSquaresToMove = [...validMoves]
+                                                            }
+
+                                                            return eachChessPiece
+                                                        })
+
+                                                        return newChessPieces
+                                                    })
+
+                                                    activePieceSet(eachSquare)
+                                                } else toast.success(`${currentTurn}'s play`)
+                                            }
+
+                                            if (activePiece) {
+                                                if (validSquareToMove) {
+                                                    moveToSquare(activePiece, [eachRowArrIndex, eachSquareIndex])
+                                                }
+
+                                                activePieceSet(null)
+                                            }
                                         }}
                                     >
                                         {eachSquare && <Image alt={`${eachSquare.piece} img`} priority={true} src={eachSquare.image} width={60} height={60} style={{ objectFit: "contain" }} />}
