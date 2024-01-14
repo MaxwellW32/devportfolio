@@ -981,7 +981,7 @@ export default function Page() {
                         )}
 
                         {stalemate && (
-                            <div>
+                            <div style={{ textAlign: "center", fontWeight: "bold" }}>
                                 <p>Stalemate</p>
                             </div>
                         )}
