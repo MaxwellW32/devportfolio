@@ -1,8 +1,8 @@
-export function saveToLocalStorage(keyName: any, item: any) {
+export function saveToLocalStorage<T>(keyName: string, item: T) {
     localStorage.setItem(keyName, JSON.stringify(item));
 }
 
-export function retreiveFromLocalStorage(keyName: string): any {
+export function retreiveFromLocalStorage<T>(keyName: string): T | null {
     const initialkeyItem = localStorage.getItem(keyName);
 
     if (initialkeyItem === null) return null
@@ -13,7 +13,7 @@ export function retreiveFromLocalStorage(keyName: string): any {
 
 
 
-export function removeFromLocalStorage(keyName: string): any {
+export function removeFromLocalStorage(keyName: string) {
     localStorage.removeItem(keyName);
 }
 

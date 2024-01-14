@@ -5,6 +5,7 @@ import styles from "./page.module.css"
 import HideNav from '@/components/hideNav/HideNav'
 import { toast } from 'react-hot-toast'
 import Image from 'next/image'
+import { deepClone } from '@/useful/deepClone'
 
 export default function Page() {
     type piece = "rook" | "knight" | "bishop" | "queen" | "king" | "pawn"
@@ -71,8 +72,6 @@ export default function Page() {
         { id: 15, ...chessPieceStatChoices["pawn"], currentPos: [1, 6], validSquaresToMove: [], team: "black", image: getChessPieceImage("pawn", "black"), movedAmount: 0 },
         { id: 16, ...chessPieceStatChoices["pawn"], currentPos: [1, 7], validSquaresToMove: [], team: "black", image: getChessPieceImage("pawn", "black"), movedAmount: 0 },
 
-
-
         { id: 17, ...chessPieceStatChoices["pawn"], currentPos: [6, 0], validSquaresToMove: [], team: "white", image: getChessPieceImage("pawn", "white"), movedAmount: 0 },
         { id: 18, ...chessPieceStatChoices["pawn"], currentPos: [6, 1], validSquaresToMove: [], team: "white", image: getChessPieceImage("pawn", "white"), movedAmount: 0 },
         { id: 19, ...chessPieceStatChoices["pawn"], currentPos: [6, 2], validSquaresToMove: [], team: "white", image: getChessPieceImage("pawn", "white"), movedAmount: 0 },
@@ -98,7 +97,6 @@ export default function Page() {
 
     const [playerTeamSelection, playerTeamSelectionSet] = useState<"black" | "white">("white")
     const [showingSettings, showingSettingsSet] = useState(false)
-    const [noMovesLeft, noMovesLeftSet] = useState(false)
     const [gameMode, gameModeSet] = useState<"auto" | "manual" | "verse">("auto")
     const [currentTurn, currentTurnSet] = useState<"black" | "white">("white")
     const [enpassantInPlay, enpassantInPlaySet] = useState<{
@@ -112,6 +110,11 @@ export default function Page() {
     const [chessPieces, chessPiecesSet] = useState<chessPiece[]>([...initialChessPieces])
     const [capturedPieces, capturedPiecesSet] = useState<chessPiece[]>([])
     const [activePiece, activePieceSet] = useState<chessPiece | null>(null)
+    const [positionsThatCheckEnemyKing, positionsThatCheckEnemyKingSet] = useState<[number, number][]>([])
+
+    const [stalemate, stalemateSet] = useState(false)
+    const [checkMatedKing, checkMatedKingSet] = useState<chessPiece>()
+    const [checkedKing, checkedKingSet] = useState<chessPiece>()
 
     const chessBoardArr = useMemo<(chessPiece | null)[][]>(() => {
         return makeNewChessBoard(chessPieces)
@@ -157,24 +160,23 @@ export default function Page() {
 
     //start off
     useEffect(() => {
-        if (gameMode === "manual") return clearInterval(autoPlayLoop.current)
+        if (gameMode === "manual") return
 
         if (chessPieces.length === 2 && chessPieces[0].piece === "king" && chessPieces[1].piece === "king") {
-            return noMovesLeftSet(true)
+            stalemateSet(true)
         }
 
-        if (noMovesLeft) {
-            setTimeout(resetAll, 30000);
-
-            return clearInterval(autoPlayLoop.current)
+        if (stalemate || checkMatedKing && gameMode === "auto") {
+            setTimeout(resetAll, 20000);
+            return
         }
 
         autoPlayLoop.current = setInterval(() => {
             autoPlay(chessPieces)
         }, 800)
 
-        return () => { if (autoPlayLoop.current) clearInterval(autoPlayLoop.current) }
-    }, [chessPieces, currentTurn, chessBoardArr, noMovesLeft, gameMode, playerTeamSelection])
+        return () => { autoPlayLoop.current && clearInterval(autoPlayLoop.current) }
+    }, [chessPieces, currentTurn, chessBoardArr, gameMode, playerTeamSelection, checkedKing, checkMatedKing, stalemate])
 
 
 
@@ -262,8 +264,14 @@ export default function Page() {
 
             if (newTeamPieces.length === 0) {
                 // check stalemate checkmate
-                toast.success("no more moves")
-                noMovesLeftSet(true)
+                if (checkedKing) {
+                    checkMatedKingSet(checkedKing)
+                    console.log(`$checkmate`);
+                } else {
+                    stalemateSet(true)
+                    console.log(`$stalemate`);
+                }
+
                 return
             }
 
@@ -723,26 +731,29 @@ export default function Page() {
         // safe tiles where king is not in check
         let tileCausesCheck = false
         const safeTiles = possibleMoves.filter(eachXYPos => {
-            tileCausesCheck = checkIfPositionCausesCheck([...eachXYPos], { ...seenPiece }, chessPieces)
+            tileCausesCheck = checkIfFuturePositionCausesCheck([...eachXYPos], { ...seenPiece }, chessPieces)
             return !tileCausesCheck
         })
 
         return safeTiles
     }
 
-    const checkIfPositionCausesCheck = (position: [number, number], seenChessPiece: chessPiece, seenChessPieces: chessPiece[]): boolean => {
+    const checkIfFuturePositionCausesCheck = (futurePosition: [number, number], seenChessPiece: chessPiece, seenChessPieces: chessPiece[]): boolean => {
+        //if causes check to my piece - return no
+        //if causes check to other - note it
+
         //update positions of chess pieces
         const chessPiecesLocal = (JSON.parse(JSON.stringify(seenChessPieces)) as chessPiece[]).filter(eachPiece => {
             let returning = true
 
-            if (eachPiece.currentPos[0] === position[0] && eachPiece.currentPos[1] === position[1]) {
+            if (eachPiece.currentPos[0] === futurePosition[0] && eachPiece.currentPos[1] === futurePosition[1]) {
                 returning = false
             }
 
             return returning
         }).map(eachPiece => {
             if (eachPiece.id === seenChessPiece.id) {
-                eachPiece.currentPos = [...position]
+                eachPiece.currentPos = [...futurePosition]
             }
 
             return eachPiece
@@ -750,33 +761,45 @@ export default function Page() {
 
         //get new chess board at hypothetical position
         const chessBoardLocal = makeNewChessBoard(chessPiecesLocal)
-
-        //get king from board
-        const king = chessPiecesLocal.find(eachPiece => eachPiece.piece === "king" && eachPiece.team === seenChessPiece.team)
-        if (!king) return false
+        //get kings from board
+        const kings = chessPiecesLocal.filter(eachPiece => eachPiece.piece === "king")
 
         //get tile positions that attack the kings
         let tilesBeingAttacked: [number, number][] = []
         chessPiecesLocal.forEach(eachChessPiece => {
-            if (eachChessPiece.team !== seenChessPiece.team) {
-                const seenTiles = getPossibleMoves({ ...eachChessPiece }, chessBoardLocal)
+            const seenTiles = getPossibleMoves(deepClone(eachChessPiece), deepClone(chessBoardLocal))
 
-                tilesBeingAttacked.push(...seenTiles)
-            }
+            tilesBeingAttacked.push(...seenTiles)
         })
 
-        //check if king attacked
-        let kingBeingAttacked = false
-        tilesBeingAttacked.forEach(attackYX => {
-            const positionYAttacked = attackYX[0]
-            const positionXAttacked = attackYX[1]
+        //check if king is being attacked
 
-            if (positionYAttacked === king.currentPos[0] && positionXAttacked === king.currentPos[1]) {
-                kingBeingAttacked = true
-            }
+        let needToDeleteThisPosition = false
+        kings.forEach(eachKing => {
+            tilesBeingAttacked.forEach(attackYX => {
+                const positionYAttacked = attackYX[0]
+                const positionXAttacked = attackYX[1]
+
+                //home king attacked by my move
+                if (positionYAttacked === eachKing.currentPos[0] && positionXAttacked === eachKing.currentPos[1]) {
+
+                    if (eachKing.team === seenChessPiece.team) {
+                        needToDeleteThisPosition = true
+                        // console.log(`$friendly king would be attacked`, [...futurePosition]);
+
+                    } else {
+                        // ooh checking another king
+                        positionsThatCheckEnemyKingSet(prev => [...prev, ...[futurePosition]])
+
+                        // console.log(`$this move checks the enemy king`, seenChessPiece, [...futurePosition]);
+                    }
+                }
+            })
+
         })
 
-        return kingBeingAttacked
+
+        return needToDeleteThisPosition
     }
 
     const moveToSquare = (seenPiece: chessPiece, posYX: [number, number], dontSwitchTurn = false) => {
@@ -832,6 +855,25 @@ export default function Page() {
 
             canCastleSet([])
         }
+
+        //check if piece causes a check
+        checkedKingSet(undefined)
+
+        positionsThatCheckEnemyKing.forEach(eachPos => {
+            if (eachPos[0] === posYX[0] && eachPos[1] === posYX[1]) {
+                toast.success("check")
+
+                if (seenPiece.team === "white") {
+                    const whiteKing = chessPieces.find(each => each.piece === "king" && each.team === "white")!
+                    checkedKingSet(whiteKing)
+
+                } else {
+                    const blackKing = chessPieces.find(each => each.piece === "king" && each.team === "black")!
+                    checkedKingSet(blackKing)
+                }
+            }
+        })
+        positionsThatCheckEnemyKingSet([])
 
         //write piece to new position
         chessPiecesSet(prevChessPieces => {
@@ -914,10 +956,11 @@ export default function Page() {
     }
 
     const resetAll = () => {
-        chessPiecesSet([...initialChessPieces])
+
+        chessPiecesSet([...(Math.random() * 1 > 0.3 ? initialChessPieces : initialChessPieces.filter(each => each.id === 5 || each.id > 16))])
         capturedPiecesSet([])
-        noMovesLeftSet(false)
-        autoPlayLoop.current = undefined
+        checkMatedKingSet(undefined)
+        stalemateSet(false)
     }
 
     return (
@@ -929,6 +972,20 @@ export default function Page() {
                 </div>
 
                 <div>
+                    <div>
+                        {checkMatedKing && (
+                            <div style={{ fontWeight: "bold", textAlign: "center" }}>
+                                <p>Checkmated</p>
+                                <p>{checkMatedKing.team === "white" ? "White" : "Black"} is the winner</p>
+                            </div>
+                        )}
+
+                        {stalemate && (
+                            <div>
+                                <p>Stalemate</p>
+                            </div>
+                        )}
+                    </div>
                     <div className={styles.chessBoard} ref={chessBoardRef}>
                         {chessBoardArr.map((eachRowArr, eachRowArrIndex) => {
                             return eachRowArr.map((eachSquare, eachSquareIndex) => {
@@ -944,7 +1001,7 @@ export default function Page() {
                                         style={{ backgroundColor: validSquareToMove ? "orange" : "", color: eachSquare && eachSquare.team === "black" ? "purple" : "", }}
                                         className={`${styles.chessSquare} ${eachRowArrIndex % 2 === 0 ? eachSquareIndex % 2 === 0 ? styles.lightSquare : styles.darkSquare : eachSquareIndex % 2 === 0 ? styles.darkSquare : styles.lightSquare}`}
                                         onClick={() => {
-                                            if (eachSquare && !activePiece) {
+                                            if (eachSquare) {
                                                 if (currentTurn === eachSquare.team) {
                                                     const validMoves = findValidMoves(eachSquare, chessBoardArr)
 
@@ -965,12 +1022,8 @@ export default function Page() {
                                                 } else toast.success(`${currentTurn}'s play`)
                                             }
 
-                                            if (activePiece) {
-                                                if (validSquareToMove) {
-                                                    moveToSquare(activePiece, [eachRowArrIndex, eachSquareIndex])
-                                                }
-
-                                                activePieceSet(null)
+                                            if (activePiece && validSquareToMove) {
+                                                moveToSquare(activePiece, [eachRowArrIndex, eachSquareIndex])
                                             }
                                         }}
                                     >
