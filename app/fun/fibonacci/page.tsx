@@ -46,6 +46,7 @@ export default function Page() {
 
     return (
         <HideNav>
+            <p>hey</p>
         </HideNav>
     )
 }

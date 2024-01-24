@@ -171,7 +171,7 @@ export default function Page() {
     }, [currentIndex, variantIndex])
 
     //list all phones in the array
-    //change the x coordinate to reflect how far they are away from the current index.
+    //change the x coordinate to reflect how far they are away from the current index
     return (
         <main className={styles.mainDiv} style={{}}>
             <div className={styles.mainHolder} style={{ height: "100svh", display: "flex", flexWrap: "wrap", gap: '1rem', overflowY: "auto" }}>
