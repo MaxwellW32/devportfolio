@@ -30,5 +30,11 @@ export const landingPageExamples: landingPageExample[] = [
         category: "Food/Delicacy",
         title: "Pizza Slice",
         link: "/landingPageExamples/pizza",
+    },
+    {
+        image: require(`@/public/landingPageExamples/pizzaSlice/cheesepizza.png`).default.src,
+        category: "Tech/Devices",
+        title: "Apple Store",
+        link: "/landingPageExamples/appleStore",
     }
 ]

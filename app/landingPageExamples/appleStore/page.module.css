@@ -1,0 +1,16 @@
+.mainDiv {
+    --APColor1: #e2e2e2;
+}
+
+.mainHolder {
+    background-image: radial-gradient(circle, #6b8092, #252d37);
+}
+
+.logo {
+    filter: invert(100%) brightness(.9);
+}
+
+.mainDiv button {
+    border-radius: .5rem;
+    padding: .5rem 1rem;
+}
