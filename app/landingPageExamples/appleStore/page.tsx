@@ -21,7 +21,7 @@ const proDisplay = localFont({
     ],
 })
 
-//url is made up of parameters slug and color 
+//url is made up of parameters slug and color .
 
 type iphone = {
     id: number,
