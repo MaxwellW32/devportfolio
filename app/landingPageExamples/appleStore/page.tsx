@@ -14,14 +14,12 @@ const proDisplay = localFont({
             style: 'normal',
         },
         {
-            path: '../../../public/fonts/sfprodisplaybold.otf',
+            path: '../../../public/fonts/sfprodisplaybold.ttf',
             weight: '700',
             style: 'bold',
         }
     ],
 })
-
-//url is made up of parameters slug and color .
 
 type iphone = {
     id: number,
