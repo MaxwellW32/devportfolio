@@ -52,7 +52,7 @@ export default function HompagesRootLayout({
     <HideNav>
       {children}
 
-      <div style={{ position: "fixed", bottom: "1rem", width: "100%", display: "flex", flexWrap: "wrap", gap: "1rem", justifyContent: "center", zIndex: 998 }}>
+      <div style={{ position: "fixed", bottom: "1rem", width: "100%", display: "flex", flexWrap: "wrap", gap: "1rem", justifyContent: "center", zIndex: 998, userSelect: "none" }}>
         <p style={{ cursor: "pointer" }} onClick={prev}>prev</p>
         <p style={{ cursor: "pointer" }} onClick={next}>next</p>
       </div>

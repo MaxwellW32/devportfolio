@@ -4,6 +4,22 @@ import styles from "./page.module.css"
 import Image from 'next/image'
 import { ReadonlyURLSearchParams, usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { difference } from 'next/dist/build/utils';
+import localFont from 'next/font/local'
+
+const proDisplay = localFont({
+    src: [
+        {
+            path: '../../../public/fonts/SFPRODISPLAYREGULAR.otf',
+            weight: '400',
+            style: 'normal',
+        },
+        {
+            path: '../../../public/fonts/SFPRODISPLAYBOLD.otf',
+            weight: '700',
+            style: 'bold',
+        }
+    ],
+})
 
 //url is made up of parameters slug and color 
 
@@ -150,7 +166,6 @@ export default function Page() {
         replace(`${pathname}?${params.toString()}`);
     }
 
-
     //load up url selection on page load
     useEffect(() => {
         const seenUrlName = searchParams.get("name")
@@ -173,9 +188,9 @@ export default function Page() {
     //list all phones in the array
     //change the x coordinate to reflect how far they are away from the current index
     return (
-        <main className={styles.mainDiv} style={{}}>
+        <main className={`${styles.mainDiv} ${proDisplay.className}`} style={{}}>
             <div className={styles.mainHolder} style={{ height: "100svh", display: "flex", flexWrap: "wrap", gap: '1rem', overflowY: "auto" }}>
-                <div style={{ alignSelf: "center", padding: "1rem", display: "flex", flexDirection: 'column', gap: "1rem" }}>
+                <div style={{ padding: "1rem", paddingTop: "4.5rem", display: "flex", flexDirection: 'column', gap: "1rem" }}>
                     <div style={{ display: 'flex', position: "relative", alignItems: 'center', gap: ".5rem", marginBottom: "3rem" }}>
                         <Image className={styles.logo} alt='logo' src={require("@/public/landingPageExamples/appleStore/apple logo.svg").default.src} height={50} width={50} style={{ objectFit: "contain", fill: "var(----APColor1)" }} />
                         <h1 style={{ position: "relative", translate: "0 .2rem", color: "var(----APColor1)", fontWeight: "normal", fontSize: "3.3rem" }}>iPhone</h1>
@@ -183,7 +198,7 @@ export default function Page() {
 
                     <h1 style={{ color: "var(--APColor1)" }}>{iphones[currentIndex].name}</h1>
 
-                    <p style={{ maxWidth: "350px" }}>{iphones[currentIndex].description}</p>
+                    <p style={{ maxWidth: "350px", minHeight: "100px" }}>{iphones[currentIndex].description}</p>
 
                     <h3>${iphones[currentIndex].price}.00</h3>
 
@@ -227,8 +242,8 @@ export default function Page() {
 
 
                             return (
-                                <div key={eachIphone.id} style={{ position: "absolute", top: "50%", left: 0, zIndex: usingZIndex, translate: usingTranslate, scale: usingScale, filter: usingBlur > 0 ? `blur(${usingBlur}px)` : "", transition: "translate 1s, scale 1s, filter 1s" }}>
-                                    <Image alt={`${eachIphone.name}'s image`} src={eachIphone.variants[variantIndex][1]} width={300} height={300} style={{ objectFit: "contain" }} />
+                                <div key={eachIphone.id} style={{ position: "absolute", top: "50%", left: 0, zIndex: usingZIndex, userSelect: "none", translate: usingTranslate, scale: usingScale, filter: usingBlur > 0 ? `blur(${usingBlur}px)` : "", transition: "translate 1s, scale 1s, filter 1s" }} onClick={() => { currentIndexSet(eachIphoneIndex) }}>
+                                    <Image alt={`${eachIphone.name}'s image`} priority={true} src={eachIphone.variants[variantIndex][1]} width={300} height={300} style={{ objectFit: "contain" }} />
                                 </div>
                             )
                         })}
