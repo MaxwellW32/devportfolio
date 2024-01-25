@@ -9,12 +9,12 @@ import localFont from 'next/font/local'
 const proDisplay = localFont({
     src: [
         {
-            path: '../../../public/fonts/SFPRODISPLAYREGULAR.otf',
+            path: '../../../public/fonts/sfprodisplayregular.otf',
             weight: '400',
             style: 'normal',
         },
         {
-            path: '../../../public/fonts/SFPRODISPLAYBOLD.otf',
+            path: '../../../public/fonts/sfprodisplaybold.otf',
             weight: '700',
             style: 'bold',
         }
