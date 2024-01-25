@@ -32,7 +32,7 @@ export const landingPageExamples: landingPageExample[] = [
         link: "/landingPageExamples/pizza",
     },
     {
-        image: require(`@/public/landingPageExamples/pizzaSlice/cheesepizza.png`).default.src,
+        image: require(`@/public/landingPageExamples/appleStore/storebg.webp`).default.src,
         category: "Tech/Devices",
         title: "Apple Store",
         link: "/landingPageExamples/appleStore",
