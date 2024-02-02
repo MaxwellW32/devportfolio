@@ -39,7 +39,7 @@ export default function Navbar() {
                     link: "/websites"
                 },
                 {
-                    title: "Landing Page Examples",
+                    title: "Landing Pages",
                     link: "/landingPageExamples"
                 }
             ]

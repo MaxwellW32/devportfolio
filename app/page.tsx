@@ -83,9 +83,9 @@ export default function page() {
       </section>
 
       <section style={{ backgroundColor: "var(--backgroundColor)" }}>
-        <h2>Landing Page Examples</h2>
+        <h2>Landing Pages</h2>
 
-        <p style={{ marginBottom: "1rem" }} className="extraLargeText">Your website could look like this.</p>
+        <p style={{ marginBottom: "1rem" }} className="extraLargeText">Find a design you&apos;ll love.</p>
 
         <InfiniteScroll amountOfTrains={3} initialTimeToLoop={20}>
           <div className="noScrollBar" style={{ display: "grid", gridAutoFlow: "column", gridAutoColumns: "250px", overflowX: "auto", gap: "1rem", marginRight: "1rem" }}>

@@ -36,5 +36,11 @@ export const landingPageExamples: landingPageExample[] = [
         category: "Tech/Devices",
         title: "Apple Store",
         link: "/landingPageExamples/appleStore",
+    },
+    {
+        image: require(`@/public/landingPageExamples/appleStore/storebg.webp`).default.src,
+        category: "Space/Art",
+        title: "Space",
+        link: "/landingPageExamples/space",
     }
 ]
