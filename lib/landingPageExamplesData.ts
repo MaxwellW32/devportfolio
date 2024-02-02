@@ -9,7 +9,7 @@ export type landingPageExample = {
 
 export const landingPageExamples: landingPageExample[] = [
     {
-        image: require(`@/public/landingPageExamples/stars/mountain.png`).default.src,
+        image: require(`@/public/landingPageExamples/stars/stars.png`).default.src,
         category: "Suave",
         title: "Stars",
         link: "/landingPageExamples/stars",
@@ -38,7 +38,7 @@ export const landingPageExamples: landingPageExample[] = [
         link: "/landingPageExamples/appleStore",
     },
     {
-        image: require(`@/public/landingPageExamples/appleStore/storebg.webp`).default.src,
+        image: require(`@/public/landingPageExamples/space/bg.jpg`).default.src,
         category: "Space/Art",
         title: "Space",
         link: "/landingPageExamples/space",

@@ -4,6 +4,7 @@ import InfiniteScroll from "@/components/infiniteScroll/InfiniteScroll";
 import MyMetrics from "@/components/myMetrics/MyMetrics";
 import MyProjects from "@/components/myProjects/MyProjects";
 import PlayMusic from "@/components/playMusic/PlayMusic";
+import MyApps from "@/components/playstoreApps/MyApps";
 import ServicesProvided from "@/components/servicesProvided/ServicesProvided";
 import ShowHomePageExample from "@/components/showHomePageExample/ShowHomePageExample";
 import ShowMadeWebsite from "@/components/showMadeWebsite/ShowMadeWebsite";
@@ -15,7 +16,6 @@ import TrustedCompanies from "@/components/trustedCompanies/TrustedCompanies";
 import { landingPageExamples } from "@/lib/landingPageExamplesData";
 import { madeWebsites } from "@/lib/MadeWebsitesData";
 import Image from "next/image";
-import Link from "next/link";
 
 export default function page() {
 
@@ -83,7 +83,7 @@ export default function page() {
       </section>
 
       <section style={{ backgroundColor: "var(--backgroundColor)" }}>
-        <h2>Landing Pages</h2>
+        <h2>Landing Pages I&apos;ve built</h2>
 
         <p style={{ marginBottom: "1rem" }} className="extraLargeText">Find a design you&apos;ll love.</p>
 
@@ -100,7 +100,7 @@ export default function page() {
 
       <section>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(250px, 100%), 1fr))", gap: "1rem", alignItems: "center" }}>
-          <article style={{}}>
+          <article style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
             <h2>Special Skills</h2>
 
             <p className="extraLargeText">My Special Skill Field Here.</p>
@@ -140,18 +140,25 @@ export default function page() {
       </section>
 
       <section style={{ backgroundColor: "var(--backgroundColor)" }} >
-        <h2 id="projects">Awesome Portfolio</h2>
+        <h2 id="projects">Projects Done</h2>
 
         <p className='extraLargeText'>My Complete Projects</p>
 
         <MyProjects />
       </section>
 
+      <section style={{ backgroundColor: "var(--backgroundColor)" }} >
+        <h2 id="projects">My Apps on the Google PlayStore</h2>
+
+        <p className='extraLargeText'>Built with React Native</p>
+
+        <MyApps />
+      </section>
       {/* <section>
         <Testimonials />
       </section> */}
 
-      <section style={{ backgroundColor: "var(--backgroundColor)" }}>
+      {/* <section style={{ backgroundColor: "var(--backgroundColor)" }}>
         <div style={{ display: "grid" }}>
           <h2>Favourite Clients</h2>
 
@@ -159,7 +166,7 @@ export default function page() {
 
           <TrustedCompanies />
         </div>
-      </section>
+      </section> */}
 
       <section style={{ backgroundColor: "var(--backgroundColor)" }}>
         <div style={{ display: "grid", justifyItems: "center" }}>
