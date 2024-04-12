@@ -10,9 +10,6 @@ export function retreiveFromLocalStorage(keyName: string): any {
     return JSON.parse(initialkeyItem);
 }
 
-
-
-
 export function removeFromLocalStorage(keyName: string): any {
     localStorage.removeItem(keyName);
 }
