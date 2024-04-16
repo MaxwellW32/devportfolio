@@ -24,7 +24,7 @@ html {
 *,
 *::before,
 *::after {
-  /* border: 1px solid red !important; */
+  border: 1px solid red !important;
 }
 
 body {
@@ -309,6 +309,14 @@ h3 {
 }
 
 
+
+.snap {
+  scroll-snap-type: x mandatory;
+}
+
+.snap>* {
+  scroll-snap-align: start;
+}
 
 audio {}
 

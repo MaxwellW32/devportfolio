@@ -1,0 +1,23 @@
+.mainDiv {
+    position: relative;
+    overflow: hidden;
+    display: grid;
+}
+
+.settingsCont {}
+
+
+.formCont {
+    display: grid;
+}
+
+.formCont label {
+    font-weight: bold;
+    font-size: 1.2rem;
+    text-transform: capitalize;
+}
+
+
+.formCont input {
+    color: #fff;
+}

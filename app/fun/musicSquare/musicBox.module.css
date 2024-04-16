@@ -1,0 +1,66 @@
+.box {
+    aspect-ratio: 1/1;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+}
+
+.reactiveCube {
+    aspect-ratio: 1/1;
+    position: absolute;
+}
+
+
+
+
+
+
+.reactiveCube {}
+
+.moveLeft {
+    animation: moveLeft 4s forwards linear;
+}
+
+@keyframes moveLeft {
+    to {
+        translate: -120vw 0px;
+    }
+}
+
+
+.moveRight {
+    animation: moveRight 4s forwards linear;
+}
+
+@keyframes moveRight {
+    to {
+        translate: 120vw 0px;
+    }
+}
+
+
+
+
+
+.moveTop {
+    animation: moveTop 4s forwards linear;
+}
+
+@keyframes moveTop {
+    to {
+        translate: 0px -120vw;
+    }
+}
+
+
+
+.moveBottom {
+    animation: moveBottom 4s forwards linear;
+}
+
+@keyframes moveBottom {
+    to {
+        translate: 0px 120vw;
+    }
+}
