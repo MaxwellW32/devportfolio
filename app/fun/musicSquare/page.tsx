@@ -81,7 +81,7 @@ export default function Page() {
                 threshold: 160,
                 hitThreshold: false
             }
-            const newBoxControls = [newBoxControlsObj, ...prevBoxControls]
+            const newBoxControls = [...prevBoxControls, newBoxControlsObj]
             return newBoxControls
         })
     }
