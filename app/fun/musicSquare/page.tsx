@@ -8,6 +8,7 @@ import { v4 as uuidV4 } from "uuid"
 
 export default function Page() {
     const mainDivRef = useRef<HTMLDivElement>(null!)
+    const average = useRef(0)
     const [showingSettings, showingSettingsSet] = useState(false)
     const [audioUrl, setAudioUrl] = useState("");
     const [musicBoxControls, musicBoxControlsSet] = useState<musicBoxControls[]>([]);
@@ -37,11 +38,11 @@ export default function Page() {
             for (let i = 0; i < bufferLength / 2; i++) {
                 sum += dataArray[i];
             }
-            const average = sum / (bufferLength / 2);
+            average.current = sum / (bufferLength / 2);
 
             musicBoxControlsSet(prevBoxControls => {
                 const newBoxControls = prevBoxControls.map((eachBoxControl) => {
-                    if (average > eachBoxControl.threshold) {
+                    if (average.current > eachBoxControl.threshold) {
                         if (!eachBoxControl.hitThreshold) {
                             eachBoxControl.hitThreshold = true
                             eachBoxControl.beatSwitch = !eachBoxControl.beatSwitch
@@ -121,6 +122,10 @@ export default function Page() {
                         <p style={{ justifySelf: "flex-end" }} onClick={() => { showingSettingsSet(false) }}>Close</p>
                         <audio ref={audioRef} controls src={audioUrl} autoPlay loop></audio>
                         <input type="file" onChange={handleFileChange} accept="audio/*" />
+
+                        {audioUrl && (
+                            <p>Average - {average.current}</p>
+                        )}
 
                         <button style={{ marginTop: "2rem" }} onClick={addNewBoxControl}>Add MusicBox</button>
 
