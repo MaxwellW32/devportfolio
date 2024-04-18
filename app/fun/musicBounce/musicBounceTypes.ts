@@ -10,7 +10,9 @@ export type bounceBoxStats = {
 
 export type borderType = "top" | "bottom" | "left" | "right"
 export type borderPosition = {
+    id: string,
     time: number,
+    hue: number,
     xPosition: number,
     yPosition: number,
     type: borderType,

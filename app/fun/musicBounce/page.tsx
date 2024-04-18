@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react"
 import { borderPosition, borderType, bounceBoxStats } from "./musicBounceTypes"
 import styles from "./page.module.css"
 import HideNav from "@/components/hideNav/HideNav"
+import { v4 as uuidV4 } from "uuid"
 
 export default function Page() {
     const boxRef = useRef<HTMLDivElement>(null!)
@@ -11,8 +12,11 @@ export default function Page() {
     const canvasRef = useRef<HTMLDivElement>(null!)
     const moveAnimationFrameId = useRef<number>()
     const canvasMidPoint = useRef(0)
+    const xyDirectionSwitchAmt = useRef(0)
+    const leadingTime = useRef(5000)
+    const xyDirectionVal = useRef<"x" | "y">("x")
     const boxStats = useRef<bounceBoxStats>({
-        boxWidth: 50,
+        boxWidth: 30,
         xPosition: 0,
         yPosition: 0,
         xDirection: 1,
@@ -23,6 +27,7 @@ export default function Page() {
     const originalBoxStats = useRef<bounceBoxStats>({ ...boxStats.current })
     const playbackState = useRef<"recording" | "playback">()
     const borderPositions = useRef<borderPosition[]>([])
+    const borderPositionElements = useRef<HTMLDivElement[]>([])
     const recordTimeStared = useRef(new Date())
     const threshold = useRef(130)
     const hitThreshold = useRef(false)
@@ -96,30 +101,40 @@ export default function Page() {
         if (playbackState.current === undefined) return
 
         if (playbackState.current === "recording") {
-            const randomFlip = Math.random() > 0.9 ? "x" : "y"
+            if (xyDirectionSwitchAmt.current === 0) {
+                xyDirectionSwitchAmt.current = Math.floor(Math.random() * 10) + 1
+
+                if (xyDirectionVal.current === "x") {
+                    xyDirectionVal.current = "y"
+                } else {
+                    xyDirectionVal.current = "x"
+                }
+            }
+
+            xyDirectionSwitchAmt.current -= 1
 
             let newBorderStats: borderPosition | null = null
 
             //flip direction
-            if (randomFlip === "x") {
+            if (xyDirectionVal.current === "x") {
                 //determine left or right hit
                 if (boxStatsPassed.xDirection > 0) {
                     newBorderStats = makeBorder(undefined, canvasRef.current, boxStatsPassed, "right", recordTimeStaredPassed)!
-                    makeInnerBounceColorAnimation("right", boxRef.current, boxStatsPassed)
+                    makeInnerColorTransitionBox("right", boxRef.current, boxStatsPassed)
                 } else {
                     newBorderStats = makeBorder(undefined, canvasRef.current, boxStatsPassed, "left", recordTimeStaredPassed)!
-                    makeInnerBounceColorAnimation("left", boxRef.current, boxStatsPassed)
+                    makeInnerColorTransitionBox("left", boxRef.current, boxStatsPassed)
 
                 }
                 boxStatsPassed.xDirection *= -1
             } else {
                 if (boxStatsPassed.yDirection > 0) {
                     newBorderStats = makeBorder(undefined, canvasRef.current, boxStatsPassed, "bottom", recordTimeStaredPassed)!
-                    makeInnerBounceColorAnimation("bottom", boxRef.current, boxStatsPassed)
+                    makeInnerColorTransitionBox("bottom", boxRef.current, boxStatsPassed)
 
                 } else {
                     newBorderStats = makeBorder(undefined, canvasRef.current, boxStatsPassed, "top", recordTimeStaredPassed)!
-                    makeInnerBounceColorAnimation("top", boxRef.current, boxStatsPassed)
+                    makeInnerColorTransitionBox("top", boxRef.current, boxStatsPassed)
                 }
                 boxStatsPassed.yDirection *= -1
             }
@@ -136,13 +151,14 @@ export default function Page() {
     function makeBorder(passedBorderPositionObj: borderPosition | undefined, containerPassed: HTMLDivElement, boxStatsPassed: bounceBoxStats, direction?: "top" | "bottom" | "left" | "right", recordTimeStaredPassed?: Date,): borderPosition | undefined {
         const newBorder = document.createElement("div")
 
-        const randHue = (boxStatsPassed.hue + (Math.floor(Math.random() * 120) + 20)) % 360
-        boxStatsPassed.hue = randHue
-
-        newBorder.style.backgroundColor = `hsl(${randHue}, 100%, 50%)`
         newBorder.style.position = `absolute`
 
         if (!passedBorderPositionObj) {
+            const randHue = (boxStatsPassed.hue + (Math.floor(Math.random() * 120) + 20)) % 360
+            boxStatsPassed.hue = randHue
+
+            newBorder.style.backgroundColor = `hsl(${randHue}, 100%, 50%)`
+
             //normal
             const newTime = new Date()
             const smallBorderSize = 2 + Math.floor(Math.random() * 3)
@@ -189,6 +205,8 @@ export default function Page() {
             const timeDifference = Math.abs(newTime.getTime() - recordTimeStaredPassed!.getTime());
 
             return {
+                id: uuidV4(),
+                hue: randHue,
                 time: timeDifference,
                 type: direction!,
                 xPosition: borderX,
@@ -197,21 +215,34 @@ export default function Page() {
                 height: borderHeight,
             }
         } else {
+            newBorder.id = passedBorderPositionObj.id
+
             newBorder.style.left = `${passedBorderPositionObj.xPosition}px`
             newBorder.style.top = `${passedBorderPositionObj.yPosition}px`
             newBorder.style.width = `${passedBorderPositionObj.width}px`
             newBorder.style.height = `${passedBorderPositionObj.height}px`
+            newBorder.style.backgroundColor = `hsl(${40}, 100%, 50%)`
 
+            borderPositionElements.current.push(newBorder)
             containerPassed.appendChild(newBorder)
         }
     }
 
-    function makeInnerBounceColorAnimation(side: borderType, boxRefPassed: HTMLDivElement, boxStatsPassed: bounceBoxStats) {
+    function makeInnerColorTransitionBox(side: borderType, boxRefPassed: HTMLDivElement, boxStatsPassed: bounceBoxStats, borderPositionObjPassed?: borderPosition) {
         const newInnerSquare = document.createElement("div")
 
         newInnerSquare.style.width = `${boxRefPassed.clientWidth}px`
 
-        const currentHue = boxStatsPassed.hue
+        const currentHue = borderPositionObjPassed ? borderPositionObjPassed.hue : boxStatsPassed.hue
+
+        if (borderPositionObjPassed) {
+            //change border col
+            const seenBorder = borderPositionElements.current.find(eachEl => eachEl.id === borderPositionObjPassed.id)
+            if (!seenBorder) return
+
+            seenBorder.style.backgroundColor = `hsl(${borderPositionObjPassed.hue}, 100%, 50%)`
+        }
+
         newInnerSquare.style.backgroundColor = `hsl(${currentHue},100%,50%)`
 
         newInnerSquare.classList.add(styles.transitionSquare)
@@ -242,13 +273,11 @@ export default function Page() {
     }
 
     function buildAllBorders(canvasRefPassed: HTMLDivElement, boxStatsPassed: bounceBoxStats) {
-        const leadingTime = 1500
-
-        borderPositions.current.forEach((eachBorderPosObj, eachBorderPosObjIndex) => {
+        borderPositions.current.forEach((eachBorderPosObj) => {
             setTimeout(() => {
-                makeBorder(eachBorderPosObj, canvasRefPassed, boxStatsPassed, "right")!
+                makeBorder(eachBorderPosObj, canvasRefPassed, boxStatsPassed)!
 
-            }, eachBorderPosObj.time - leadingTime);
+            }, eachBorderPosObj.time - leadingTime.current);
         })
     }
 
@@ -271,24 +300,24 @@ export default function Page() {
 
                 if (recordedFlip === "left") {
                     boxStats.current.xDirection = 1
-                    makeInnerBounceColorAnimation("left", boxRef.current, boxStats.current)
+                    makeInnerColorTransitionBox("left", boxRef.current, boxStats.current, eachBorderPosObj)
                 } else if (recordedFlip === "right") {
-                    makeInnerBounceColorAnimation("right", boxRef.current, boxStats.current)
+                    makeInnerColorTransitionBox("right", boxRef.current, boxStats.current, eachBorderPosObj)
                     boxStats.current.xDirection = -1
                 } else if (recordedFlip === "top") {
-                    makeInnerBounceColorAnimation("top", boxRef.current, boxStats.current)
+                    makeInnerColorTransitionBox("top", boxRef.current, boxStats.current, eachBorderPosObj)
                     boxStats.current.yDirection = 1
                 } else if (recordedFlip === "bottom") {
                     boxStats.current.yDirection = -1
-                    makeInnerBounceColorAnimation("bottom", boxRef.current, boxStats.current)
+                    makeInnerColorTransitionBox("bottom", boxRef.current, boxStats.current, eachBorderPosObj)
                 }
 
                 if (eachBorderPosObjIndex === borderPositions.current.length - 1) {
                     console.log(`$playback finished`);
 
                     setTimeout(() => {
-                        reset()
-                    }, 1000);
+                        stopMovementAndReset()
+                    }, 1500);
                 }
             }, eachBorderPosObj.time);
         })
@@ -300,7 +329,7 @@ export default function Page() {
         moveBox(boxStats.current, canvasRef.current, boxRef.current, mainDivRef.current)
     }
 
-    function reset() {
+    function stopMovementAndReset() {
         if (moveAnimationFrameId.current) {
             cancelAnimationFrame(moveAnimationFrameId.current);
         }
@@ -357,13 +386,33 @@ export default function Page() {
         setAudioUrl(url);
     };
 
+    async function handleRecord() {
+        if (playbackState.current === "recording") return
+        playbackState.current = "recording"
+        borderPositionElements.current = []
+
+        await audioRef.current.play()
+
+        recordTimeStared.current = new Date()
+        startMoveLoop()
+    }
+
+    async function handlePlayback() {
+        if (playbackState.current === "playback") return
+        playbackState.current = "playback"
+        await audioRef.current.play()
+
+        buildAllBorders(canvasRef.current, boxStats.current)
+        playBackMovement()
+    }
+
     return (
         <HideNav>
             <main ref={mainDivRef} className={`${styles.mainDiv} noScrollBar`}>
                 <div style={{ position: "fixed", top: 0, right: 0, zIndex: 1, display: "grid", overflowY: 'auto', width: showingSettings ? "min(400px, 100%)" : "", }}>
                     {!showingSettings && (
                         <div onClick={() => { showingSettingsSet(true) }}>
-                            <svg style={{ fill: "#000", width: "2rem", cursor: "pointer", margin: ".5rem" }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z" /></svg>
+                            <svg style={{ fill: "#fff", width: "2rem", cursor: "pointer", margin: ".5rem" }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z" /></svg>
                         </div>
                     )}
 
@@ -374,7 +423,7 @@ export default function Page() {
                                 if (playbackState.current === "recording") {
                                     console.log(`$audio finished recording`);
 
-                                    reset()
+                                    stopMovementAndReset()
                                 }
                             }}></audio>
                             <input type="file" onChange={handleFileChange} accept="audio/*" />
@@ -386,24 +435,10 @@ export default function Page() {
                         </div>
 
                         <div style={{ display: audioUrl ? "flex" : "none", gap: ".5rem", flexWrap: "wrap" }}>
-                            <button onClick={() => {
-                                if (playbackState.current === "recording") return
-                                playbackState.current = "recording"
-
-                                startMoveLoop()
-                                audioRef.current.play()
-                                recordTimeStared.current = new Date()
-                            }}>Record</button>
+                            <button onClick={handleRecord}>Record</button>
 
                             {borderPositions.current.length > 0 && (
-                                <button onClick={() => {
-                                    playbackState.current = "playback"
-                                    centerBoxAndCanvas(canvasMidPoint.current, boxStats.current, boxRef.current, mainDivRef.current)
-                                    audioRef.current.play()
-
-                                    playBackMovement()
-                                    buildAllBorders(canvasRef.current, boxStats.current)
-                                }}>Playback</button>
+                                <button onClick={handlePlayback}>Playback</button>
                             )}
                         </div>
                     </div>
