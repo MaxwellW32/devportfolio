@@ -102,7 +102,7 @@ export default function Page() {
 
         if (playbackState.current === "recording") {
             if (xyDirectionSwitchAmt.current === 0) {
-                xyDirectionSwitchAmt.current = Math.floor(Math.random() * 10) + 1
+                xyDirectionSwitchAmt.current = Math.floor(Math.random() * 15) + 1
 
                 if (xyDirectionVal.current === "x") {
                     xyDirectionVal.current = "y"
@@ -154,7 +154,7 @@ export default function Page() {
         newBorder.style.position = `absolute`
 
         if (!passedBorderPositionObj) {
-            const randHue = (boxStatsPassed.hue + (Math.floor(Math.random() * 40) + 40)) % 360
+            const randHue = (boxStatsPassed.hue + (Math.floor(Math.random() * 20) + 10)) % 360
             boxStatsPassed.hue = randHue
 
             newBorder.style.backgroundColor = `hsl(${randHue}, 100%, 50%)`
