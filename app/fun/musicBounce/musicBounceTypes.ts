@@ -13,6 +13,8 @@ export type borderPosition = {
     id: string,
     time: number,
     hue: number,
+    boxXPosition: number,
+    boxYPosition: number,
     xPosition: number,
     yPosition: number,
     type: borderType,

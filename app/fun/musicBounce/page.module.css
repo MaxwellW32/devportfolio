@@ -100,6 +100,14 @@
     transform-origin: bottom;
 }
 
+.hoverSvg {
+    opacity: 0;
+    transition: opacity 400ms;
+}
+
+.hoverSvg:hover {
+    opacity: 1;
+}
 
 @keyframes slideBottom {
     from {

@@ -154,7 +154,7 @@ export default function Page() {
         newBorder.style.position = `absolute`
 
         if (!passedBorderPositionObj) {
-            const randHue = (boxStatsPassed.hue + (Math.floor(Math.random() * 120) + 20)) % 360
+            const randHue = (boxStatsPassed.hue + (Math.floor(Math.random() * 40) + 40)) % 360
             boxStatsPassed.hue = randHue
 
             newBorder.style.backgroundColor = `hsl(${randHue}, 100%, 50%)`
@@ -206,6 +206,8 @@ export default function Page() {
                 hue: randHue,
                 time: timeDifference,
                 type: direction!,
+                boxXPosition: boxStatsPassed.xPosition,
+                boxYPosition: boxStatsPassed.yPosition,
                 xPosition: borderX,
                 yPosition: borderY,
                 width: borderWidth,
@@ -218,7 +220,7 @@ export default function Page() {
             newBorder.style.top = `${passedBorderPositionObj.yPosition}px`
             newBorder.style.width = `${passedBorderPositionObj.width}px`
             newBorder.style.height = `${passedBorderPositionObj.height}px`
-            newBorder.style.backgroundColor = `hsl(${40}, 100%, 50%)`
+            newBorder.style.backgroundColor = `hsl(${40}, 0%, 50%)`
 
             borderPositionElements.current.push(newBorder)
             containerPassed.appendChild(newBorder)
@@ -308,6 +310,11 @@ export default function Page() {
                     makeInnerColorTransitionBox("bottom", boxRef.current, boxStats.current, eachBorderPosObj)
                 }
 
+                boxStats.current.xPosition = eachBorderPosObj.boxXPosition
+                boxStats.current.yPosition = eachBorderPosObj.boxYPosition
+                boxRef.current.style.translate = `${boxStats.current.xPosition} ${boxStats.current.xPosition}`
+
+                //stop playback
                 if (eachBorderPosObjIndex === borderPositions.current.length - 1) {
                     console.log(`$playback finished`);
 
@@ -317,12 +324,6 @@ export default function Page() {
                 }
             }, eachBorderPosObj.time);
         })
-    }
-
-
-    function startMoveLoop() {
-        moveAnimationFrameId.current = requestAnimationFrame(startMoveLoop)
-        moveBox(boxStats.current, canvasRef.current, boxRef.current, mainDivRef.current)
     }
 
     function stopMovementAndReset() {
@@ -338,6 +339,11 @@ export default function Page() {
 
         audioRef.current.pause()
         audioRef.current.currentTime = 0
+    }
+
+    function startMoveLoop() {
+        moveAnimationFrameId.current = requestAnimationFrame(startMoveLoop)
+        moveBox(boxStats.current, canvasRef.current, boxRef.current, mainDivRef.current)
     }
 
     function moveBox(boxStatsPassed: bounceBoxStats, containerPassed: HTMLDivElement, boxRefPassed: HTMLDivElement, mainDivRefPassed: HTMLDivElement) {
@@ -416,7 +422,7 @@ export default function Page() {
             <main ref={mainDivRef} className={`${styles.mainDiv} noScrollBar`}>
                 <div style={{ position: "fixed", top: 0, right: 0, zIndex: 1, display: "grid", overflowY: 'auto', width: showingSettings ? "min(400px, 100%)" : "", }}>
                     {!showingSettings && (
-                        <div onClick={() => { showingSettingsSet(true) }}>
+                        <div className={styles.hoverSvg} onClick={() => { showingSettingsSet(true) }}>
                             <svg style={{ fill: "#fff", width: "2rem", cursor: "pointer", margin: ".5rem" }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z" /></svg>
                         </div>
                     )}
