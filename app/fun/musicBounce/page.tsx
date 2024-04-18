@@ -21,7 +21,7 @@ export default function Page() {
         yPosition: 0,
         xDirection: 1,
         yDirection: 1,
-        speed: 1,
+        speed: 3,
         hue: 360
     })
     const originalBoxStats = useRef<bounceBoxStats>({ ...boxStats.current })
