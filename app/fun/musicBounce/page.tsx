@@ -359,7 +359,7 @@ export default function Page() {
 
     return (
         <HideNav>
-            <main ref={mainDivRef} className={`${styles.mainDiv} dksdmnoScrollBar`}>
+            <main ref={mainDivRef} className={`${styles.mainDiv} noScrollBar`}>
                 <div style={{ position: "fixed", top: 0, right: 0, zIndex: 1, display: "grid", overflowY: 'auto', width: showingSettings ? "min(400px, 100%)" : "", }}>
                     {!showingSettings && (
                         <div onClick={() => { showingSettingsSet(true) }}>
