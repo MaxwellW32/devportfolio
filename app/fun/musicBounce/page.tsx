@@ -196,11 +196,8 @@ export default function Page() {
             newBorder.style.width = `${borderWidth}px`
             newBorder.style.height = `${borderHeight}px`
 
+            borderPositionElements.current.push(newBorder)
             containerPassed.appendChild(newBorder)
-
-            setTimeout(() => {
-                newBorder.remove()
-            }, 20000);
 
             const timeDifference = Math.abs(newTime.getTime() - recordTimeStaredPassed!.getTime());
 
@@ -276,7 +273,6 @@ export default function Page() {
         borderPositions.current.forEach((eachBorderPosObj) => {
             setTimeout(() => {
                 makeBorder(eachBorderPosObj, canvasRefPassed, boxStatsPassed)!
-
             }, eachBorderPosObj.time - leadingTime.current);
         })
     }
@@ -389,6 +385,7 @@ export default function Page() {
     async function handleRecord() {
         if (playbackState.current === "recording") return
         playbackState.current = "recording"
+
         borderPositionElements.current = []
 
         await audioRef.current.play()
@@ -400,6 +397,11 @@ export default function Page() {
     async function handlePlayback() {
         if (playbackState.current === "playback") return
         playbackState.current = "playback"
+
+        //remove all elements from canvas
+        borderPositionElements.current.forEach(eachEl => eachEl.remove())
+        borderPositionElements.current = []
+
         await audioRef.current.play()
 
         buildAllBorders(canvasRef.current, boxStats.current)
