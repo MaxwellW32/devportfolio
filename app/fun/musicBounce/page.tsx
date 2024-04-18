@@ -388,6 +388,7 @@ export default function Page() {
 
         borderPositionElements.current = []
 
+        audioRef.current.currentTime = 0
         await audioRef.current.play()
 
         recordTimeStared.current = new Date()
@@ -397,6 +398,8 @@ export default function Page() {
     async function handlePlayback() {
         if (playbackState.current === "playback") return
         playbackState.current = "playback"
+
+        centerBoxAndCanvas(canvasMidPoint.current, boxStats.current, boxRef.current, mainDivRef.current)
 
         //remove all elements from canvas
         borderPositionElements.current.forEach(eachEl => eachEl.remove())
@@ -422,12 +425,10 @@ export default function Page() {
                         <p style={{ justifySelf: "flex-end" }} onClick={() => { showingSettingsSet(false) }}>Close</p>
                         <div style={{ color: "#fff" }}>
                             <audio ref={audioRef} controls src={audioUrl} onEnded={() => {
-                                if (playbackState.current === "recording") {
-                                    console.log(`$audio finished recording`);
-
-                                    stopMovementAndReset()
-                                }
+                                stopMovementAndReset()
+                                playbackState.current = undefined
                             }}></audio>
+
                             <input type="file" onChange={handleFileChange} accept="audio/*" />
 
                             <input type="text" onChange={(e) => {
