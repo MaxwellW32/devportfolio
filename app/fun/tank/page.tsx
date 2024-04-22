@@ -311,12 +311,14 @@ export default function Page() {
         const newShellEl = document.createElement("div")
 
         const newShell: shellStats = {
+            id: uuidV4(),
             firedFrom: tankStats.current.id,
             width: 10,
             x: tankStats.current.x,
             y: tankStats.current.y,
             xDirection: xDirection,
             yDirection: yDirection,
+            wallsHit: 0,
             el: newShellEl
         }
 
@@ -325,11 +327,6 @@ export default function Page() {
 
         shells.current.push(newShell)
         canvasRef.current.append(newShell.el)
-
-        setTimeout(() => {
-            newShell.el.remove()
-            shells.current.filter(eachShell => eachShell !== newShell)
-        }, 15000);
     }
 
     function continuousMoveShellLoop(shellsLocal: shellStats[]) {
@@ -396,6 +393,15 @@ export default function Page() {
                 if (hitY) {
                     eachShell.yDirection *= -1
                 }
+            }
+
+            if (eachShell.wallsHit > 120) {
+                eachShell.el.remove()
+                shellsLocal.filter(ogShell => ogShell.id !== eachShell.id)
+            }
+
+            if (hitX || hitY) {
+                eachShell.wallsHit++
             }
 
             eachShell.x = newXPos

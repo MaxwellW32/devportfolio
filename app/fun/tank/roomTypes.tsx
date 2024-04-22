@@ -15,13 +15,15 @@ export type tankStats = {
 }
 
 export type shellStats = {
+    id: string,
     firedFrom: string,
     width: number;
     x: number;
     y: number;
     xDirection: number
     yDirection: number,
-    el: HTMLDivElement
+    el: HTMLDivElement,
+    wallsHit: number
 }
 
 export type keysCurrentlyPressed = {
