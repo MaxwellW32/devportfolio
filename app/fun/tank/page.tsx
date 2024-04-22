@@ -3,16 +3,17 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import styles from "./page.module.css"
 import HideNav from '@/components/hideNav/HideNav'
-import { generalInfo, keysCurrentlyPressed, tankStats } from './roomTypes'
+import { shellStats, generalInfo, keysCurrentlyPressed, tankStats } from './roomTypes'
 import InfoMarker from '@/components/infoMarker/InfoMarker'
-
+import { v4 as uuidV4 } from "uuid"
 
 export default function Page() {
     const tankRef = useRef<HTMLDivElement>(null!)
     const canvasRef = useRef<HTMLDivElement>(null!)
     const rooms = useRef<HTMLDivElement[]>([])
+    const shells = useRef<shellStats[]>([])
     const generalInfo = useRef<generalInfo>({
-        roomWidth: 400,
+        roomWidth: 1000,
         amountOfLanes: 10
     })
     const keysCurrentlyPressed = useRef<keysCurrentlyPressed>({
@@ -20,15 +21,18 @@ export default function Page() {
         down: false,
         left: false,
         right: false,
+        blast: false
     })
     const tankStats = useRef<tankStats>({
-        width: 10,
+        id: "max",
+        width: 20,
         x: 0,
         y: 0,
-        speed: 20
+        speed: 2,
+        directionFacing: "down-right"
     })
     const animationFrameId = useRef<number>()
-    const infiniteRoomCheckInterval = useRef<number>()
+    const shellAnimationFrameId = useRef<number>()
 
     //start off
     const ranOnce = useRef(false)
@@ -61,6 +65,9 @@ export default function Page() {
         //ensure animation loop starts fresh
         if (animationFrameId.current) cancelAnimationFrame(animationFrameId.current)
         continuousMovementLoop()
+
+        if (shellAnimationFrameId.current) cancelAnimationFrame(shellAnimationFrameId.current)
+        continuousMoveShellLoop(shells.current)
     }
 
     function addRoom(generalInfoLocal: generalInfo, roomsLocal: HTMLDivElement[], canvasRefLocal: HTMLDivElement) {
@@ -119,20 +126,27 @@ export default function Page() {
         makePath("vertical")
     }
 
-    function detectKeys(e: KeyboardEvent, option: "keydown" | "keyup", keysCurrentlyPressed: keysCurrentlyPressed) {
+    function detectKeys(e: KeyboardEvent, option: "keydown" | "keyup", keysCurrentlyPressedLocal: keysCurrentlyPressed) {
         const seenKey = e.key.toLowerCase()
 
         if (seenKey === "arrowup" || seenKey === "w") {
-            keysCurrentlyPressed.up = option === "keydown" ? true : false
+            keysCurrentlyPressedLocal.up = option === "keydown" ? true : false
         }
         if (seenKey === "arrowdown" || seenKey === "s") {
-            keysCurrentlyPressed.down = option === "keydown" ? true : false
+            keysCurrentlyPressedLocal.down = option === "keydown" ? true : false
         }
         if (seenKey === "arrowleft" || seenKey === "a") {
-            keysCurrentlyPressed.left = option === "keydown" ? true : false
+            keysCurrentlyPressedLocal.left = option === "keydown" ? true : false
         }
         if (seenKey === "arrowright" || seenKey === "d") {
-            keysCurrentlyPressed.right = option === "keydown" ? true : false
+            keysCurrentlyPressedLocal.right = option === "keydown" ? true : false
+        }
+        if (seenKey === "x") {
+            keysCurrentlyPressedLocal.blast = option === "keydown" ? true : false
+            if (keysCurrentlyPressedLocal.blast) {
+                console.log(`$fired`);
+                blastFromTank()
+            }
         }
     }
 
@@ -140,7 +154,7 @@ export default function Page() {
         animationFrameId.current = requestAnimationFrame(continuousMovementLoop)
 
         //moveTank Loop
-        const newTankPos = getTankNewPosition(keysCurrentlyPressed.current, tankStats.current, rooms.current)
+        const newTankPos = moveTankPosition(keysCurrentlyPressed.current, tankStats.current, rooms.current)
         tankStats.current.x = newTankPos.newXPos
         tankStats.current.y = newTankPos.newYPos
         placeTankAtLocation({ x: tankStats.current.x, y: tankStats.current.y }, tankRef.current)
@@ -152,7 +166,7 @@ export default function Page() {
         ensureInfiniteRooms(rooms.current, tankStats.current, generalInfo.current, canvasRef.current)
     }
 
-    function getTankNewPosition(keysCurrentlyPressedLocal: keysCurrentlyPressed, tankStatsLocal: tankStats, roomsLocal: HTMLDivElement[],) {
+    function moveTankPosition(keysCurrentlyPressedLocal: keysCurrentlyPressed, tankStatsLocal: tankStats, roomsLocal: HTMLDivElement[],) {
         let newXPos = tankStatsLocal.x
         let newYPos = tankStatsLocal.y
 
@@ -259,6 +273,135 @@ export default function Page() {
         if (amountOfRoomsLeft <= 2) {
             addRoom(generalInfoLocal, roomsLocal, canvasRefLocal)
         }
+    }
+
+    function blastFromTank() {
+        let xDirection = 0
+        let yDirection = 0
+
+        if (tankStats.current.directionFacing === "up") {
+            yDirection = -1
+
+        } else if (tankStats.current.directionFacing === "down") {
+            yDirection = 1
+
+        } else if (tankStats.current.directionFacing === "left") {
+            xDirection = -1
+
+        } else if (tankStats.current.directionFacing === "right") {
+            xDirection = 1
+
+        } else if (tankStats.current.directionFacing === "up-left") {
+            xDirection = -1
+            yDirection = -1
+
+        } else if (tankStats.current.directionFacing === "up-right") {
+            xDirection = 1
+            yDirection = -1
+
+        } else if (tankStats.current.directionFacing === "down-left") {
+            xDirection = -1
+            yDirection = 1
+
+        } else if (tankStats.current.directionFacing === "down-right") {
+            xDirection = 1
+            yDirection = 1
+        }
+
+        const newShellEl = document.createElement("div")
+
+        const newShell: shellStats = {
+            firedFrom: tankStats.current.id,
+            width: 10,
+            x: tankStats.current.x,
+            y: tankStats.current.y,
+            xDirection: xDirection,
+            yDirection: yDirection,
+            el: newShellEl
+        }
+
+        newShell.el.style.width = `${newShell.width}px`
+        newShell.el.classList.add(styles.shell)
+
+        shells.current.push(newShell)
+        canvasRef.current.append(newShell.el)
+
+        setTimeout(() => {
+            newShell.el.remove()
+            shells.current.filter(eachShell => eachShell !== newShell)
+        }, 15000);
+    }
+
+    function continuousMoveShellLoop(shellsLocal: shellStats[]) {
+        shellAnimationFrameId.current = requestAnimationFrame(() => { continuousMoveShellLoop(shellsLocal) })
+
+        shellsLocal.forEach(eachShell => {
+            let currentX = eachShell.x
+            let currentY = eachShell.y
+
+            let newXPos = currentX + eachShell.xDirection
+            let newYPos = currentY + eachShell.yDirection
+
+            let currentRoomIndex = 0 //assign box to correct room
+            rooms.current.forEach((eachRoom, eachRoomIndex) => {
+                if (currentX > eachRoom.offsetLeft) {
+                    currentRoomIndex = eachRoomIndex
+                    return
+                }
+            })
+            const currentRoomPaths = rooms.current[currentRoomIndex].childNodes;
+
+            //add all paths to allpaths array
+            let inBoundsCount = 0
+            let hitX = false
+            let hitY = false
+
+            currentRoomPaths.forEach(eachPathPre => {
+                const eachPath = eachPathPre as HTMLDivElement
+                const pathConnectsRooms = rooms.current[currentRoomIndex].offsetLeft + rooms.current[currentRoomIndex].clientWidth === eachPath.offsetLeft + eachPath.clientWidth
+
+                const minXPos = eachPath.offsetLeft + (pathConnectsRooms ? -eachShell.width : 0)
+                const maxXPos = eachPath.offsetLeft + eachPath.clientWidth + (pathConnectsRooms ? 0 : -eachShell.width)
+
+                const minYPos = eachPath.offsetTop
+                const maxYPos = eachPath.offsetTop + eachPath.clientHeight - eachShell.width
+
+
+                //ensure inbounds
+                if (newXPos >= minXPos && newXPos <= maxXPos && newYPos >= minYPos && newYPos <= maxYPos) {
+                    if (newXPos === minXPos || newXPos === maxXPos) {
+                        eachShell.xDirection *= -1
+                        hitX = true
+
+                        if (newXPos === maxXPos && pathConnectsRooms) {
+                            //allow shell transfer into new rooms
+                            eachShell.xDirection *= -1
+                        }
+                    }
+
+                    if (newYPos === minYPos || newYPos === maxYPos) {
+                        hitY = true
+                        eachShell.yDirection *= -1
+                    }
+
+                    inBoundsCount++
+                }
+            })
+
+            if (inBoundsCount > 1) {
+                if (hitX) {
+                    eachShell.xDirection *= -1
+                }
+
+                if (hitY) {
+                    eachShell.yDirection *= -1
+                }
+            }
+
+            eachShell.x = newXPos
+            eachShell.y = newYPos
+            eachShell.el.style.translate = `${newXPos}px ${newYPos}px`
+        })
     }
 
     return (

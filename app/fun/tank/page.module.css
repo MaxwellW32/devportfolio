@@ -11,6 +11,7 @@
     grid-auto-flow: column;
     grid-auto-columns: auto;
     position: relative;
+    height: 400px;
 }
 
 .room {
@@ -29,4 +30,13 @@
     top: 0;
     left: 0;
     z-index: 999;
+}
+
+.shell {
+    background-color: red;
+    position: absolute;
+    top: 0;
+    left: 0;
+    aspect-ratio: 1/1;
+    border-radius: 50%;
 }

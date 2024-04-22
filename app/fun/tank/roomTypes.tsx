@@ -3,11 +3,25 @@ export type generalInfo = {
     amountOfLanes: number;
 }
 
+export type tankDirections = "up" | "down" | "left" | "right" | "up-left" | "up-right" | "down-left" | "down-right"
+
 export type tankStats = {
+    id: string,
     width: number;
     x: number;
     y: number;
-    speed: number
+    speed: number,
+    directionFacing: tankDirections
+}
+
+export type shellStats = {
+    firedFrom: string,
+    width: number;
+    x: number;
+    y: number;
+    xDirection: number
+    yDirection: number,
+    el: HTMLDivElement
 }
 
 export type keysCurrentlyPressed = {
@@ -15,4 +29,5 @@ export type keysCurrentlyPressed = {
     down: boolean,
     left: boolean,
     right: boolean,
+    blast: boolean,
 }
