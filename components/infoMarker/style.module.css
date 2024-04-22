@@ -1,0 +1,20 @@
+.InfoMarkerDiv {
+    position: absolute;
+}
+
+.InfoMarkerDiv:hover::before {
+    content: attr(data-info);
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: min(400px, 50%);
+    background-color: green;
+    z-index: 99;
+}
+
+
+.marker {
+    aspect-ratio: 1/1;
+    width: 100%;
+    cursor: help;
+}
