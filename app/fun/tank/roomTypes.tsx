@@ -22,6 +22,7 @@ export type shellStats = {
     y: number;
     xDirection: number
     yDirection: number,
+    speed: number,
     el: HTMLDivElement,
     wallsHit: number
 }
