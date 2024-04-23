@@ -30,7 +30,7 @@ export default function Page() {
         x: 0,
         y: 0,
         speed: 2,
-        directionFacing: "down-right"
+        directionFacing: "right"
     })
     const animationFrameId = useRef<number>()
     const shellAnimationFrameId = useRef<number>()
@@ -406,57 +406,73 @@ export default function Page() {
                     return
                 }
             })
-            const currentRoomPaths = rooms.current[currentRoomIndex].childNodes;
 
             const onLastRoom = currentRoomIndex === rooms.current.length - 1
-            //add all paths to allpaths array
-            let inBoundsCount = 0
+            const usingPrevRoom = currentRoomIndex !== 0
+            const usingNextRoom = !onLastRoom
+
+            const pathsInPrevRoom = usingPrevRoom ? rooms.current[currentRoomIndex - 1].childNodes : [];
+            const pathsInCurrentRoom = rooms.current[currentRoomIndex].childNodes;
+            const pathsInNextRoom = usingNextRoom ? rooms.current[currentRoomIndex + 1].childNodes : [];
+
+            const allPaths: HTMLDivElement[] = []
+
+            pathsInPrevRoom.forEach(eachPath => {
+                allPaths.push(eachPath as HTMLDivElement)
+            })//add all paths to allpaths array
+            pathsInCurrentRoom.forEach(eachPath => {
+                allPaths.push(eachPath as HTMLDivElement)
+            })
+            pathsInNextRoom.forEach(eachPath => {
+                allPaths.push(eachPath as HTMLDivElement)
+            })
+
+            let inBoundCount = 0
             let hitX = false
             let hitY = false
 
-            currentRoomPaths.forEach(eachPathPre => {
-                const eachPath = eachPathPre as HTMLDivElement
-                const pathConnectsRooms = rooms.current[currentRoomIndex].offsetLeft + rooms.current[currentRoomIndex].clientWidth === eachPath.offsetLeft + eachPath.clientWidth
+            allPaths.forEach(eachPath => {
+                const isHorizantalConnector = rooms.current[currentRoomIndex].offsetLeft + rooms.current[currentRoomIndex].clientWidth === eachPath.offsetLeft + eachPath.clientWidth
 
-                const minXPos = eachPath.offsetLeft + (pathConnectsRooms ? -eachShell.width : 0)
-                const maxXPos = eachPath.offsetLeft + eachPath.clientWidth + (pathConnectsRooms && !onLastRoom ? 0 : - eachShell.width)
+                const minXPos = eachPath.offsetLeft
+                const maxXPos = eachPath.offsetLeft + eachPath.clientWidth + (isHorizantalConnector && !onLastRoom ? 0 : - eachShell.width)
 
                 const minYPos = eachPath.offsetTop
                 const maxYPos = eachPath.offsetTop + eachPath.clientHeight - eachShell.width
 
-
                 //ensure inbounds
                 if (newXPos >= minXPos && newXPos <= maxXPos && newYPos >= minYPos && newYPos <= maxYPos) {
+                    inBoundCount++
+
                     if (newXPos === minXPos || newXPos === maxXPos) {
-                        eachShell.xDirection *= -1
                         hitX = true
-
-                        if (newXPos === maxXPos && pathConnectsRooms && !onLastRoom) {
-                            //allow shell transfer into new rooms
-                            eachShell.xDirection *= -1
-                        }
                     }
-
                     if (newYPos === minYPos || newYPos === maxYPos) {
                         hitY = true
-                        eachShell.yDirection *= -1
                     }
-
-                    inBoundsCount++
                 }
             })
 
-            if (inBoundsCount > 1) {
+            //handle cross section paths
+            if (inBoundCount === 1) {
                 if (hitX) {
                     eachShell.xDirection *= -1
                 }
-
                 if (hitY) {
                     eachShell.yDirection *= -1
                 }
+            } else {
+                for (let index = 0; index < inBoundCount; index++) {
+                    if (hitX) {
+                        eachShell.xDirection *= -1
+                    }
+                    if (hitY) {
+                        eachShell.yDirection *= -1
+                    }
+                }
             }
 
-            if (eachShell.wallsHit > 200 || inBoundsCount === 0) {
+            if (eachShell.wallsHit > 200) {
                 eachShell.el.remove()
                 shells.current = shells.current.filter(ogShell => ogShell.id !== eachShell.id)
             }
@@ -464,6 +480,7 @@ export default function Page() {
             if (hitX || hitY) {
                 eachShell.wallsHit++
             }
+
 
             eachShell.x = newXPos
             eachShell.y = newYPos
