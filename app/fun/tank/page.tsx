@@ -29,7 +29,7 @@ export default function Page() {
         width: 20,
         x: 0,
         y: 0,
-        speed: 12,
+        speed: 2,
         directionFacing: "down-right"
     })
     const animationFrameId = useRef<number>()
