@@ -41,6 +41,7 @@ export default function Page() {
     const animationFrameId = useRef<number>()
     const shellAnimationFrameId = useRef<number>()
     const lastPathInBoundForShells = useRef<{ [key: string]: HTMLDivElement }>({})
+    const lastPathInBoundForTanks = useRef<{ [key: string]: HTMLDivElement }>({})
 
     //start off
     const ranOnce = useRef(false)
@@ -260,8 +261,11 @@ export default function Page() {
     }
 
     function moveTankPosition(keysCurrentlyPressedLocal: keysCurrentlyPressed, seenTank: tankStats, roomsLocal: HTMLDivElement[],) {
-        let newXPos = seenTank.x
-        let newYPos = seenTank.y
+        let currentXPos = seenTank.x
+        let currentYPos = seenTank.y
+
+        let newXPos = currentXPos
+        let newYPos = currentYPos
 
         let currentRoomIndex = 0 //assign box to correct room
         roomsLocal.forEach((eachRoom, eachRoomIndex) => {
@@ -316,12 +320,33 @@ export default function Page() {
 
             if (newXPos >= minXPos && newXPos <= maxXPos && newYPos >= minYPos && newYPos <= maxYPos) {
                 canMove = true;
+                lastPathInBoundForTanks.current[seenTank.id] = eachPath
             }
         });
 
         if (!canMove) {
-            newXPos = seenTank.x
-            newYPos = seenTank.y
+            const lastPathInBounds = lastPathInBoundForTanks.current[seenTank.id]
+
+            const pathConnectsRooms = roomsLocal[currentRoomIndex].offsetLeft + roomsLocal[currentRoomIndex].clientWidth === lastPathInBounds.offsetLeft + lastPathInBounds.clientWidth
+
+            const minXPos = lastPathInBounds.offsetLeft + (pathConnectsRooms ? - seenTank.width : 0)
+            const maxXPos = lastPathInBounds.offsetLeft + lastPathInBounds.clientWidth + (pathConnectsRooms ? 0 : - seenTank.width)
+
+            const minYPos = lastPathInBounds.offsetTop
+            const maxYPos = lastPathInBounds.offsetTop + lastPathInBounds.clientHeight - seenTank.width
+
+            if (newXPos < minXPos) {
+                newXPos = minXPos
+            }
+            if (newXPos > maxXPos) {
+                newXPos = maxXPos
+            }
+            if (newYPos < minYPos) {
+                newYPos = minYPos
+            }
+            if (newYPos > maxYPos) {
+                newYPos = maxYPos
+            }
         }
 
         return { newXPos, newYPos }
