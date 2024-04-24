@@ -32,16 +32,7 @@
     z-index: 999;
 }
 
-.shell {
-    background-color: red;
-    position: absolute;
-    top: 0;
-    left: 0;
-    aspect-ratio: 1/1;
-    border-radius: 50%;
-}
-
-.tankSnout {
+.snout {
     position: absolute;
     aspect-ratio: 1/5;
     width: 20%;
@@ -50,5 +41,18 @@
     left: 50%;
     translate: -50%;
     transform-origin: top;
+    rotate: var(--rotateAngle);
     transform: rotateZ(-90deg);
+    z-index: 999;
+
+}
+
+.shell {
+    background-color: red;
+    position: absolute;
+    top: 0;
+    left: 0;
+    aspect-ratio: 1/1;
+    border-radius: 50%;
+    z-index: 10;
 }

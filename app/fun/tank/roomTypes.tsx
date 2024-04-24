@@ -1,6 +1,7 @@
 export type generalInfo = {
     roomWidth: number;
     amountOfLanes: number;
+    maxShellsSpawnable: number,
 }
 
 export type tankDirections = "up" | "down" | "left" | "right" | "up-left" | "up-right" | "down-left" | "down-right"
@@ -11,7 +12,9 @@ export type tankStats = {
     x: number;
     y: number;
     speed: number,
-    directionFacing: tankDirections
+    directionFacing: tankDirections,
+    enemyTank: boolean,
+    element: HTMLDivElement
 }
 
 export type shellStats = {

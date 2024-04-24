@@ -147,7 +147,6 @@ export default function Page() {
         }
     }
 
-
     function makeBorder(passedBorderPositionObj: borderPosition | undefined, containerPassed: HTMLDivElement, boxStatsPassed: bounceBoxStats, direction?: "top" | "bottom" | "left" | "right", recordTimeStaredPassed?: Date,): borderPosition | undefined {
         const newBorder = document.createElement("div")
 
