@@ -40,6 +40,7 @@ export default function Page() {
     }])
     const animationFrameId = useRef<number>()
     const shellAnimationFrameId = useRef<number>()
+    const lastPathInBoundForShells = useRef<{ [key: string]: HTMLDivElement }>({})
 
     //start off
     const ranOnce = useRef(false)
@@ -436,8 +437,6 @@ export default function Page() {
         }
     }
 
-    const lastPAthInBoundForShells = useRef<{ [key: string]: HTMLDivElement }>({})
-
     function continuousMoveShellLoop() {
         shellAnimationFrameId.current = requestAnimationFrame(continuousMoveShellLoop)
 
@@ -489,13 +488,12 @@ export default function Page() {
                 const minYPos = eachPath.offsetTop
                 const maxYPos = eachPath.offsetTop + eachPath.clientHeight - eachShell.width
 
-                //ensure inbounds
+                //ensure inbounds - track last time element was inbounds
                 if (newXPos >= minXPos && newXPos <= maxXPos && newYPos >= minYPos && newYPos <= maxYPos) {
                     inBoundCount++
-                    lastPAthInBoundForShells.current[eachShell.id] = eachPath
+                    lastPathInBoundForShells.current[eachShell.id] = eachPath
 
                     if (newXPos === minXPos || newXPos === maxXPos) {
-                        console.log(`$hit limit`, newXPos);
                         hitX = true
                     }
                     if (newYPos === minYPos || newYPos === maxYPos) {
@@ -504,10 +502,9 @@ export default function Page() {
                 }
             })
 
-            //keep faster tank shells in bounds
+            //keep faster tank shells in bounds if out of bounds
             if (inBoundCount === 0) {
-                console.log(`$ran last matched path limiter`);
-                const lastMatchedPath = lastPAthInBoundForShells.current[eachShell.id]
+                const lastMatchedPath = lastPathInBoundForShells.current[eachShell.id]
                 const isHorizantalConnector = rooms.current[currentRoomIndex].offsetLeft + rooms.current[currentRoomIndex].clientWidth === lastMatchedPath.offsetLeft + lastMatchedPath.clientWidth
 
                 const minXPos = lastMatchedPath.offsetLeft + (isHorizantalConnector && currentRoomIndex !== 0 ? - eachShell.width : 0)
@@ -519,12 +516,10 @@ export default function Page() {
                 if (newXPos > maxXPos) {
                     newXPos = maxXPos
                     eachShell.xDirection *= -1
-
                 }
                 if (newXPos < minXPos) {
                     newXPos = minXPos
                     eachShell.xDirection *= -1
-
                 }
                 if (newYPos > maxYPos) {
                     newYPos = maxYPos
@@ -541,7 +536,6 @@ export default function Page() {
                 if (hitX) {
                     eachShell.xDirection *= -1
                     // console.log(`$flpped x - currently`, eachShell.xDirection);
-
                 }
                 if (hitY) {
                     eachShell.yDirection *= -1
