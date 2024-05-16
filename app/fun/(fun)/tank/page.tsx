@@ -40,6 +40,7 @@ export default function Page() {
     const animationFrameId = useRef<number>()
     const shellAnimationFrameId = useRef<number>()
     const lastPathInBoundForShells = useRef<{ [key: string]: HTMLDivElement }>({})
+    const userInteracted = useRef(false)
     const lastPathInBoundForTanks = useRef<{ [key: string]: HTMLDivElement }>({})
 
     //start off
@@ -49,6 +50,16 @@ export default function Page() {
         ranOnce.current = true
 
         startOff()
+    }, [])
+
+    //clean up
+    useEffect(() => {
+        return () => {
+            if (userInteracted.current) {
+                console.log(`$ran`);
+                closeDown()
+            }
+        }
     }, [])
 
     function startOff() {
@@ -84,6 +95,16 @@ export default function Page() {
 
         if (shellAnimationFrameId.current) cancelAnimationFrame(shellAnimationFrameId.current)
         continuousMoveShellLoop()
+    }
+
+    function closeDown() {
+        if (animationFrameId.current) cancelAnimationFrame(animationFrameId.current)
+
+        if (shellAnimationFrameId.current) cancelAnimationFrame(shellAnimationFrameId.current)
+
+        document.body.removeEventListener("keydown", (e) => detectKeys(e, "keydown"))
+        document.body.removeEventListener("keyup", (e) => detectKeys(e, "keyup"))
+        document.body.removeEventListener("mousemove", (e) => detectMouse(e))
     }
 
     function assignTankRefs(e: HTMLDivElement | null, tankId: string) {
@@ -179,10 +200,14 @@ export default function Page() {
                 })
             }
         }
+
+        userInteracted.current = true
     }
 
     function detectMouse(e: MouseEvent) {
         //refactor to have automatic fire as well
+        if (!canvasRef.current) return
+
         const mouseX = e.clientX
         const mouseY = e.clientY
 
