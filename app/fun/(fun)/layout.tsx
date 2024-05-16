@@ -1,9 +1,9 @@
-import ViewProjects from "@/components/viewProjects/ViewProjects";
+import HideNav from "@/components/hideNav/HideNav";
 
 export default function ProjectsLayout({ children }: Readonly<{ children: React.ReactNode }>) {
     return (
-        <ViewProjects>
+        <HideNav>
             {children}
-        </ViewProjects>
+        </HideNav>
     );
 }
