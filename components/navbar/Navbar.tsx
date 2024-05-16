@@ -7,6 +7,7 @@ import { screenSizeGlobal } from '@/utility/globalState'
 import Logo from '../logo/Logo'
 import { getProjectsForNav } from '@/lib/ProjectsData'
 import ThemeBar from '../themeBar/ThemeBar'
+import { getFunItemsForNav } from '@/lib/FunData'
 
 export default function Navbar() {
     const [screenSize] = useAtom(screenSizeGlobal)
@@ -94,7 +95,12 @@ export default function Navbar() {
         {
             title: "contact",
             link: "/contactUs",
-        }
+        },
+        {
+            title: "fun",
+            link: "/fun",
+            subMenu: [...getFunItemsForNav()]
+        },
     ]
 
     const [mainMenuShowing, mainMenuShowingSet] = useState(false)
@@ -112,7 +118,7 @@ export default function Navbar() {
     })
 
     return (
-        <nav className={styles.navBar}>
+        <nav id='mainNav' className={styles.navBar}>
             <Logo />
 
             <div style={{ display: !screenSize.desktop ? "grid" : "none", justifyItems: "center" }} className={styles.mobileNavSvgBttnCont} onClick={() => { mainMenuShowingSet(prev => !prev) }}>

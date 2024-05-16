@@ -15,4 +15,9 @@ export const madeWebsites: madeWebsite[] = [
         title: "Pines Dental",
         link: "https://pinesdental.vercel.app",
     },
+    {
+        image: require(`@/public/finishedWebsites/Anthurium.jpg`).default.src,
+        title: "Anthurium Dev Agency",
+        link: "https://anthuriumdev.vercel.app/",
+    },
 ]

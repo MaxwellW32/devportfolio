@@ -13,7 +13,7 @@ export type tankStats = {
     y: number;
     speed: number,
     directionFacing: tankDirections,
-    enemyTank: boolean,
+    team: "home" | "ai",
     element: HTMLDivElement
 }
 

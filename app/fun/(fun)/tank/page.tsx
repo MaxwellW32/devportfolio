@@ -2,7 +2,6 @@
 
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import styles from "./page.module.css"
-import HideNav from '@/components/hideNav/HideNav'
 import { shellStats, generalInfo, keysCurrentlyPressed, tankStats, tankDirections } from './roomTypes'
 import InfoMarker from '@/components/infoMarker/InfoMarker'
 import { v4 as uuidV4 } from "uuid"
@@ -14,7 +13,7 @@ export default function Page() {
     const canvasRef = useRef<HTMLDivElement>(null!)
     const rooms = useRef<HTMLDivElement[]>([])
     const shells = useRef<shellStats[]>([])
-    const maxShellsSpawnable = useRef<number>(80)
+    const maxShellsSpawnable = useRef<number>(60)
     const amountOfTanks = useRef<number>(1)
     const generalInfo = useRef<generalInfo>({
         roomWidth: 1000,
@@ -35,7 +34,7 @@ export default function Page() {
         y: 0,
         speed: 2,
         directionFacing: "right",
-        enemyTank: false,
+        team: "home",
         element: null!
     }])
     const animationFrameId = useRef<number>()
@@ -173,7 +172,7 @@ export default function Page() {
             //search through tanks, fire from only non enemy tank
             if (keysCurrentlyPressed.current.blast) {
                 playerTanks.current.forEach(eachTank => {
-                    if (eachTank.enemyTank) return
+                    if (eachTank.team !== "home") return
 
                     // console.log(`$fired`);
                     blastFromTank(eachTank)
@@ -187,7 +186,7 @@ export default function Page() {
         const mouseX = e.clientX
         const mouseY = e.clientY
 
-        const homeTank = playerTanks.current.find(eachTank => !eachTank.enemyTank)
+        const homeTank = playerTanks.current.find(eachTank => eachTank.team === "home")
         if (!homeTank) return
 
         const tankScreenX = homeTank.x - canvasRef.current.scrollLeft + (homeTank.width / 2) //make it revolve center of the tank
@@ -250,7 +249,7 @@ export default function Page() {
             eachTank.y = newTankPos.newYPos
             placeTankAtLocation(eachTank.x, eachTank.y, eachTank.element)
 
-            if (eachTank.enemyTank) return //ensure only hometank is centered
+            if (eachTank.team !== "home") return //ensure only hometank is centered
 
             //center screen
             centerCanvas(eachTank.x, eachTank.y)
@@ -574,7 +573,7 @@ export default function Page() {
                 eachShell.yDirection *= -1
             }
 
-            if (eachShell.wallsHit > 200) {
+            if (eachShell.wallsHit > 1000) {
                 removeShell(eachShell.id)
             }
 
@@ -601,20 +600,18 @@ export default function Page() {
     }
 
     return (
-        <HideNav>
-            <main className={styles.mainDivRef}>
-                <div ref={canvasRef} className={styles.canvas}>
-                    {playerTanks.current.map(eachTank => {
-                        return (
-                            <React.Fragment key={eachTank.id}>
-                                <div ref={(e) => assignTankRefs(e, eachTank.id)} className={styles.tank} style={{ width: `${eachTank.width}px`, translate: `${eachTank.x}px ${eachTank.y}px` }}>
-                                    <div className={styles.snout}></div>
-                                </div>
-                            </React.Fragment>
-                        )
-                    })}
-                </div>
-            </main>
-        </HideNav>
+        <main className={styles.mainDivRef}>
+            <div ref={canvasRef} className={styles.canvas}>
+                {playerTanks.current.map(eachTank => {
+                    return (
+                        <React.Fragment key={eachTank.id}>
+                            <div ref={(e) => assignTankRefs(e, eachTank.id)} className={styles.tank} style={{ width: `${eachTank.width}px`, translate: `${eachTank.x}px ${eachTank.y}px` }}>
+                                <div className={styles.snout}></div>
+                            </div>
+                        </React.Fragment>
+                    )
+                })}
+            </div>
+        </main>
     )
 }

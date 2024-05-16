@@ -1,5 +1,4 @@
 "use client"
-import HideNav from '@/components/hideNav/HideNav';
 import { useState, useEffect, useRef } from 'react';
 
 export default function Page() {
@@ -48,12 +47,12 @@ export default function Page() {
     };
 
     return (
-        <HideNav>
+        <div>
             <input type="file" onChange={handleFileChange} accept="audio/*" />
             <audio ref={audioRef} controls src={audioUrl}></audio>
             <div ref={bassDivRef} style={{ width: '100px', height: '100px', backgroundColor: 'blue' }}>
                 Bass React
             </div>
-        </HideNav>
+        </div>
     );
 }

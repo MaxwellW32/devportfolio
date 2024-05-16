@@ -4,7 +4,7 @@ import Logo from '../logo/Logo'
 
 export default function Footer() {
     return (
-        <footer style={{ display: "flex", alignItems: "center", flexWrap: "wrap", justifyContent: "space-between", padding: "2rem" }}>
+        <footer id='footerNav' style={{ display: "flex", alignItems: "center", flexWrap: "wrap", justifyContent: "space-between", padding: "2rem" }}>
             ©2023 Made by Max
 
             <Logo />

@@ -1,0 +1,28 @@
+.menu svg {
+    fill: #fff;
+    cursor: pointer;
+}
+
+.fadeOut {
+    animation: fadeOut 1s both;
+}
+
+@keyframes fadeOut {
+    0% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+        display: none;
+    }
+}
+
+.menuButton {
+    opacity: 0.2;
+}
+
+.menuButton:hover {
+    opacity: 1;
+    transition: opacity 400ms;
+}

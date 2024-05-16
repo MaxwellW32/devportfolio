@@ -38,7 +38,7 @@ export default function MyMetrics({ svg, amount, amountAdd, text, animateTime = 
 
     return (
         <div ref={ref} style={{ display: "grid", gridTemplateColumns: "auto 1fr", gridTemplateRows: "auto auto", columnGap: "2rem", rowGap: "1rem" }}>
-            <div style={{ padding: "1rem", border: "1px solid #fff", borderRadius: ".9rem", aspectRatio: "1/1" }} >
+            <div style={{ border: "1px solid #fff", borderRadius: ".9rem", display: "grid", alignItems: "center", justifyItems: "center", aspectRatio: "1/1" }} >
                 {svg}
             </div>
 

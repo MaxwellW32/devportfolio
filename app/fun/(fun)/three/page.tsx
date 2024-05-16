@@ -1,5 +1,4 @@
 "use client"
-import HideNav from '@/components/hideNav/HideNav';
 import React, { useEffect, useRef } from 'react'
 import * as THREE from 'three';
 
@@ -71,8 +70,6 @@ export default function Page() {
     }
 
     return (
-        <HideNav>
-            <div ref={mainDiv}></div>
-        </HideNav>
+        <div ref={mainDiv}></div>
     )
 }

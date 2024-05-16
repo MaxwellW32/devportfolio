@@ -1,5 +1,4 @@
 "use client"
-import HideNav from '@/components/hideNav/HideNav'
 import wait from '@/useful/wait'
 import React, { useEffect, useState } from 'react'
 
@@ -45,8 +44,6 @@ export default function Page() {
     //one shows how sub looks
 
     return (
-        <HideNav>
-            <p>hey</p>
-        </HideNav>
+        <p>hey</p>
     )
 }

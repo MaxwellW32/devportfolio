@@ -4,6 +4,7 @@
 
 :root {
   --primaryColor: #252734;
+  --backgroundColor: #222;
   /* text sizes */
   --extraLargeFontSize: 3rem;
   --largeFontSize: 2rem;
@@ -507,4 +508,8 @@ audio::-webkit-media-controls-fullscreen-volume-min-button {
 
 audio::-webkit-media-controls-fullscreen-volume-max-button {
   display: none;
+}
+
+.hide {
+  display: none !important;
 }
