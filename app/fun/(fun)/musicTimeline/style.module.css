@@ -1,0 +1,79 @@
+.main {
+    --gray1: #eee;
+    --gray2: #ccc;
+    --color1: red;
+    --backgroundColor: black;
+    display: grid;
+    align-content: flex-start;
+    gap: 1rem;
+}
+
+/* 
+z index note
+stand out 1
+important 9
+nav bar 99
+modal 999
+alert 9999
+*/
+
+
+
+.timeLine {
+    min-height: calc(var(--rowHeight) * 16);
+    position: relative;
+    overflow-x: auto;
+    display: grid;
+    grid-template-rows: 1fr 5fr;
+}
+
+.playHead {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 5px;
+    height: 110%;
+    background-color: var(--color1);
+    z-index: 9;
+}
+
+.timeLineItem {
+    position: absolute;
+    z-index: 1;
+}
+
+.timeLineNav {
+    background-color: var(--backgroundColor);
+}
+
+.timeLineMarkerCont {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: var(--segmentWidth);
+    grid-template-rows: 1fr;
+    position: relative;
+}
+
+.timelineMarker {
+    background-color: var(--gray1);
+    position: relative;
+}
+
+.timelineMarker:nth-child(even) {
+    background-color: var(--gray2);
+}
+
+.markerTime {
+    position: absolute;
+    top: 0;
+    right: 0;
+    translate: -50% -100%;
+}
+
+
+.buttonCont {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    justify-self: center;
+}

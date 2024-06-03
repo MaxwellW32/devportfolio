@@ -2,7 +2,7 @@
 import YoutubeUrlParse, { YoutubePlaylistParse } from "@/useful/YoutubeUrlParse";
 import styles from "./page.module.css"
 
-import React, { useEffect, useMemo, useState, useRef, HTMLAttributes } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import { toast } from "react-hot-toast";
 import { getPlaylist } from "./getPlaylist";
 import { removeFromLocalStorage, retreiveFromLocalStorage, saveToLocalStorage } from "@/utility/saveToStorage";
