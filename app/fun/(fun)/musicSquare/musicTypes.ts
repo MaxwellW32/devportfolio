@@ -7,6 +7,7 @@ export type musicBoxControls = {
 }
 
 export type boxStats = {
+    horizantalBounce: number
     boxWidth: number,
     xPosition: number,
     yPosition: number,

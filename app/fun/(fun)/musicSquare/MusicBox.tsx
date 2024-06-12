@@ -5,7 +5,7 @@ import styles from "./musicBox.module.css"
 import { boxStats } from './musicTypes'
 
 
-export default function MusicBox({ container, boxStatsStarter = { boxWidth: 10, xPosition: 0, yPosition: 0, xDirection: 1, yDirection: 1, speed: 1, hue: 360 }, beatSwitch, randomFlipChance = 0.5 }: { container: HTMLDivElement, boxStatsStarter?: boxStats, beatSwitch: boolean, randomFlipChance?: number }) {
+export default function MusicBox({ container, boxStatsStarter = { boxWidth: 10, xPosition: 0, yPosition: 0, xDirection: 1, yDirection: 1, speed: 1, hue: 360, horizantalBounce: 0.5 }, beatSwitch }: { container: HTMLDivElement, boxStatsStarter?: boxStats, beatSwitch: boolean }) {
     const boxRef = useRef<HTMLDivElement>(null!)
     const boxStats = useRef<boxStats>(boxStatsStarter)
 
@@ -29,7 +29,7 @@ export default function MusicBox({ container, boxStatsStarter = { boxWidth: 10, 
 
 
     function reactToBeatSwitch(boxStatsPassed: boxStats, containerPassed: HTMLDivElement) {
-        const randomFlip = Math.random() > randomFlipChance ? "x" : "y"
+        const randomFlip = Math.random() > boxStatsPassed.horizantalBounce ? "x" : "y"
 
         //flip direction
         if (randomFlip === "x") {

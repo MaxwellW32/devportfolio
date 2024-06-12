@@ -8,8 +8,8 @@ import { v4 as uuidV4 } from "uuid"
 export default function Page() {
     const mainDivRef = useRef<HTMLDivElement>(null!)
     const average = useRef(0)
-    const [showingSettings, showingSettingsSet] = useState(false)
     const [audioUrl, setAudioUrl] = useState("");
+    const [showingSettings, showingSettingsSet] = useState(audioUrl === "" ? true : false)
     const [musicBoxControls, musicBoxControlsSet] = useState<musicBoxControls[]>([]);
     const audioRef = useRef<HTMLAudioElement>(null!);
 
@@ -67,8 +67,11 @@ export default function Page() {
 
         const File = fileList[0]
         const url = URL.createObjectURL(File);
+
+        console.log(`$url`, url);
         setAudioUrl(url);
         startedSet(true)
+
     };
 
     function addNewBoxControl() {
@@ -76,7 +79,7 @@ export default function Page() {
             const newBoxControlsObj: musicBoxControls = {
                 id: uuidV4(),
                 beatSwitch: false,
-                boxStats: { boxWidth: 10, xPosition: 0, yPosition: 0, xDirection: 1, yDirection: 1, speed: 1, hue: Math.floor(Math.random() * 361) },
+                boxStats: { boxWidth: 10, xPosition: 0, yPosition: 0, xDirection: 1, yDirection: 1, speed: 1, hue: Math.floor(Math.random() * 361), horizantalBounce: 0.5 },
                 threshold: 160,
                 hitThreshold: false
             }
@@ -109,46 +112,64 @@ export default function Page() {
 
     return (
         <main ref={mainDivRef} className={styles.mainDiv} style={{ backgroundColor: "#fff", color: "#000", height: "100svh" }}>
-            <div style={{ justifySelf: "flex-end", display: "grid", overflowY: 'auto', width: showingSettings ? "min(400px, 100%)" : "", }}>
-                {!showingSettings && (
-                    <div onClick={() => { showingSettingsSet(true) }}>
-                        <svg style={{ fill: "#000", width: "2rem", cursor: "pointer" }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z" /></svg>
+            {!showingSettings && (
+                <div onClick={() => { showingSettingsSet(true) }} style={{ justifySelf: "flex-end", margin: "1rem" }}>
+                    <svg style={{ fill: "#000", width: "2rem", cursor: "pointer" }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z" /></svg>
+                </div>
+            )}
+
+            <div className={styles.settingsCont} style={{ display: !showingSettings ? "none" : "", alignContent: "flex-start" }}>
+                <button style={{ justifySelf: "flex-end" }} onClick={() => { showingSettingsSet(false) }}>Close</button>
+
+                <audio ref={audioRef} controls src={audioUrl} autoPlay loop></audio>
+
+                <input type="file" onChange={(e) => {
+                    handleFileChange(e)
+
+                    if (musicBoxControls.length === 0) {
+                        addNewBoxControl()
+                    }
+
+                }} accept="audio/*" style={{ minHeight: "70px" }} />
+
+                {audioUrl && (
+                    <div style={{ textAlign: "center" }}>
+                        <p>Average</p>
+
+                        <p>{average.current}</p>
                     </div>
                 )}
 
-                <div className={styles.settingsCont} style={{ display: !showingSettings ? "none" : "grid", alignContent: "flex-start" }}>
-                    <p style={{ justifySelf: "flex-end" }} onClick={() => { showingSettingsSet(false) }}>Close</p>
-                    <audio ref={audioRef} controls src={audioUrl} autoPlay loop></audio>
-                    <input type="file" onChange={handleFileChange} accept="audio/*" />
+                <button style={{ marginBlock: "2rem", justifySelf: "center" }} onClick={addNewBoxControl}>Add MusicBox</button>
 
-                    {audioUrl && (
-                        <p>Average - {average.current}</p>
-                    )}
+                <div className='snap' style={{ display: "grid", gridAutoFlow: "column", justifySelf: "stretch", gridAutoColumns: "100%", overflowX: "auto", minHeight: "400px" }}>
+                    {musicBoxControls.map((eachMusicBoxControl, eachBoxControlIndex) => {
+                        return (
+                            <div key={eachMusicBoxControl.id} className={styles.formCont}>
+                                <label>Box {eachBoxControlIndex + 1}</label>
 
-                    <button style={{ marginTop: "2rem" }} onClick={addNewBoxControl}>Add MusicBox</button>
+                                <label>threshold</label>
 
-                    <div className='snap' style={{ display: "grid", gridAutoFlow: "column", gridAutoColumns: "100%", overflowX: "scroll" }}>
-                        {musicBoxControls.map((eachMusicBoxControl, eachBoxControlIndex) => {
-                            return (
-                                <div key={eachMusicBoxControl.id} className={styles.formCont}>
-                                    {Object.entries(eachMusicBoxControl.boxStats).map((eachKeyValArr, eachKeyValArrIndex) => {
-                                        const validBox = eachKeyValArr[0] === "boxWidth" || eachKeyValArr[0] === "speed" || eachKeyValArr[0] === "hue"
-                                        if (!validBox) return
+                                <input name='threshold' type='text' placeholder='enter threshold' value={`${eachMusicBoxControl.threshold}`} onChange={(e) => { handleInputs(e, eachBoxControlIndex) }} />
 
-                                        return (
-                                            <React.Fragment key={eachKeyValArrIndex}>
-                                                <label>{eachKeyValArr[0]}</label>
-                                                <input name={eachKeyValArr[0]} type='number' placeholder={`enter ${eachKeyValArr[0]} value`} value={`${eachKeyValArr[1]}`} onChange={(e) => { handleBoxStatsInputs(e, eachBoxControlIndex) }} />
-                                            </React.Fragment>
-                                        )
-                                    })}
+                                {Object.entries(eachMusicBoxControl.boxStats).map((eachEntry, eachEntryIndex) => {
+                                    const seenKey = eachEntry[0]
+                                    const seenValue = eachEntry[1]
 
-                                    <label>threshold</label>
-                                    <input name='threshold' type='text' placeholder='enter threshold' value={`${eachMusicBoxControl.threshold}`} onChange={(e) => { handleInputs(e, eachBoxControlIndex) }} />
-                                </div>
-                            )
-                        })}
-                    </div>
+                                    const validBox = seenKey === "boxWidth" || seenKey === "speed" || seenKey === "hue" || seenKey === "horizantalBounce"
+                                    if (!validBox) return
+
+                                    return (
+                                        <React.Fragment key={eachEntryIndex}>
+                                            <label>{seenKey}</label>
+
+                                            <input name={seenKey} type='number' placeholder={`enter ${seenKey} value`} value={`${seenValue}`} onChange={(e) => { handleBoxStatsInputs(e, eachBoxControlIndex) }} />
+                                        </React.Fragment>
+                                    )
+                                })}
+                            </div>
+                        )
+                    })}
                 </div>
             </div>
 
