@@ -37,9 +37,11 @@
 
 
 .settingsCont {
-    color: #000;
+    color: #fff;
     padding: 1rem;
     background-color: green;
+    display: grid;
+    gap: 1rem;
 }
 
 

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react"
 import { borderPosition, borderType, bounceBoxStats } from "./musicBounceTypes"
 import styles from "./page.module.css"
 import { v4 as uuidV4 } from "uuid"
+import { count } from "console"
 
 export default function Page() {
     const boxRef = useRef<HTMLDivElement>(null!)
@@ -28,12 +29,12 @@ export default function Page() {
     const borderPositions = useRef<borderPosition[]>([])
     const borderPositionElements = useRef<HTMLDivElement[]>([])
     const recordTimeStared = useRef(new Date())
-    const threshold = useRef(130)
-    const hitThreshold = useRef(false)
+    const previousAverage = useRef(0)
+    const threshold = useRef(10)
     const audioRef = useRef<HTMLAudioElement>(null!);
 
-    const [showingSettings, showingSettingsSet] = useState(false)
     const [audioUrl, setAudioUrl] = useState("");
+    const [showingSettings, showingSettingsSet] = useState(audioUrl === "" ? true : false)
     const [refreshToggle, refreshToggleSet] = useState(false);
 
     //start off all
@@ -63,7 +64,9 @@ export default function Page() {
         const bufferLength = analyser.frequencyBinCount;
         const dataArray = new Uint8Array(bufferLength);
 
+        let loopCount = 0
         const renderFrame = () => {
+            loopCount++
             requestAnimationFrame(renderFrame);
             analyser.getByteFrequencyData(dataArray);
 
@@ -71,17 +74,17 @@ export default function Page() {
             for (let i = 0; i < bufferLength / 2; i++) {
                 sum += dataArray[i];
             }
-            const average = sum / (bufferLength / 2);
-            // console.log(`$average`, average);
 
-            if (average > threshold.current) {
-                if (hitThreshold.current) return
-                hitThreshold.current = true
+            if (loopCount > 6) {
+                loopCount = 0
 
-                //hit
-                handleBeatHit(boxStats.current, recordTimeStared.current)
-            } else {
-                hitThreshold.current = false
+                const average = sum / (bufferLength / 2);
+
+                if (average > (previousAverage.current + threshold.current)) {
+                    handleBeatHit(boxStats.current, recordTimeStared.current)
+                }
+
+                previousAverage.current = average
             }
         };
 
@@ -152,7 +155,7 @@ export default function Page() {
         newBorder.style.position = `absolute`
 
         if (!passedBorderPositionObj) {
-            const randHue = (boxStatsPassed.hue + (Math.floor(Math.random() * 20) + 10)) % 360
+            const randHue = (boxStatsPassed.hue + 10 + 180) % 360
             boxStatsPassed.hue = randHue
 
             newBorder.style.backgroundColor = `hsl(${randHue}, 100%, 50%)`
@@ -426,19 +429,18 @@ export default function Page() {
 
                 <div className={styles.settingsCont} style={{ display: !showingSettings ? "none" : "grid", alignContent: "flex-start" }}>
                     <p style={{ justifySelf: "flex-end" }} onClick={() => { showingSettingsSet(false) }}>Close</p>
-                    <div style={{ color: "#fff" }}>
-                        <audio ref={audioRef} controls src={audioUrl} onEnded={() => {
-                            stopMovementAndReset()
-                            playbackState.current = undefined
-                        }}></audio>
 
-                        <input type="file" onChange={handleFileChange} accept="audio/*" />
+                    <audio ref={audioRef} controls src={audioUrl} onEnded={() => {
+                        stopMovementAndReset()
+                        playbackState.current = undefined
+                    }}></audio>
 
-                        <input type="text" onChange={(e) => {
-                            threshold.current = parseInt(e.target.value)
-                            refreshToggleSet(prev => !prev)
-                        }} value={`${threshold.current}`} />
-                    </div>
+                    <input type="file" onChange={handleFileChange} accept="audio/*" />
+
+                    <input type="text" onChange={(e) => {
+                        threshold.current = parseInt(e.target.value)
+                        refreshToggleSet(prev => !prev)
+                    }} value={`${threshold.current}`} />
 
                     <div style={{ display: audioUrl ? "flex" : "none", gap: ".5rem", flexWrap: "wrap" }}>
                         <button onClick={handleRecord}>Record</button>
