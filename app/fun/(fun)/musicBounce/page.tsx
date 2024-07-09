@@ -30,7 +30,7 @@ export default function Page() {
     const audioAnalyserRef = useRef<AnalyserNode>()
     const [audioUrl, audioUrlSet] = useState("");
     const [showingSettings, showingSettingsSet] = useState(audioUrl === "" ? true : false)
-    const [useVisualiser, useVisualiserSet] = useState(false);
+    const [usingVisualiser, usingVisualiserSet] = useState(false);
     const [audioPairedOnce, audioPairedOnceSet] = useState(false);
     const [fftSize,] = useState(256 * 4)
     const highestBeatValuePossible = useMemo(() => {
@@ -39,13 +39,15 @@ export default function Page() {
     const [activeBar, activeBarSet] = useState<barRange>()
     const [viewingRuleSettings, viewingRuleSettingsSet] = useState(false)
     const [activePosition, activePositionSet] = useState<"start" | "end">()
+    const scaleTimeoutRef = useRef<NodeJS.Timeout>()
 
     const defaultRules = {
         scale: {
             modifier: 1.5
         },
         rotate: {
-            modifier: 45
+            modifier: 45,
+            time: 300
         },
         particle: {
             src: ""
@@ -254,24 +256,29 @@ export default function Page() {
         centerBoxAndCanvas(canvasMidPoint.current, boxStats.current, boxRef.current, mainDivRef.current)
     }
 
-    function handleBeatHit(boxStatsPassed: bounceBoxStats, barRange: barRange) {
 
+    function handleBeatHit(boxStatsPassed: bounceBoxStats, barRange: barRange) {
         const entries = Object.entries(barRange.rules)
 
         for (let index = 0; index < entries.length; index++) {
             const eachEntry = entries[index];
             const eachKey = eachEntry[0] as ruleKey
-            const eachValue = eachEntry[1]
 
             if (eachKey === "scale") {
                 boxRef.current.style.scale = `${barRange.rules[eachKey]!.modifier}`
 
-                setTimeout(() => {
+                if (scaleTimeoutRef.current) clearTimeout(scaleTimeoutRef.current)
+                scaleTimeoutRef.current = setTimeout(() => {
                     boxRef.current.style.scale = `1`
-                }, 100);
+                }, 300);
+
 
             } else if (eachKey === "rotate") {
-                boxRef.current.style.rotate = `${parseInt(boxRef.current.style.rotate) + barRange.rules[eachKey]!.modifier}`
+                const seenRotation = isNaN(parseInt(boxRef.current.style.rotate)) ? 0 : parseInt(boxRef.current.style.rotate)
+                const newRotation = (seenRotation + barRange.rules[eachKey]!.modifier)
+
+                boxRef.current.style.transition = `rotate ${barRange.rules[eachKey]!.time}ms`
+                boxRef.current.style.rotate = `${newRotation}deg`
 
             } else if (eachKey === "particle") {
                 //spawn square at location
@@ -564,7 +571,7 @@ export default function Page() {
                     <div className={styles.hoverSvg}
                         onClick={() => {
                             showingSettingsSet(true)
-                            useVisualiserSet(false)
+                            usingVisualiserSet(false)
                         }}
                     >
                         <svg style={{ fill: "#fff", width: "2rem", cursor: "pointer", margin: ".5rem" }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z" /></svg>
@@ -583,9 +590,9 @@ export default function Page() {
 
                     <button className={styles.settingsButton} style={{ display: audioUrl ? "" : "none", justifySelf: "center" }}
                         onClick={() => {
-                            useVisualiserSet(!useVisualiser)
+                            usingVisualiserSet(!usingVisualiser)
 
-                            if (!useVisualiser) {
+                            if (!usingVisualiser) {
                                 //show stuff
                                 handleVisualiser("start")
 
@@ -594,10 +601,10 @@ export default function Page() {
                                 handleVisualiser("stop")
                             }
                         }}
-                    >{useVisualiser ? "hide visualiser" : "show visualiser"}</button>
+                    >{usingVisualiser ? "hide visualiser" : "show visualiser"}</button>
 
                     {/* holds canvas and container */}
-                    <div ref={canvasAndVisualiserContRef} style={{ display: useVisualiser ? "grid" : "none", position: "relative", justifySelf: "stretch", height: "200px", zIndex: 0 }}
+                    <div ref={canvasAndVisualiserContRef} style={{ display: usingVisualiser ? "grid" : "none", position: "relative", justifySelf: "stretch", height: "200px", zIndex: 0 }}
                         onMouseUp={(e) => {
                             if (activeBar === undefined || activePosition === undefined) return
 
@@ -631,7 +638,7 @@ export default function Page() {
                     </div>
 
                     {/* displays bar ranges and buttons to modify them */}
-                    {useVisualiser && (
+                    {usingVisualiser && (
                         <div style={{ display: "flex", gap: "1rem", overflowX: "auto", alignItems: "center", justifySelf: "stretch" }}>
                             {barRanges.current.map(eachBarRange => {//255 is the highest value the bars can have
                                 const yPos = Math.floor(100 - ((eachBarRange.average / highestBeatValuePossible) * 100))
@@ -673,7 +680,10 @@ export default function Page() {
 
                                         <div style={{ backgroundColor: "#000", position: "relative", overflow: "clip", border: `2px solid ${eachBarRange.average > eachBarRange.target ? "#fff" : "#000"}` }}
                                             onMouseUp={(e) => {
-                                                setNewTarget(e, eachBarRange)
+                                                if (!viewingRuleSettings) {
+                                                    setNewTarget(e, eachBarRange)
+                                                }
+
                                                 activeBarSet(eachBarRange)
                                             }}
                                         >
@@ -695,6 +705,7 @@ export default function Page() {
                                                         return (
                                                             <button className={styles.settingsButton} key={eachKey}
                                                                 onClick={() => {
+
                                                                     if (eachKey === "scale") {
                                                                         eachBarRange.rules[eachKey] = defaultRules[eachKey]
                                                                     } else if (eachKey === "rotate") {
@@ -735,6 +746,12 @@ export default function Page() {
 
                                                                         <input id="rotateInput" type="text" value={`${eachBarRange.rules[eachKey]!.modifier}`} onChange={(e) => {
                                                                             eachBarRange.rules[eachKey]!.modifier = parseInt(e.target.value)
+                                                                        }} />
+
+                                                                        <label htmlFor="rotateTimeInput">Rotation Time</label>
+
+                                                                        <input id="rotateTimeInput" type="text" value={`${eachBarRange.rules[eachKey]!.time}`} onChange={(e) => {
+                                                                            eachBarRange.rules[eachKey]!.time = parseInt(e.target.value)
                                                                         }} />
                                                                     </div>
                                                                 )}
