@@ -1,3 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
+
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -319,7 +325,6 @@ h3 {
   scroll-snap-align: start;
 }
 
-audio {}
 
 audio::-webkit-media-controls {
   width: inherit;
@@ -365,12 +370,12 @@ audio::-webkit-media-controls-panel {
   transition: opacity 0.3s;
 }
 
-audio:-webkit-full-page-media {
+audio::-webkit-full-page-media {
   max-height: 100%;
   max-width: 100%;
 }
 
-audio:-webkit-full-page-media::-webkit-media-controls-panel {
+audio::-webkit-full-page-media::-webkit-media-controls-panel {
   bottom: 0px;
 }
 
@@ -392,7 +397,6 @@ audio::-webkit-media-controls-mute-button {
 audio::-webkit-media-controls-overlay-enclosure {
   display: none;
 }
-
 
 audio::-webkit-media-controls-play-button {
   -webkit-appearance: media-play-button;
@@ -477,7 +481,6 @@ audio::-webkit-media-controls-volume-slider {
   color: inherit;
 }
 
-
 audio::-webkit-media-controls-fullscreen-button {
   -webkit-appearance: media-enter-fullscreen-button;
   display: flex;
@@ -512,4 +515,42 @@ audio::-webkit-media-controls-fullscreen-volume-max-button {
 
 .hide {
   display: none !important;
+}
+
+
+
+
+
+
+
+
+.reset * {
+  all: unset;
+  display: revert;
+  box-sizing: border-box;
+}
+
+.reset img,
+.reset svg {
+  display: block;
+}
+
+.reset img {
+  overflow: hidden;
+}
+
+.reset ul,
+.reset ol,
+.reset li {
+  list-style: none;
+}
+
+.reset a {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+.reset .material-symbols-outlined {
+  cursor: pointer;
 }
