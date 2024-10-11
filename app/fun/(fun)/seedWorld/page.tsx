@@ -1,6 +1,7 @@
 "use client"
 import React, { useEffect, useRef, useState } from 'react'
 import styles from "./style.module.css"
+import { toast } from 'react-hot-toast';
 
 //row one is color
 //row two is objects
@@ -43,6 +44,7 @@ export default function Page() {
     const markerRef = useRef<HTMLDivElement | null>(null)
 
     const [viewingSettings, viewingSettingsSet] = useState(false)
+    const [, refresherSet] = useState(false)
 
     type keys = {
         up: boolean,
@@ -66,7 +68,8 @@ export default function Page() {
         speed: number,
         element: HTMLDivElement | null
     }
-    const seedArray = useRef("abcdefghijklmnop-macdefghijklmnop-abcfhfghijklmnop-abcdefggojklmnop".split("-"))
+    const seed = useRef("abcdefghijklmnop-macdefghijklmnop-abcfhfghijklmnop-abcdefggojklmnop")
+    const userEnteredSeed = useRef(seed.current)
     const canvasSize = useRef(10_000_000)
 
     type biomeType = {
@@ -188,9 +191,10 @@ export default function Page() {
         newBiome.el.style.translate = `${x}px ${y}px`
         newBiome.el.classList.add(styles.biome)
 
+        const seedArray = seed.current.split("-")
         //modifiers declaration
-        const colorModification = seedLetterToNumber[seedArray.current[0][0]] * 100
-        const elementsModification = seedLetterToNumber[seedArray.current[1][0]] * 100
+        const colorModification = seedLetterToNumber[seedArray[0][0]] * 100
+        const elementsModification = seedLetterToNumber[seedArray[1][0]] * 100
 
         //custom biome settings
         const biomeTotalPosition = x + y
@@ -296,6 +300,10 @@ export default function Page() {
         playerStats.current.element = e
     }
 
+    function refresh() {
+        refresherSet(prev => !prev)
+    }
+
     return (
         <main ref={mainContRef} className={styles.mainCont}>
             <div ref={canvasRef} className={styles.canvas}>
@@ -311,10 +319,71 @@ export default function Page() {
                 >settings</button>
 
                 <div style={{ padding: "1rem", border: "1px solid #000", display: !viewingSettings ? "none" : "" }}>
-                    <input type="text" placeholder="Enter a seed a-z 0-9" />
+                    <input type="text" placeholder="Enter a seed a-z" value={userEnteredSeed.current}
+                        onChange={(e) => {
+                            refresh()
+
+                            userEnteredSeed.current = e.target.value
+                        }}
+                    />
+
                     <button
                         onClick={() => {
+                            refresh()
+                            let newSeedArray = []
 
+                            const amtToAdd = 16
+
+                            for (let i = 0; i < 4; i++) {
+                                let newCharactersString = ""
+
+                                for (let j = 0; j < amtToAdd; j++) {
+                                    newCharactersString += seedOptions[Math.floor(Math.random() * seedOptions.length)]
+                                }
+
+                                newSeedArray[i] = newCharactersString
+                            }
+
+                            const combinedString = newSeedArray.join("-")
+                            seed.current = combinedString
+                            userEnteredSeed.current = combinedString
+                        }}
+                    >randomize</button>
+
+                    <button
+                        onClick={() => {
+                            refresh()
+
+                            let newSeedArray = userEnteredSeed.current.split("-").slice(0, 4)
+                            if (newSeedArray.length < 4) {
+                                toast.error("incorrect format, ensure 16 digit characters are separates by a dash (-)")
+                            }
+
+                            newSeedArray = newSeedArray.map(eachStringRow => {
+                                if (eachStringRow.length === 16) {
+                                    return eachStringRow
+
+                                } else if (eachStringRow.length > 16) {
+                                    //more
+                                    return eachStringRow.slice(0, 16)
+
+                                } else {
+                                    //less
+                                    const amtToAdd = 16 - eachStringRow.length
+                                    let newCharactersString = ""
+
+                                    for (let index = 0; index < amtToAdd; index++) {
+                                        newCharactersString += seedOptions[Math.floor(Math.random() * seedOptions.length)]
+                                    }
+
+                                    return eachStringRow + newCharactersString
+                                }
+                            })
+
+                            seed.current = newSeedArray.join("-")
+                            userEnteredSeed.current = seed.current
+
+                            generateBiomes()
                         }}
                     >Generate</button>
                 </div>
