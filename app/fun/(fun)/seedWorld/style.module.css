@@ -1,0 +1,33 @@
+.mainCont {
+    background-color: red;
+    overflow: hidden;
+}
+
+.canvas {
+    background-color: aliceblue;
+    position: relative;
+}
+
+.player {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 99;
+}
+
+.marker {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    translate: -50% -50%;
+    aspect-ratio: 1/1;
+    width: 20px;
+    background-color: red;
+}
+
+.biome {
+    position: absolute;
+    top: 0;
+    left: 0;
+    /* background-color: green; */
+}

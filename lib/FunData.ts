@@ -39,6 +39,11 @@ export const funItems: funItem[] = [
         image: require(`@/public/fun/three.jpg`).default.src,
         title: "Three JS",
         slug: "three",
+    },
+    {
+        image: require(`@/public/fun/three.jpg`).default.src,
+        title: "Seed World",
+        slug: "seedWorld",
     }
 ]
 
