@@ -2,8 +2,13 @@
 import React, { useEffect, useRef, useState } from 'react'
 import styles from "./style.module.css"
 
+//row one is color
+//row two is objects
+//row three is frequency
+//row four is animation
+
 const seedOptions = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"]
-const seedLetterToNumber = {
+const seedLetterToNumber: { [key: string]: number } = {
     a: 1,
     b: 2,
     c: 3,
@@ -35,7 +40,6 @@ const seedLetterToNumber = {
 export default function Page() {
     const mainContRef = useRef<HTMLDivElement | null>(null)
     const canvasRef = useRef<HTMLDivElement | null>(null)
-    const playerRef = useRef<HTMLDivElement | null>(null)
     const markerRef = useRef<HTMLDivElement | null>(null)
 
     const [viewingSettings, viewingSettingsSet] = useState(false)
@@ -46,6 +50,7 @@ export default function Page() {
         left: boolean,
         right: boolean,
     }
+
     const keysDown = useRef<keys>({
         up: false,
         down: false,
@@ -61,7 +66,7 @@ export default function Page() {
         speed: number,
         element: HTMLDivElement | null
     }
-    const seed = useRef("abcdefghijklmnop")
+    const seedArray = useRef("abcdefghijklmnop-macdefghijklmnop-abcfhfghijklmnop-abcdefggojklmnop".split("-"))
     const canvasSize = useRef(10_000_000)
 
     type biomeType = {
@@ -84,7 +89,7 @@ export default function Page() {
 
     //start Off
     useEffect(() => {
-        if (mainContRef.current === null || canvasRef.current === null || playerRef.current === null) return
+        if (mainContRef.current === null || canvasRef.current === null || playerStats.current.element === null) return
 
         //initial fit to screen
         fitElementToScreen(mainContRef.current)
@@ -95,9 +100,6 @@ export default function Page() {
         //initial set canvas to correct size
         canvasRef.current.style.height = `${canvasSize.current}px`
         canvasRef.current.style.width = `${canvasSize.current}px`
-
-        playerStats.current.element = playerRef.current
-        if (playerStats.current.element === null) return
 
         playerStats.current.element.style.height = `${playerStats.current.size}px`
         playerStats.current.element.style.width = `${playerStats.current.size}px`
@@ -164,6 +166,15 @@ export default function Page() {
     }
 
     function generateBiome(x: number, y: number) {
+        //consider the biomes location...
+        //then consider the seed...
+        //start with 
+        //color...
+        //elements
+        //frequency of elements
+        //rotations
+        //gradient
+
         if (canvasRef.current === null) return
 
         const newBiome: biomeType = {
@@ -175,8 +186,17 @@ export default function Page() {
         newBiome.el.style.width = `${biomeSize.current}px`
         newBiome.el.style.height = `${biomeSize.current}px`
         newBiome.el.style.translate = `${x}px ${y}px`
-        newBiome.el.style.backgroundColor = `hsl(${(x + y) % 360},100%, 50%)`
         newBiome.el.classList.add(styles.biome)
+
+        //modifiers declaration
+        const colorModification = seedLetterToNumber[seedArray.current[0][0]] * 100
+        const elementsModification = seedLetterToNumber[seedArray.current[1][0]] * 100
+
+        //custom biome settings
+        const biomeTotalPosition = x + y
+        const biomeColor = (biomeTotalPosition + colorModification) % 360
+
+        newBiome.el.style.backgroundColor = `hsl(${biomeColor},100%, 50%)`
 
         biomes.current.push(newBiome)
         canvasRef.current.appendChild(newBiome.el)
@@ -270,10 +290,16 @@ export default function Page() {
         return Math.round(num / degree) * degree
     }
 
+    function assignRefToPlayerStats(e: HTMLDivElement | null) {
+        if (e === null) return
+
+        playerStats.current.element = e
+    }
+
     return (
         <main ref={mainContRef} className={styles.mainCont}>
             <div ref={canvasRef} className={styles.canvas}>
-                <div ref={playerRef} className={styles.player}></div>
+                <div ref={assignRefToPlayerStats} className={styles.player}></div>
                 <div ref={markerRef} className={styles.marker}></div>
             </div>
 
