@@ -59,9 +59,9 @@ export default function page() {
       </section>
 
       <section style={{ backgroundColor: "var(--backgroundColor)" }}>
-        <h2 id="services">My Services</h2>
+        <h2 id="services">Services</h2>
 
-        <p style={{ marginBottom: "1rem" }} className="extraLargeText">Services I Provide For My Clients.</p>
+        <p style={{ marginBottom: "1rem" }} className="extraLargeText">Things I&apos;m good at</p>
 
         <ServicesProvided />
       </section>
