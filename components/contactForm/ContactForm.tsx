@@ -6,6 +6,7 @@ import styles from "./contactform.module.css"
 import { toast } from 'react-hot-toast';
 import { removeFromLocalStorage, retreiveFromLocalStorage, saveToLocalStorage } from '@/utility/saveToStorage';
 import { useSearchParams } from 'next/navigation'
+import { sendNodeEmail } from '@/serverFunctions/handleNodeEmails';
 
 const phoneRegex = new RegExp(
     /^([+]?[\s0-9]+)?(\d{3}|[(]?[0-9]+[)])?([-]?[\s]?[0-9])+$/
@@ -17,13 +18,15 @@ export default function ContactForm() {
 
     const contactFormSchema = z.object({
         name: z.string().min(1, "Name needs to be at least 1 character"),
-        email: z.string().min(1, "Email needs to be valid"),
+        email: z.string().email("Email needs to be valid"),
         phone: z.string().regex(phoneRegex, 'Invalid Number!'),
         subject: z.string().min(1, "Please provide a subject"),
         message: z.string().min(1, "Please provide a message"),
     })
 
     type contactForm = z.infer<typeof contactFormSchema>
+
+    type contactFormKeys = keyof contactForm
 
     const initialFormObj: contactForm = {
         name: "",
@@ -37,182 +40,169 @@ export default function ContactForm() {
 
     const [formObj, formObjSet] = useState<contactForm>({ ...initialFormObj })
 
-    const [userInteracted, userInteractedSet] = useState(false)
+    const [checkedForSave, checkedForSaveSet] = useState(false)
 
-    const [formObjErrors, formObjErrorsSet] = useState(() => {
-        const newObj: { [key: string]: string[] | null } = {}
-        Object.entries(formObj).forEach(eachEntry => {
-            newObj[eachEntry[0]] = null
-        })
+    const [formErrors, formErrorsSet] = useState<Partial<{
+        [key in contactFormKeys]: string
+    }>>({})
 
-        return newObj
-    })
-
-    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-        e.preventDefault()
-
-        if (!contactFormSchema.safeParse(formObj).success) {
-            toast.error("Form Error Seen")
-            return
+    type moreFormInfoType = {
+        [key in contactFormKeys]: {
+            placeHolder?: string,
+            type?: string,
+            required?: boolean
+            inputType?: "input" | "textarea"
         }
+    }
 
+    const [moreFormInfo,] = useState<moreFormInfoType>({
+        "name": {
+            placeHolder: "Name",
+            required: true
+        },
+        "email": {
+            placeHolder: "Email",
+            required: true
+        },
+        "phone": {
+            placeHolder: "Phone",
+            required: true
+        },
+        "subject": {
+            placeHolder: "Subject",
+            required: true
+        },
+        "message": {
+            placeHolder: "Message",
+            required: true,
+            inputType: "textarea"
+        }
+    });
 
-        const result = await emailjs.sendForm(
-            `service_i29q1eu`,
-            `template_u4dq9ge`,
-            e.target as HTMLFormElement,
-            `rKzfrKZJI8d6o86V-`
-        )
+    async function handleSubmit(readyToSubmit?: boolean) {
+        if (readyToSubmit === undefined || readyToSubmit === false) return
 
-        if ((result.status >= 200 && result.status < 300) || result.text === "OK") {
-            toast.success("Sent Successfully!")
+        try {
+            if (!contactFormSchema.safeParse(formObj).success) return toast.error("Form not valid")
+
+            await sendNodeEmail({
+                sendTo: "maxwellwedderburn32@gmail.com",
+                replyTo: formObj.email,
+                subject: `Portfolio message from ${formObj.name}`,
+                text: (
+                    `
+                    ${Object.entries(formObj).map(([key, value]) => {
+                        return `
+                        ${key}:${value}\n
+                        `
+                    })}
+                    `
+                )
+            })
+
+            toast.success("Sent!")
             formObjSet({ ...initialFormObj })
-            removeFromLocalStorage("form")
+
+        } catch (error) {
+            toast.error("Couldn't send")
+            console.log(`Couldn't send`, error);
+        }
+    }
+
+    function checkIfValid(seenFormObj: contactForm, seenName: keyof contactForm, schema: any) {
+        const testSchema = schema.pick({ [seenName]: true }).safeParse(seenFormObj);
+
+        if (testSchema.success) {//worked
+            formErrorsSet(prevObj => {
+                const newObj = { ...prevObj }
+                delete newObj[seenName]
+
+                return newObj
+            })
 
         } else {
-            toast.error("Couldn't send, pelase try again")
-            console.log(`$seomething else happened`, result);
-        }
-    }
+            formErrorsSet(prevObj => {
+                const newObj = { ...prevObj }
 
-    const validateInputOnBlur = (field: string) => {
-        if (!userInteracted) userInteractedSet(true)
+                let errorMessage = ""
 
-        if (field === "name") {
-            formObjErrorsSet(prevObj => {
-                const test = contactFormSchema.pick({ [field]: true }).safeParse(formObj)
-                prevObj[field] = test.success ? null : test.error.issues.map(eachIssue => eachIssue.message)
-                return { ...prevObj }
-            })
-        }
-        if (field === "email") {
-            formObjErrorsSet(prevObj => {
-                const test = contactFormSchema.pick({ [field]: true }).safeParse(formObj)
-                prevObj[field] = test.success ? null : test.error.issues.map(eachIssue => eachIssue.message)
-                return { ...prevObj }
-            })
-        }
-        if (field === "phone") {
-            formObjErrorsSet(prevObj => {
-                const test = contactFormSchema.pick({ [field]: true }).safeParse(formObj)
-                prevObj[field] = test.success ? null : test.error.issues.map(eachIssue => eachIssue.message)
-                return { ...prevObj }
-            })
-        }
-        if (field === "subject") {
-            formObjErrorsSet(prevObj => {
-                const test = contactFormSchema.pick({ [field]: true }).safeParse(formObj)
-                prevObj[field] = test.success ? null : test.error.issues.map(eachIssue => eachIssue.message)
-                return { ...prevObj }
-            })
-        }
-        if (field === "message") {
-            formObjErrorsSet(prevObj => {
-                const test = contactFormSchema.pick({ [field]: true }).safeParse(formObj)
-                prevObj[field] = test.success ? null : test.error.issues.map(eachIssue => eachIssue.message)
-                return { ...prevObj }
-            })
-        }
-    }
-
-    //read errors
-    useEffect(() => {
-        const prevForm = retreiveFromLocalStorage("form")
-
-        let formBlank = false
-        if (prevForm !== null) {
-
-            const isBlank = Object.values(prevForm).filter(eachVal => eachVal !== "") as string[]
-            if (isBlank.length === 0) {
-                formBlank = true
-            }
-
-            if (!formBlank) {
-                formObjSet(prevForm)
-
-                formObjErrorsSet(() => {
-                    const newObj: { [key: string]: string[] | null } = {}
-
-                    Object.entries(prevForm).forEach(eachEntry => {
-                        const test = contactFormSchema.pick({ [eachEntry[0]]: true }).safeParse(prevForm)
-                        newObj[eachEntry[0]] = test.success ? null : test.error.issues.map(eachIssue => eachIssue.message)
-                    })
-
-                    return newObj
+                JSON.parse(testSchema.error.message).forEach((eachErrorObj: any) => {
+                    errorMessage += ` ${eachErrorObj.message}`
                 })
-            }
-        }
 
+                newObj[seenName] = errorMessage
+
+                return newObj
+            })
+        }
+    }
+
+    //read save from storage
+    useEffect(() => {
+        checkedForSaveSet(true)
+        const prevForm: contactForm | null = retreiveFromLocalStorage("form")
+        if (prevForm === null) return
+
+        formObjSet({ ...prevForm })
     }, [])
 
-    //save changes to broswer
+    //save form to storage
     useEffect(() => {
-        if (userInteracted) {
-            saveToLocalStorage("form", formObj)
-            console.log(`$saved again`);
-        }
-    }, [formObj, userInteracted])
+        if (!checkedForSave) return
 
+        saveToLocalStorage("form", formObj)
+
+    }, [checkedForSave, formObj])
 
     return (
         <div>
             <div style={{ padding: "1rem", color: "pink", marginBottom: "1rem" }}>
-                {Object.values(formObjErrors).map(eachResult => {
-                    return eachResult?.map((eachErr, eachErrIndex) => {
-                        return (
-                            <p key={eachErrIndex}>{eachErr}</p>
-                        )
-                    })
+                {Object.entries(formErrors).map(([key, value]) => {
+                    return (
+                        <p key={key}>{value}</p>
+                    )
                 })}
             </div>
 
-            <form className={styles.form} onSubmit={handleSubmit}>
-                <input style={{ borderLeft: formObjErrors["name"] === null ? "1px solid green" : "" }} type='text' name='name' value={formObj.name}
-                    onChange={(e) => {
-                        formObjSet(prevObj => {
-                            prevObj.name = e.target.value
+            <form className={styles.form} action={(e) => { handleSubmit() }}>
+                {Object.entries(moreFormInfo).map(([key, value]) => {
+                    const seenKey = key as contactFormKeys
 
-                            return { ...prevObj }
-                        })
-                    }} placeholder='Name' required onBlur={() => { validateInputOnBlur("name") }} />
+                    if (moreFormInfo[seenKey].inputType === undefined || moreFormInfo[seenKey].inputType === "input") {
+                        return (
+                            <input key={seenKey} style={{ borderLeft: formErrors[seenKey] !== undefined ? "1px solid green" : "" }} type={moreFormInfo[seenKey].type === undefined ? "text" : moreFormInfo[seenKey].type} name={seenKey} value={formObj[seenKey]} placeholder={moreFormInfo[seenKey].placeHolder} required={moreFormInfo[seenKey].required}
+                                onChange={(e) => {
+                                    formObjSet(prevObj => {
+                                        prevObj[seenKey] = e.target.value
 
-                <input style={{ borderLeft: formObjErrors["email"] === null ? "1px solid green" : "" }} type='text' name='email' value={formObj.email}
-                    onChange={(e) => {
-                        formObjSet(prevObj => {
-                            prevObj.email = e.target.value
+                                        return { ...prevObj }
+                                    })
+                                }}
+                                onBlur={() => { checkIfValid(formObj, seenKey, contactFormSchema) }}
+                            />
+                        )
+                    } else if (moreFormInfo[seenKey].inputType === "textarea") {
+                        return (
+                            <textarea key={seenKey} style={{ borderLeft: formErrors[seenKey] !== undefined ? "1px solid green" : "", gridColumn: "1/-1" }} rows={7} name={seenKey} value={formObj[seenKey]} placeholder={moreFormInfo[seenKey].placeHolder} required={moreFormInfo[seenKey].required}
+                                onChange={(e) => {
+                                    formObjSet(prevObj => {
+                                        prevObj[seenKey] = e.target.value
 
-                            return { ...prevObj }
-                        })
-                    }} placeholder='Email' required onBlur={() => { validateInputOnBlur("email") }} />
+                                        return { ...prevObj }
+                                    })
+                                }}
+                                onBlur={() => { checkIfValid(formObj, seenKey, contactFormSchema) }}
+                            />
 
-                <input style={{ borderLeft: formObjErrors["phone"] === null ? "1px solid green" : "" }} type='text' name='phone' value={formObj.phone}
-                    onChange={(e) => {
-                        formObjSet(prevObj => {
-                            prevObj.phone = e.target.value
+                        )
+                    }
+                })}
 
-                            return { ...prevObj }
-                        })
-                    }} placeholder='Phone' required onBlur={() => { validateInputOnBlur("phone") }} />
-
-                <input style={{ borderLeft: formObjErrors["subject"] === null ? "1px solid green" : "" }} type='text' name='subject' value={formObj.subject}
-                    onChange={(e) => {
-                        formObjSet(prevObj => {
-                            prevObj.subject = e.target.value
-
-                            return { ...prevObj }
-                        })
-                    }} placeholder='Subject' required onBlur={() => { validateInputOnBlur("subject") }} />
-
-                <textarea style={{ borderLeft: formObjErrors["message"] === null ? "1px solid green" : "", gridColumn: "1/-1" }} rows={7} name='message' value={formObj.message}
-                    onChange={(e) => {
-                        formObjSet(prevObj => {
-                            prevObj.message = e.target.value
-
-                            return { ...prevObj }
-                        })
-                    }} placeholder='Message' required onBlur={() => { validateInputOnBlur("message") }} />
-
-                <button disabled={!contactFormSchema.safeParse(formObj).success} style={{ justifySelf: "flex-start", paddingInline: "5rem" }} role='submit'>Submit</button>
+                <button disabled={!contactFormSchema.safeParse(formObj).success} style={{ justifySelf: "flex-start", paddingInline: "5rem" }} role='submit'
+                    onClick={() => {
+                        handleSubmit(true)
+                    }}
+                >Submit</button>
             </form>
         </div>
     )
