@@ -222,9 +222,10 @@ h3 {
   width: max-content;
   transition: opacity 400ms;
   font-size: .7rem;
+  z-index: 9999;
 }
 
-.toolTip:hover:before {
+.toolTip:hover::before {
   animation: slowOpacity 1s 2s forwards;
 }
 

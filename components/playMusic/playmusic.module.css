@@ -6,7 +6,6 @@
     left: 50%;
     translate: -50% 0;
     z-index: 9999;
-    cursor: pointer;
 }
 
 .musicIcon>svg {

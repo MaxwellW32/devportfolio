@@ -77,7 +77,7 @@ export default function PlayMusic() {
                     </div>
                 ) : (
                     // desktop
-                    <div className={`toolTip`} style={{}} data-tooltip="Play Music">
+                    <div className="toolTip" data-tooltip="Play Music">
                         {displayMusicIcon("desktop")}
 
                         <audio
