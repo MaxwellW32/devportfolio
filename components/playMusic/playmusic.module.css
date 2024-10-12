@@ -1,11 +1,24 @@
 .musicIcon {
-    animation: slideIn 2s both ease-in-out, scaleBounce 1s infinite alternate var(--audioNotPlayingPlayState), colorShift infinite 5s var(--audioPlayingPlayState), scaleBump infinite 700ms var(--audioPlayingPlayState);
+    animation: slideIn 2s both ease-in-out;
+    margin-block: 1rem;
+    position: absolute;
+    top: 0;
+    left: 50%;
+    translate: -50% 0;
+    z-index: 9999;
+    cursor: pointer;
+}
+
+.musicIcon>svg {
+    animation: slideIn 2s both ease-in-out,
+        scaleBounce 1s infinite alternate var(--audioNotPlayingPlayState),
+        colorShift infinite 5s var(--audioPlayingPlayState),
+        scaleBump infinite 700ms var(--audioPlayingPlayState);
 }
 
 .musicIcon:hover {
     scale: 1;
 }
-
 
 @keyframes slideIn {
     0% {
@@ -23,14 +36,11 @@
     }
 }
 
-
 @keyframes scaleBounce {
     to {
         transform: scale(1.2);
     }
 }
-
-
 
 @keyframes colorShift {
     0% {
