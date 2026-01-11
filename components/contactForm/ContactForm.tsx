@@ -4,7 +4,6 @@ import z from "zod"
 import styles from "./contactform.module.css"
 import { toast } from 'react-hot-toast';
 import { retreiveFromLocalStorage, saveToLocalStorage } from '@/utility/saveToStorage';
-import { useSearchParams } from 'next/navigation'
 import { sendNodeEmail } from '@/serverFunctions/handleNodeEmails';
 
 const phoneRegex = new RegExp(
@@ -12,9 +11,6 @@ const phoneRegex = new RegExp(
 );
 
 export default function ContactForm() {
-    const paramsSearch = useSearchParams()
-    const userInterestedText = paramsSearch.get("planType");
-
     const contactFormSchema = z.object({
         name: z.string().min(1, "Name needs to be at least 1 character"),
         email: z.string().email("Email needs to be valid"),
@@ -32,9 +28,7 @@ export default function ContactForm() {
         email: "",
         phone: "",
         subject: "",
-        message: userInterestedText ?
-            userInterestedText === "basic" ? "I'd like to get started on the basic plan" : "I'd like to get started on the standard plan"
-            : ""
+        message: ""
     }
 
     const [formObj, formObjSet] = useState<contactForm>({ ...initialFormObj })

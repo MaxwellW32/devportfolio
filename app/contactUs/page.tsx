@@ -6,6 +6,7 @@ import Link from 'next/link'
 import AddressMap from '@/components/addressMap/AddressMap'
 
 export default function Page() {
+
     return (
         <main>
             <section>

@@ -1,15 +1,11 @@
 "use client"
 import styles from "./page.module.css"
-
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import parrot from "@/public/projects/dictionary/parrot.json";
 import Lottie from "lottie-react";
 import { toast } from "react-hot-toast";
 
-
-
 export default function Page() {
-
     interface Word {
         word: string;
         meanings: {
@@ -22,7 +18,6 @@ export default function Page() {
     const [word, setWord] = useState("");
     const [topValue, setTopValue] = useState(Math.floor(Math.random() * 100));
     const [foundWord, setFoundWord] = useState<Word[]>([]);
-    const handleInputSearch = useRef<HTMLInputElement>(null);
 
     //control parrots
     useEffect(() => {

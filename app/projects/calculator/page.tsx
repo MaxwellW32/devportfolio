@@ -87,7 +87,7 @@ function Calcultor() {
         }
 
         setInput((prevInput) => {
-            if (target.value === ("(" || ")")) {
+            if (target.value === "(" || target.value === ")") {
                 let bracketCount = 0;
                 for (let index = 0; index < prevInput.length; index++) {
                     if (prevInput[index] === "(" || prevInput[index] === ")") {
