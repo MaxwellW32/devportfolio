@@ -1,7 +1,4 @@
 "use server"
-import Handlebars from "handlebars";
-import fs from "fs/promises"
-import path from "path"
 import nodemailer from "nodemailer"
 
 require('dotenv').config()
@@ -23,7 +20,7 @@ export async function sendNodeEmail(input: {
     subject: string,
     text: string,
 }) {
-    const info = await transporter.sendMail({
+    await transporter.sendMail({
         from: email,
         to: input.sendTo,
         subject: input.subject,

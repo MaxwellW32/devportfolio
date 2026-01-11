@@ -1,10 +1,9 @@
 "use client"
-import React, { FormEvent, useEffect, useState } from 'react'
-import emailjs from "@emailjs/browser";
+import React, { useEffect, useState } from 'react'
 import z from "zod"
 import styles from "./contactform.module.css"
 import { toast } from 'react-hot-toast';
-import { removeFromLocalStorage, retreiveFromLocalStorage, saveToLocalStorage } from '@/utility/saveToStorage';
+import { retreiveFromLocalStorage, saveToLocalStorage } from '@/utility/saveToStorage';
 import { useSearchParams } from 'next/navigation'
 import { sendNodeEmail } from '@/serverFunctions/handleNodeEmails';
 

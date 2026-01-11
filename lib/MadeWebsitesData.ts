@@ -16,8 +16,18 @@ export const madeWebsites: madeWebsite[] = [
         link: "https://pinesdental.vercel.app",
     },
     {
-        image: require(`@/public/finishedWebsites/Anthurium.jpg`).default.src,
-        title: "Anthurium Dev Agency",
-        link: "https://anthuriumdev.vercel.app/",
+        image: require(`@/public/finishedWebsites/Squaremax.jpg`).default.src,
+        title: "Squaremax",
+        link: "https://squaremaxtech.com",
+    },
+    {
+        image: require(`@/public/finishedWebsites/paramount.webp`).default.src,
+        title: "Paramount Couriers",
+        link: "http://paramount-couriers.com",
+    },
+    {
+        image: require(`@/public/finishedWebsites/angelrose.svg`).default.src,
+        title: "Angel Rose Adult Care",
+        link: "https://angelroseadultcare.com",
     },
 ]

@@ -1,0 +1,13 @@
+.player {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 999;
+    background-image: url("../../public/fighter.webp");
+    background-repeat: no-repeat;
+    background-size: contain;
+}
+
+.eachEl {
+    background-color: green !important;
+}

@@ -1,0 +1,10 @@
+.eyeMainDiv {
+    animation: moveIn 4s 1s ease forwards;
+    opacity: 0;
+}
+
+@keyframes moveIn {
+    to {
+        opacity: 1;
+    }
+}
