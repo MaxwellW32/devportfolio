@@ -62,12 +62,43 @@ const PIECE_VALUE: Record<number, number> = {
 }
 
 const DIFFICULTY_LABEL: Record<difficulty, string> = {
+  random: "Random",
   friendly: "Friendly",
   club: "Club",
   sharp: "Sharp",
 }
 
-type opponent = "computer" | "human"
+/* "watch" is the mode this page originally shipped with: nobody plays, both
+   sides move at random, and it is far more entertaining than that sounds. */
+type opponent = "computer" | "human" | "watch"
+
+const OPPONENT_LABEL: Record<opponent, string> = {
+  computer: "You vs engine",
+  human: "Two players",
+  watch: "Watch it play",
+}
+
+/* ---- Openings -----------------------------------------------------------
+   The handicap is the reason random mode is worth watching: black has a king
+   and a single pawn, white has the whole set, and on random moves black wins
+   often enough to be genuinely funny. */
+type setup = "standard" | "handicap"
+
+const SETUPS: Record<setup, { label: string; fen: string; note: string }> = {
+  standard: {
+    label: "Full set",
+    fen: START_FEN,
+    note: "The ordinary starting position.",
+  },
+  handicap: {
+    label: "King and a pawn",
+    fen: "4k3/5p2/8/8/8/8/PPPPPPPP/RNBQKBNR w KQ - 0 1",
+    note: "Black has a king and one pawn against everything white owns. On random moves black still takes a surprising share of them.",
+  },
+}
+
+/** How long a finished game stays on screen before Watch starts the next. */
+const WATCH_RESET_MS = 6000
 
 type engineReadout = { depth: number; ms: number; nodes: number; score: number } | null
 
@@ -84,6 +115,7 @@ export default function Page() {
   const [opponent, opponentSet] = useState<opponent>("computer")
   const [level, levelSet] = useState<difficulty>("club")
   const [humanSide, humanSideSet] = useState<color>(WHITE)
+  const [setup, setupSet] = useState<setup>("standard")
 
   const [selected, selectedSet] = useState(-1)
   const [pending, pendingSet] = useState<{ from: number; to: number } | null>(null)
@@ -115,11 +147,12 @@ export default function Page() {
   const legalMoves = useMemo(() => generateMoves(viewing), [viewing])
 
   const humanToMove =
-    atLive && !finished && (opponent === "human" || viewing.turn === humanSide)
+    atLive && !finished && opponent !== "watch" &&
+    (opponent === "human" || viewing.turn === humanSide)
 
   // "Thinking" is not a piece of state to keep in step — it is exactly the
   // condition under which the search effect below is running.
-  const thinking = opponent === "computer" && atLive && !finished && !humanToMove
+  const thinking = opponent !== "human" && atLive && !finished && !humanToMove
 
   const targets = useMemo(() => {
     if (selected < 0 || !humanToMove) return new Map<number, move[]>()
@@ -204,11 +237,13 @@ export default function Page() {
 
   /* ---- The opponent ------------------------------------------------------ */
   const searchToken = useRef(0)
+  const newGameRef = useRef<(side?: color, opening?: setup) => void>(() => {})
 
   useEffect(() => {
-    if (opponent !== "computer") return
+    if (opponent === "human") return
     if (!atLive || finished) return
-    if (viewing.turn === humanSide) return
+    // Watch mode drives both sides; otherwise only the one the human did not take.
+    if (opponent === "computer" && viewing.turn === humanSide) return
 
     const token = (searchToken.current += 1)
 
@@ -230,6 +265,14 @@ export default function Page() {
 
     return () => window.clearTimeout(timer)
   }, [opponent, atLive, finished, viewing.turn, humanSide, level, fens, play])
+
+  /* ---- Watch mode starts the next game on its own ------------------------ */
+  useEffect(() => {
+    if (opponent !== "watch" || !finished || !atLive) return
+
+    const timer = window.setTimeout(() => newGameRef.current(), WATCH_RESET_MS)
+    return () => window.clearTimeout(timer)
+  }, [opponent, finished, atLive])
 
   /* ---- Choosing squares -------------------------------------------------- */
   const attemptMove = useCallback(
@@ -345,17 +388,27 @@ export default function Page() {
   }
 
   /* ---- Controls ---------------------------------------------------------- */
-  const newGame = (side: color = humanSide) => {
-    searchToken.current += 1
-    fensSet([START_FEN])
-    sansSet([])
-    viewIndexSet(0)
-    selectedSet(-1)
-    pendingSet(null)
-    readoutSet(null)
-    humanSideSet(side)
-    flippedSet(side !== WHITE)
-  }
+  const newGame = useCallback(
+    (side: color = humanSide, opening: setup = setup) => {
+      searchToken.current += 1
+      fensSet([SETUPS[opening].fen])
+      sansSet([])
+      viewIndexSet(0)
+      selectedSet(-1)
+      pendingSet(null)
+      readoutSet(null)
+      humanSideSet(side)
+      setupSet(opening)
+      flippedSet(side !== WHITE)
+    },
+    [humanSide, setup],
+  )
+
+  // The watch timer fires long after its effect was set up, so it reaches the
+  // current newGame through a ref rather than re-subscribing on every change.
+  useEffect(() => {
+    newGameRef.current = newGame
+  }, [newGame])
 
   const takeBack = () => {
     searchToken.current += 1
@@ -411,6 +464,14 @@ export default function Page() {
 
   const draggedPiece = dragFrom >= 0 ? viewing.board[dragFrom] : 0
 
+  /* Who is sitting on each side of the board. In watch mode nobody is, so
+     neither strip should claim to be you. */
+  const sideName = (side: color) => {
+    if (opponent === "human") return side === WHITE ? "White" : "Black"
+    if (opponent === "watch") return `${DIFFICULTY_LABEL[level]} · ${side === WHITE ? "white" : "black"}`
+    return side === humanSide ? "You" : DIFFICULTY_LABEL[level]
+  }
+
   return (
     <main className={styles.page}>
       <header className={styles.head}>
@@ -426,7 +487,7 @@ export default function Page() {
         <section className={styles.boardArea}>
           <PlayerStrip
             side={flipped ? WHITE : -1 as color}
-            name={opponent === "human" ? "Black" : humanSide === WHITE ? DIFFICULTY_LABEL[level] : "You"}
+            name={sideName(flipped ? WHITE : (-1 as color))}
             captured={flipped ? material.white : material.black}
             balance={flipped ? material.balance : -material.balance}
             toMove={viewing.turn === (flipped ? WHITE : -1)}
@@ -528,7 +589,7 @@ export default function Page() {
 
           <PlayerStrip
             side={flipped ? -1 as color : WHITE}
-            name={opponent === "human" ? "White" : humanSide === WHITE ? "You" : DIFFICULTY_LABEL[level]}
+            name={sideName(flipped ? (-1 as color) : WHITE)}
             captured={flipped ? material.black : material.white}
             balance={flipped ? -material.balance : material.balance}
             toMove={viewing.turn === (flipped ? -1 : WHITE)}
@@ -550,25 +611,32 @@ export default function Page() {
           </div>
 
           <div className={styles.controlGroup}>
-            <p className="label labelPlain">Opponent</p>
-            <div className={styles.segmented}>
-              {(["computer", "human"] as opponent[]).map(eachOption => (
+            <p className="label labelPlain">Mode</p>
+            <div className={styles.segmented} data-stacked="true">
+              {(Object.keys(OPPONENT_LABEL) as opponent[]).map(eachOption => (
                 <button
                   key={eachOption}
                   type="button"
                   data-active={opponent === eachOption}
-                  onClick={() => opponentSet(eachOption)}
+                  onClick={() => {
+                    opponentSet(eachOption)
+                    // Watching a search play itself is dull; watching two random
+                    // movers is the whole point, so that mode picks Random.
+                    if (eachOption === "watch") levelSet("random")
+                  }}
                 >
-                  {eachOption === "computer" ? "Computer" : "Two players"}
+                  {OPPONENT_LABEL[eachOption]}
                 </button>
               ))}
             </div>
           </div>
 
-          {opponent === "computer" && (
+          {opponent !== "human" && (
             <>
               <div className={styles.controlGroup}>
-                <p className="label labelPlain">Strength</p>
+                <p className="label labelPlain">
+                  {opponent === "watch" ? "Both sides play" : "Strength"}
+                </p>
                 <div className={styles.segmented}>
                   {(Object.keys(DIFFICULTY_LABEL) as difficulty[]).map(eachLevel => (
                     <button
@@ -581,21 +649,46 @@ export default function Page() {
                     </button>
                   ))}
                 </div>
+                {level === "random" && (
+                  <p className={styles.groupHint}>
+                    Picks a piece at random, then one of its legal moves at
+                    random — the way this page originally worked.
+                  </p>
+                )}
               </div>
 
-              <div className={styles.controlGroup}>
-                <p className="label labelPlain">You play</p>
-                <div className={styles.segmented}>
-                  <button type="button" data-active={humanSide === WHITE} onClick={() => newGame(WHITE)}>
-                    White
-                  </button>
-                  <button type="button" data-active={humanSide !== WHITE} onClick={() => newGame(-1 as color)}>
-                    Black
-                  </button>
+              {opponent === "computer" && (
+                <div className={styles.controlGroup}>
+                  <p className="label labelPlain">You play</p>
+                  <div className={styles.segmented}>
+                    <button type="button" data-active={humanSide === WHITE} onClick={() => newGame(WHITE)}>
+                      White
+                    </button>
+                    <button type="button" data-active={humanSide !== WHITE} onClick={() => newGame(-1 as color)}>
+                      Black
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
             </>
           )}
+
+          <div className={styles.controlGroup}>
+            <p className="label labelPlain">Starting position</p>
+            <div className={styles.segmented} data-stacked="true">
+              {(Object.keys(SETUPS) as setup[]).map(eachSetup => (
+                <button
+                  key={eachSetup}
+                  type="button"
+                  data-active={setup === eachSetup}
+                  onClick={() => newGame(humanSide, eachSetup)}
+                >
+                  {SETUPS[eachSetup].label}
+                </button>
+              ))}
+            </div>
+            <p className={styles.groupHint}>{SETUPS[setup].note}</p>
+          </div>
 
           <div className={styles.buttons}>
             <button type="button" className="btn btnSm" onClick={() => newGame()}>

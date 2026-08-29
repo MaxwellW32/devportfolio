@@ -83,7 +83,14 @@ entire site follows.
   mouse that can follow links. He lives in a fixed, clipped overlay, which is
   what stops him extending the document as he walks toward its edge.
 - **`app/fun/(fun)/chess/engine.ts`** — chess rules, verified by perft against
-  the published node counts for six reference positions to depth five.
+  the published node counts for six reference positions to depth five. The
+  `Watch it play` mode picks a piece at random and then one of its legal
+  moves at random, which is how a lone king and a pawn can beat a full roster.
+- **`app/fun/(fun)/gameOfLife/automaton.ts`** — tiles that read their eight
+  neighbours and move. The rule for a given neighbourhood is invented the first
+  time that arrangement is ever seen, so the table is grown rather than written.
+- **`app/fun/(fun)/musicBounce/page.tsx`** — slices of the spectrum mapped
+  onto what the cube does, so the track draws its own path.
 - **`app/fun/(fun)/_audio/synth.ts`** — the synthesiser behind all four audio
   toys, and the lookahead scheduler that keeps them in time.
 - **`app/fun/(fun)/seedWorld/worldGen.ts`** — deterministic terrain. Every tile

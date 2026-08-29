@@ -61,7 +61,12 @@
 .board {
   position: relative;
   display: grid;
+  /* Both axes have to be declared. With only the columns set, the rows are
+     implicit and therefore content-sized — so a rank holding a tall piece
+     image got a taller row than its neighbours and the middle of the board
+     squashed. Eight equal rows of eight equal columns, always. */
   grid-template-columns: repeat(8, 1fr);
+  grid-template-rows: repeat(8, 1fr);
   aspect-ratio: 1;
   width: 100%;
   border: 1px solid var(--color-hairline);
@@ -534,4 +539,30 @@
   word-break: break-all;
   line-height: 1.5;
   opacity: 0.7;
+}
+
+/* A stacked variant for the segmented control, for options whose labels are
+   sentences rather than single words. */
+.segmented[data-stacked="true"] {
+  flex-direction: column;
+}
+
+.segmented[data-stacked="true"] button {
+  border-right: 0;
+  border-bottom: 1px solid var(--color-hairline);
+  text-align: left;
+  padding-inline: 0.7rem;
+}
+
+.segmented[data-stacked="true"] button:last-child {
+  border-bottom: 0;
+}
+
+/* Named groupHint, not hint — .hint is already the legal-move dot drawn on
+   the board, and reusing it inherited its position: absolute. */
+.groupHint {
+  margin-top: 0.15rem;
+  font-size: var(--step--2);
+  line-height: 1.6;
+  color: var(--color-ink-faint);
 }

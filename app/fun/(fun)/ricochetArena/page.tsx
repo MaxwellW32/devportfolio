@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import Link from "next/link"
 
-import styles from "./tank.module.css"
+import styles from "./arena.module.css"
 
 /* ============================================================================
    TANK — ricochet arena

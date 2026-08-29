@@ -3,22 +3,22 @@
 import Link from "next/link"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
-import styles from "./luck.module.css"
+import styles from "./shell.module.css"
 
 /* ============================================================================
-   LUCK RANKED — can you actually follow a shuffle?
+   SHELL GAME — can you actually follow a shuffle?
 
-   The version of this I wrote first chose the winning cup at the moment you
-   clicked. It felt like a game, it kept a score, and the score meant nothing:
-   the answer did not exist until after the guess, so skill could not affect
-   it. It was a random number generator with cups drawn on it.
+   The other half of an argument with /fun/luckRanked. That one draws the
+   winner at the moment you click, so nothing on the page is worth watching and
+   skill cannot exist. This one places the ball before the shuffle and moves it
+   with its cup through every swap, so following it is genuinely possible.
 
-   Here the ball is placed before the shuffle and moves with its cup through
-   every swap, so following it is genuinely possible — and the scoreboard says
-   whether you are doing it. Guessing at random on three cups gets a third of
-   them right, so "62% correct" is meaningless on its own. The number that
-   means something is how far above chance you are and whether that gap is
-   larger than the noise, which is what the z-score at the bottom reports.
+   Both keep the same scoreboard, and that is the point of running them side by
+   side: guessing at random on three cups gets a third of them right, so "62%
+   correct" is meaningless on its own. What means something is how far above
+   chance you are and whether the gap is bigger than the noise — which is what
+   the z-score reports. Play both for twenty rounds and only one of them will
+   ever put you convincingly ahead.
    ========================================================================= */
 
 type phase = "ready" | "showing" | "shuffling" | "guessing" | "revealed"
@@ -287,9 +287,14 @@ export default function Page() {
           </p>
         </div>
 
-        <button type="button" className="btn btnSm" onClick={reset}>
-          <span>Reset the record</span>
-        </button>
+        <div className={styles.scoreActions}>
+          <button type="button" className="btn btnSm" onClick={reset}>
+            <span>Reset the record</span>
+          </button>
+          <Link href="/fun/luckRanked" className="btn btnSm">
+            <span>Now try it without skill</span>
+          </Link>
+        </div>
       </section>
     </main>
   )

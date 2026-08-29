@@ -157,6 +157,24 @@ demonstrate, not what it is made of.
 
 `state` is honest: `polished`, `playable`, or `sketch`.
 
+**The title has to be the slug, spaced out.** `/fun/three` showing a card
+called "Boids" meant the URL and the name disagreed, which is confusing in a
+browser history and worse out loud. `checkFunSlugs()` in `lib/FunData.ts`
+warns in development if they drift apart, and each toy's `layout.tsx` carries
+the same title so the browser tab agrees too.
+
+### Two of everything, on purpose
+
+Some slugs are a pair: one keeps the original idea, one takes it the other way.
+
+- `luckRanked` draws the winner **after** you click — pure chance, nothing to
+  read. `shellGame` places the ball **before** the shuffle, so following it is
+  possible. Same scoreboard maths, opposite claims.
+- `musicBounce` maps slices of the spectrum onto what the cube does.
+  `chimeBox` turns the walls into instruments and plays them by collision.
+
+If you rewrite one of these, do not overwrite the other with it.
+
 ### Sound
 
 The four audio toys share one synthesiser at

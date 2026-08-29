@@ -1,0 +1,245 @@
+.page {
+  min-height: 100svh;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: clamp(0.75rem, 0.5rem + 1.5vw, 1.75rem);
+  padding: clamp(0.75rem, 0.5rem + 1vw, 1.75rem);
+  background:
+    radial-gradient(ellipse 70% 55% at 50% 30%, color-mix(in oklch, var(--color-data) 9%, transparent), transparent 70%),
+    var(--color-void);
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.back {
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-ink-faint);
+  transition: color 220ms;
+}
+
+.back:hover { color: var(--color-signal); }
+
+/* ---- Stage --------------------------------------------------------------- */
+.stage {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: clamp(1rem, 0.75rem + 1.5vw, 2rem);
+  align-content: center;
+  min-height: 0;
+}
+
+.prompt {
+  display: grid;
+  gap: 0.5rem;
+  justify-items: center;
+  text-align: center;
+}
+
+.promptLine {
+  font-family: var(--font-display);
+  font-size: clamp(1.75rem, 1.3rem + 2vw, 3rem);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  transition: color 260ms;
+}
+
+.promptLine[data-state="hit"] { color: var(--color-signal); }
+.promptLine[data-state="miss"] { color: var(--color-ink-faint); }
+
+.odds {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink-faint);
+}
+
+.odds .readout { color: var(--color-signal); }
+.sep { opacity: 0.3; }
+
+/* ---- Board --------------------------------------------------------------
+   Tiles are positioned by slot rather than by DOM order, so a reshuffle is a
+   change of two numbers and every tile glides to its new place at its own
+   speed — which is the thing that made the original feel alive. */
+/* Capped by height as well as width so a three-tile board does not become
+   three enormous rectangles. */
+.board {
+  position: relative;
+  width: min(100%, 68rem, calc((100svh - 26rem) * var(--columns) / var(--rows)));
+  margin-inline: auto;
+  aspect-ratio: var(--columns) / var(--rows);
+  --tileWidth: calc(100% / var(--columns));
+  --tileHeight: calc(100% / var(--rows));
+}
+
+.tile {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--tileWidth);
+  height: var(--tileHeight);
+  padding: 0.35rem;
+  display: grid;
+  place-items: center;
+
+  font-family: var(--font-mono);
+  font-size: clamp(0.6rem, 0.45rem + 0.5vw, 0.85rem);
+  color: color-mix(in oklch, var(--color-void) 78%, transparent);
+
+  background: none;
+  border: 0;
+  cursor: pointer;
+
+  translate: calc(var(--column) * 100%) calc(var(--row) * 100%);
+  transition: translate var(--speed) cubic-bezier(0.45, 0.05, 0.2, 1);
+}
+
+.tile:disabled { cursor: default; }
+
+.tile > span {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 4px;
+  background: hsl(var(--hue) 62% 58%);
+  box-shadow: inset 0 -3px 0 hsl(var(--hue) 62% 42%);
+  transition: transform 220ms var(--ease-out-expo), filter 260ms, box-shadow 260ms;
+}
+
+.tile:not(:disabled):hover > span {
+  transform: translateY(-3px) scale(1.03);
+  filter: brightness(1.12);
+}
+
+.tile[data-state="winner"] > span {
+  background: var(--color-signal);
+  box-shadow:
+    inset 0 -3px 0 var(--color-signal-dim),
+    0 0 0 2px var(--color-ink),
+    0 0 26px color-mix(in oklch, var(--color-signal) 60%, transparent);
+  transform: scale(1.08);
+}
+
+.tile[data-state="wrong"] > span {
+  filter: grayscale(0.85) brightness(0.6);
+  transform: scale(0.94);
+}
+
+.tile[data-state="dim"] > span {
+  filter: brightness(0.45) saturate(0.4);
+}
+
+/* ---- Scoreboard ---------------------------------------------------------- */
+.scoreboard {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 0.9fr) minmax(0, 1.2fr);
+  gap: clamp(1rem, 0.75rem + 1vw, 2rem);
+  align-items: center;
+  padding: clamp(0.9rem, 0.75rem + 0.6vw, 1.35rem);
+  background: var(--color-canvas);
+  border: 1px solid var(--color-hairline);
+  border-radius: 3px;
+}
+
+@media (max-width: 900px) {
+  .scoreboard { grid-template-columns: minmax(0, 1fr); }
+}
+
+.figures {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(6.5rem, 1fr));
+  gap: 1rem;
+}
+
+.figure {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.figure .readout {
+  font-size: var(--step-2);
+  color: var(--color-signal);
+}
+
+.figure[data-muted="true"] .readout { color: var(--color-ink-faint); }
+
+.figure > p:last-child {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink-faint);
+}
+
+/* ---- Rank ---------------------------------------------------------------- */
+.rank {
+  display: grid;
+  gap: 0.2rem;
+  padding-left: 1rem;
+  border-left: 2px solid var(--color-hairline);
+}
+
+.rankName {
+  font-family: var(--font-display);
+  font-size: var(--step-2);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.rank[data-tier="uncanny"] .rankName,
+.rank[data-tier="blessed"] .rankName { color: var(--color-signal); }
+.rank[data-tier="fortunate"] .rankName { color: var(--color-data); }
+.rank[data-tier="cursed"] .rankName,
+.rank[data-tier="unlucky"] .rankName { color: var(--color-live); }
+
+.rankNote {
+  font-size: var(--step--1);
+  line-height: 1.5;
+  color: var(--color-ink-dim);
+}
+
+.z {
+  font-size: var(--step--2);
+  color: var(--color-ink-faint);
+}
+
+/* ---- Aside --------------------------------------------------------------- */
+.asideNote {
+  display: grid;
+  gap: 0.75rem;
+  padding-left: 1rem;
+  border-left: 1px solid var(--color-hairline);
+  font-size: var(--step--2);
+  line-height: 1.7;
+  color: var(--color-ink-faint);
+}
+
+.asideActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+@media (max-width: 900px) {
+  .rank,
+  .asideNote {
+    padding-left: 0;
+    padding-top: 0.9rem;
+    border-left: 0;
+    border-top: 1px solid var(--color-hairline);
+  }
+}

@@ -34,7 +34,7 @@ import {
   type position,
 } from "./engine"
 
-export type difficulty = "friendly" | "club" | "sharp"
+export type difficulty = "random" | "friendly" | "club" | "sharp"
 
 const PIECE_VALUE: Record<number, number> = {
   [PAWN]: 100,
@@ -292,6 +292,9 @@ function negamax(position: position, depth: number, alpha: number, beta: number,
 }
 
 const SETTINGS: Record<difficulty, { depth: number; budget: number; slack: number }> = {
+  // `random` never reaches the search — chooseMove hands it straight to
+  // chooseRandomMove below — but the table has to be total.
+  random: { depth: 1, budget: 50, slack: 0 },
   // `slack` is how far below best a move may still be chosen, in centipawns.
   // It is what makes the easy setting beatable without making it play nonsense
   // — and it only means anything because the root scores are exact.
@@ -362,6 +365,50 @@ export function chooseMove(position: position, level: difficulty): searchResult 
     score: pick.score,
     depth: reachedDepth,
     nodes: nodeCount,
+    ms: Math.round(performance.now() - started),
+  }
+}
+
+/* ============================================================================
+   THE DUMB ONE
+
+   Picks a piece at random, then one of that piece's legal moves at random.
+
+   That is deliberately NOT the same as picking uniformly from all legal moves.
+   Choosing the piece first gives every piece an equal say regardless of how
+   many squares it can reach, so a cornered rook is as likely to be chosen as a
+   queen in the open — which is exactly why a lone king and pawn can run rings
+   round a full roster that keeps picking its most boring piece.
+
+   It is the original behaviour of this page, and it is still the most
+   entertaining thing on it.
+   ========================================================================= */
+export function chooseRandomMove(position: position): searchResult {
+  const started = performance.now()
+  const legal = generateMoves(position)
+
+  if (legal.length === 0) {
+    return { move: null, score: 0, depth: 0, nodes: 0, ms: 0 }
+  }
+
+  // Group by origin square so a piece is picked before one of its squares is
+  const byPiece = new Map<number, move[]>()
+  for (const eachMove of legal) {
+    const existing = byPiece.get(eachMove.from)
+    if (existing === undefined) byPiece.set(eachMove.from, [eachMove])
+    else existing.push(eachMove)
+  }
+
+  const origins = Array.from(byPiece.keys())
+  const chosenPiece = origins[Math.floor(Math.random() * origins.length)]
+  const options = byPiece.get(chosenPiece) ?? legal
+  const chosen = options[Math.floor(Math.random() * options.length)]
+
+  return {
+    move: chosen,
+    score: 0,
+    depth: 0,
+    nodes: legal.length,
     ms: Math.round(performance.now() - started),
   }
 }

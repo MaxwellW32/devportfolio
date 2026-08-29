@@ -14,10 +14,10 @@ import {
   setMasterVolume,
   unlockAudio,
 } from "../_audio/synth"
-import styles from "./bounce.module.css"
+import styles from "./chime.module.css"
 
 /* ============================================================================
-   MUSIC BOUNCE — the walls are the instrument
+   CHIME BOX — the walls are the instrument
 
    Balls fall, bounce, and every wall they touch plays a note. Which note comes
    from where along the wall they hit, so the four edges of the box are four
@@ -29,6 +29,9 @@ import styles from "./bounce.module.css"
    boundary on the audio clock. The physics stays exactly as chaotic, and the
    result comes out in time. Turning it off is the clearest demonstration I
    know of what quantisation actually does.
+
+   Its neighbour /fun/musicBounce is the reverse of this: there the sound comes
+   first and drives the motion, here the motion comes first and makes the sound.
    ========================================================================= */
 
 const RADIUS_MIN = 7

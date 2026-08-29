@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import * as THREE from "three"
 
-import styles from "./three.module.css"
+import styles from "./boids.module.css"
 
 /* ============================================================================
    BOIDS — three rules, one flock

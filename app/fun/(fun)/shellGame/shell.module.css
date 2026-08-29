@@ -243,3 +243,11 @@
     border-top: 1px solid var(--color-hairline);
   }
 }
+
+/* Both halves of the pair link to each other; see the note at the top of
+   app/fun/(fun)/shellGame/page.tsx. */
+.scoreActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}

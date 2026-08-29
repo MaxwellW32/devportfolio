@@ -20,7 +20,7 @@ import {
   unlockAudio,
   type stepScheduler,
 } from "../_audio/synth"
-import styles from "./sequencer.module.css"
+import styles from "./stepSequencer.module.css"
 
 /* ============================================================================
    MUSIC SQUARE — a step sequencer
