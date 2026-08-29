@@ -119,3 +119,68 @@
   flex-wrap: wrap;
   gap: 0.75rem;
 }
+
+/* ---- The character's introduction ---------------------------------------- */
+.sprite {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.25rem 2rem;
+  margin-top: 0.75rem;
+  padding: clamp(1rem, 0.85rem + 0.7vw, 1.5rem);
+  background: color-mix(in oklch, var(--color-canvas) 70%, transparent);
+  border: 1px solid var(--color-hairline);
+  border-left: 2px solid var(--color-signal);
+  border-radius: 3px;
+}
+
+.sprite > div:first-child {
+  flex: 1 1 24rem;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.spriteCopy {
+  max-width: 58ch;
+  color: var(--color-ink-dim);
+  font-size: var(--step--1);
+  line-height: 1.8;
+}
+
+.spriteActions {
+  display: grid;
+  justify-items: start;
+  gap: 0.55rem;
+}
+
+.spriteHint {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  letter-spacing: 0.06em;
+  color: var(--color-ink-faint);
+}
+
+.sprite kbd,
+.spriteHint kbd {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.4rem;
+  height: 1.4rem;
+  padding-inline: 0.25rem;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--color-ink);
+  background: var(--color-surface);
+  border: 1px solid var(--color-hairline);
+  border-radius: 3px;
+  vertical-align: middle;
+}
+
+/* He needs a keyboard, so on touch the whole invitation goes away */
+@media (pointer: coarse) {
+  .sprite { display: none; }
+}

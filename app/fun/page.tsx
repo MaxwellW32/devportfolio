@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 
-import Player from "@/components/player/Player"
+import SpriteToggle from "@/components/player/SpriteToggle"
 import Reveal from "@/components/ui/Reveal"
 import { funItems } from "@/lib/FunData"
 import styles from "./fun.module.css"
@@ -9,7 +9,7 @@ import styles from "./fun.module.css"
 export const metadata: Metadata = {
   title: "Playground",
   description:
-    "Procedural worlds, flocking simulations, a chess engine and audio visualisers — built to find out whether I could.",
+    "Procedural worlds, flocking simulations, a chess engine and four things made of sound — built to find out whether I could.",
 }
 
 const stateLabel: Record<string, string> = {
@@ -21,8 +21,6 @@ const stateLabel: Record<string, string> = {
 export default function Page() {
   return (
     <main className={styles.page}>
-      <Player />
-
       <section className={`shellWide ${styles.hero}`}>
         <div className="gridlines" aria-hidden="true" />
 
@@ -31,7 +29,7 @@ export default function Page() {
 
           {/* data-platform-enabled makes this a platform for the character */}
           <h1 data-platform-enabled className={styles.title}>
-            Things nobody asked for.
+            Things everybody asked for.
           </h1>
 
           <p className={styles.lede}>
@@ -40,10 +38,26 @@ export default function Page() {
             live in one string, that a bank shot is geometry and not luck.
           </p>
 
-          <p className={styles.lede}>
-            There is also a character on this page. Press <kbd>A</kbd> or{" "}
-            <kbd>D</kbd> and every heading below becomes a platform.
-          </p>
+          <div className={styles.sprite}>
+            <div>
+              <p className="label labelPlain">The character</p>
+              <p className={styles.spriteCopy}>
+                There is someone who lives on this site. <kbd>A</kbd> and{" "}
+                <kbd>D</kbd> run him along the headings, <kbd>W</kbd> jumps and{" "}
+                <kbd>S</kbd> drops through. Press <kbd>F</kbd> and gravity goes
+                away — then he floats wherever you point him and{" "}
+                <kbd>E</kbd> follows whatever he is hovering over, which makes
+                him a slower, sillier mouse for the entire site.
+              </p>
+            </div>
+
+            <div className={styles.spriteActions}>
+              <SpriteToggle />
+              <p className={styles.spriteHint}>
+                <kbd>Shift</kbd> + <kbd>P</kbd> anywhere
+              </p>
+            </div>
+          </div>
         </div>
       </section>
 

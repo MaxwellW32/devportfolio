@@ -34,3 +34,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local scratch (playwright smoke checks)
+/.scratch/
+shot-*.png
+
+# stray media (not part of the site)
+*.mp4

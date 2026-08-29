@@ -1,0 +1,219 @@
+.page {
+  position: relative;
+  height: 100svh;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 60% 60% at 50% 50%, color-mix(in oklch, var(--color-signal) 6%, transparent), transparent 70%),
+    var(--color-void);
+}
+
+.canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.head {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: clamp(0.75rem, 0.5rem + 1vw, 1.5rem);
+  pointer-events: none;
+  z-index: 3;
+}
+
+.head > * { pointer-events: auto; }
+
+.back {
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-ink-faint);
+  transition: color 220ms;
+}
+
+.back:hover { color: var(--color-signal); }
+
+/* ---- Intro --------------------------------------------------------------- */
+.intro {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 1.1rem;
+  padding: clamp(1.5rem, 1rem + 3vw, 4rem);
+  text-align: center;
+  background: color-mix(in oklch, var(--color-void) 62%, transparent);
+  backdrop-filter: blur(3px);
+}
+
+.intro h1 {
+  font-size: var(--step-4);
+  max-width: 18ch;
+}
+
+.intro p {
+  max-width: 58ch;
+  color: var(--color-ink-dim);
+  font-size: var(--step--1);
+  line-height: 1.75;
+}
+
+.sources {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+}
+
+/* A file input inside a label styled as a button */
+.sources label,
+.switcher label {
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.sources input[type="file"],
+.switcher input[type="file"] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.error {
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  color: var(--color-live);
+}
+
+/* ---- Panel --------------------------------------------------------------- */
+.panel {
+  position: absolute;
+  left: clamp(0.75rem, 0.5rem + 1vw, 1.5rem);
+  bottom: clamp(0.75rem, 0.5rem + 1vw, 1.5rem);
+  z-index: 3;
+  width: min(19rem, calc(100vw - 2rem));
+  display: grid;
+  gap: 0.8rem;
+  padding: 1rem;
+  background: color-mix(in oklch, var(--color-canvas) 86%, transparent);
+  backdrop-filter: blur(14px);
+  border: 1px solid var(--color-hairline);
+  border-radius: 4px;
+}
+
+.panelHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.panelHead .label {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.stop {
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink-faint);
+  background: none;
+  border: 0;
+  cursor: pointer;
+  transition: color 200ms;
+}
+
+.stop:hover { color: var(--color-live); }
+
+.meters {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.meters li {
+  display: grid;
+  grid-template-columns: 2.8rem 1fr 2rem;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  color: var(--color-ink-dim);
+}
+
+.meters .readout {
+  text-align: right;
+  color: var(--color-ink-faint);
+}
+
+.meter {
+  height: 4px;
+  background: var(--color-surface);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.meter > span {
+  display: block;
+  height: 100%;
+  background: var(--color-signal);
+  border-radius: 99px;
+  transition: width 90ms linear;
+}
+
+.bpm {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-top: 0.7rem;
+  border-top: 1px solid var(--color-hairline);
+}
+
+.bpm .readout {
+  font-size: var(--step--1);
+  color: var(--color-signal);
+}
+
+.switcher {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.switcher .btn { flex: 1 1 auto; }
+
+/* ---- The audio element --------------------------------------------------- */
+.audio {
+  position: absolute;
+  right: clamp(0.75rem, 0.5rem + 1vw, 1.5rem);
+  bottom: clamp(0.75rem, 0.5rem + 1vw, 1.5rem);
+  z-index: 3;
+  width: min(20rem, calc(100vw - 2rem));
+  filter: invert(1) hue-rotate(180deg);
+  opacity: 0.55;
+  transition: opacity 240ms;
+}
+
+.audio:hover { opacity: 0.95; }
+
+.audio:not([src]) { display: none; }

@@ -5,6 +5,7 @@ import { Toaster } from "react-hot-toast"
 import "./globals.css"
 import Navbar from "@/components/chrome/Navbar"
 import Footer from "@/components/chrome/Footer"
+import Player from "@/components/player/Player"
 import AtomLoader from "@/utility/AtomLoader"
 
 const spaceGrotesk = Space_Grotesk({
@@ -62,6 +63,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <div id="main">{children}</div>
 
         <Footer />
+
+        {/* He is not a feature of /fun any more — he walks the whole site */}
+        <Player />
 
         <Toaster
           position="bottom-right"

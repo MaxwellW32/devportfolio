@@ -1,1071 +1,783 @@
 "use client"
 
-import React, { useEffect, useMemo, useRef, useState } from 'react'
-import styles from "./page.module.css"
-import { toast } from 'react-hot-toast'
-import Image from 'next/image'
-import { deepClone } from '@/useful/deepClone'
+import Image from "next/image"
+import Link from "next/link"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+
+import {
+  BISHOP,
+  KING,
+  KNIGHT,
+  PAWN,
+  QUEEN,
+  ROOK,
+  START_FEN,
+  WHITE,
+  colorOf,
+  evaluateOutcome,
+  findMove,
+  generateMoves,
+  makeMove,
+  moveToSan,
+  parseFen,
+  repetitionKey,
+  squareAt,
+  toFen,
+  typeOf,
+  type color,
+  type move,
+} from "./engine"
+import { chooseMove, type difficulty } from "./ai"
+import styles from "./chess.module.css"
+
+/* ============================================================================
+   CHESS
+
+   The rules live in engine.ts and are verified by perft — the standard node
+   counts for six reference positions, matched exactly to depth four and five.
+   That is the only way to know a move generator is right; a chess board that
+   looks correct while quietly allowing an illegal en-passant is the normal
+   outcome of writing one by eye.
+
+   This file is only the board: picking pieces up, drawing what is legal, and
+   handing turns to the opponent in ai.ts.
+   ========================================================================= */
+
+const PIECE_IMAGE: Record<number, string> = {
+  [PAWN]: "pawn",
+  [KNIGHT]: "knight",
+  [BISHOP]: "bishop",
+  [ROOK]: "rook",
+  [QUEEN]: "queen",
+  [KING]: "king",
+}
+
+const PIECE_VALUE: Record<number, number> = {
+  [PAWN]: 1,
+  [KNIGHT]: 3,
+  [BISHOP]: 3,
+  [ROOK]: 5,
+  [QUEEN]: 9,
+  [KING]: 0,
+}
+
+const DIFFICULTY_LABEL: Record<difficulty, string> = {
+  friendly: "Friendly",
+  club: "Club",
+  sharp: "Sharp",
+}
+
+type opponent = "computer" | "human"
+
+type engineReadout = { depth: number; ms: number; nodes: number; score: number } | null
 
 export default function Page() {
-    type piece = "rook" | "knight" | "bishop" | "queen" | "king" | "pawn"
+  /* ---- Game state ---------------------------------------------------------
+     The game is a list of positions rather than a mutated board. Undo is a
+     pop, browsing the history is an index, and there is no way for the board
+     on screen to drift out of step with the rules. */
+  const [fens, fensSet] = useState<string[]>([START_FEN])
+  const [sans, sansSet] = useState<string[]>([])
+  const [viewIndex, viewIndexSet] = useState(0)
 
-    type chessPiece = {
-        id: number,
-        piece: piece,
-        currentPos: [number, number],
-        validSquaresToMove: [number, number][],
-        team: "black" | "white",
-        points: number,
-        movedAmount?: number,
-        image: string
+  const [flipped, flippedSet] = useState(false)
+  const [opponent, opponentSet] = useState<opponent>("computer")
+  const [level, levelSet] = useState<difficulty>("club")
+  const [humanSide, humanSideSet] = useState<color>(WHITE)
+
+  const [selected, selectedSet] = useState(-1)
+  const [pending, pendingSet] = useState<{ from: number; to: number } | null>(null)
+  const [readout, readoutSet] = useState<engineReadout>(null)
+
+  const boardRef = useRef<HTMLDivElement | null>(null)
+  const ghostRef = useRef<HTMLDivElement | null>(null)
+  const dragRef = useRef<{ from: number; pointerId: number } | null>(null)
+  const [dragFrom, dragFromSet] = useState(-1)
+
+  /* ---- Derived ----------------------------------------------------------- */
+  const liveIndex = fens.length - 1
+  const atLive = viewIndex === liveIndex
+
+  const viewing = useMemo(() => parseFen(fens[viewIndex]), [fens, viewIndex])
+
+  const repetitions = useMemo(() => {
+    const counts = new Map<string, number>()
+    for (let index = 0; index <= viewIndex; index += 1) {
+      const key = repetitionKey(parseFen(fens[index]))
+      counts.set(key, (counts.get(key) ?? 0) + 1)
     }
-    type newSquare = undefined | { state: null | chessPiece, position: [number, number] }
+    return counts
+  }, [fens, viewIndex])
 
-    const chessPieceStatChoices: {
-        [key: string]: {
-            piece: piece;
-            points: number;
-        }
-    } = {
-        "rook": {
-            piece: "rook",
-            points: 5
-        },
-        "knight": {
-            piece: "knight",
-            points: 3
-        },
-        "bishop": {
-            piece: "bishop",
-            points: 3
-        },
-        "queen": {
-            piece: "queen",
-            points: 9
-        },
-        "king": {
-            piece: "king",
-            points: 0
-        },
-        "pawn": {
-            piece: "pawn",
-            points: 1
-        },
+  const outcome = useMemo(() => evaluateOutcome(viewing, repetitions), [viewing, repetitions])
+  const finished = outcome.kind !== "playing"
+
+  const legalMoves = useMemo(() => generateMoves(viewing), [viewing])
+
+  const humanToMove =
+    atLive && !finished && (opponent === "human" || viewing.turn === humanSide)
+
+  // "Thinking" is not a piece of state to keep in step — it is exactly the
+  // condition under which the search effect below is running.
+  const thinking = opponent === "computer" && atLive && !finished && !humanToMove
+
+  const targets = useMemo(() => {
+    if (selected < 0 || !humanToMove) return new Map<number, move[]>()
+
+    const map = new Map<number, move[]>()
+    for (const eachMove of legalMoves) {
+      if (eachMove.from !== selected) continue
+      const existing = map.get(eachMove.to)
+      if (existing) existing.push(eachMove)
+      else map.set(eachMove.to, [eachMove])
     }
-    const initialChessPieces: chessPiece[] = [
-        { id: 1, ...chessPieceStatChoices["rook"], currentPos: [0, 0], validSquaresToMove: [], team: "black", image: getChessPieceImage("rook", "black"), movedAmount: 0 },
-        { id: 2, ...chessPieceStatChoices["knight"], currentPos: [0, 1], validSquaresToMove: [], team: "black", image: getChessPieceImage("knight", "black"), },
-        { id: 3, ...chessPieceStatChoices["bishop"], currentPos: [0, 2], validSquaresToMove: [], team: "black", image: getChessPieceImage("bishop", "black"), },
-        { id: 4, ...chessPieceStatChoices["queen"], currentPos: [0, 3], validSquaresToMove: [], team: "black", image: getChessPieceImage("queen", "black"), },
-        { id: 5, ...chessPieceStatChoices["king"], currentPos: [0, 4], validSquaresToMove: [], team: "black", image: getChessPieceImage("king", "black"), movedAmount: 0 },
-        { id: 6, ...chessPieceStatChoices["bishop"], currentPos: [0, 5], validSquaresToMove: [], team: "black", image: getChessPieceImage("bishop", "black"), },
-        { id: 7, ...chessPieceStatChoices["knight"], currentPos: [0, 6], validSquaresToMove: [], team: "black", image: getChessPieceImage("knight", "black"), },
-        { id: 8, ...chessPieceStatChoices["rook"], currentPos: [0, 7], validSquaresToMove: [], team: "black", image: getChessPieceImage("rook", "black"), movedAmount: 0 },
+    return map
+  }, [legalMoves, selected, humanToMove])
 
-        { id: 9, ...chessPieceStatChoices["pawn"], currentPos: [1, 0], validSquaresToMove: [], team: "black", image: getChessPieceImage("pawn", "black"), movedAmount: 0 },
-        { id: 10, ...chessPieceStatChoices["pawn"], currentPos: [1, 1], validSquaresToMove: [], team: "black", image: getChessPieceImage("pawn", "black"), movedAmount: 0 },
-        { id: 11, ...chessPieceStatChoices["pawn"], currentPos: [1, 2], validSquaresToMove: [], team: "black", image: getChessPieceImage("pawn", "black"), movedAmount: 0 },
-        { id: 12, ...chessPieceStatChoices["pawn"], currentPos: [1, 3], validSquaresToMove: [], team: "black", image: getChessPieceImage("pawn", "black"), movedAmount: 0 },
-        { id: 13, ...chessPieceStatChoices["pawn"], currentPos: [1, 4], validSquaresToMove: [], team: "black", image: getChessPieceImage("pawn", "black"), movedAmount: 0 },
-        { id: 14, ...chessPieceStatChoices["pawn"], currentPos: [1, 5], validSquaresToMove: [], team: "black", image: getChessPieceImage("pawn", "black"), movedAmount: 0 },
-        { id: 15, ...chessPieceStatChoices["pawn"], currentPos: [1, 6], validSquaresToMove: [], team: "black", image: getChessPieceImage("pawn", "black"), movedAmount: 0 },
-        { id: 16, ...chessPieceStatChoices["pawn"], currentPos: [1, 7], validSquaresToMove: [], team: "black", image: getChessPieceImage("pawn", "black"), movedAmount: 0 },
+  const lastMove = useMemo(() => {
+    if (viewIndex === 0) return null
+    const previous = parseFen(fens[viewIndex - 1])
+    const played = generateMoves(previous).find(eachMove => {
+      const copy = parseFen(fens[viewIndex - 1])
+      const found = findMove(generateMoves(copy), eachMove.from, eachMove.to, eachMove.promotion)
+      if (!found) return false
+      makeMove(copy, found)
+      return toFen(copy) === fens[viewIndex]
+    })
+    return played ?? null
+  }, [fens, viewIndex])
 
-        { id: 17, ...chessPieceStatChoices["pawn"], currentPos: [6, 0], validSquaresToMove: [], team: "white", image: getChessPieceImage("pawn", "white"), movedAmount: 0 },
-        { id: 18, ...chessPieceStatChoices["pawn"], currentPos: [6, 1], validSquaresToMove: [], team: "white", image: getChessPieceImage("pawn", "white"), movedAmount: 0 },
-        { id: 19, ...chessPieceStatChoices["pawn"], currentPos: [6, 2], validSquaresToMove: [], team: "white", image: getChessPieceImage("pawn", "white"), movedAmount: 0 },
-        { id: 20, ...chessPieceStatChoices["pawn"], currentPos: [6, 3], validSquaresToMove: [], team: "white", image: getChessPieceImage("pawn", "white"), movedAmount: 0 },
-        { id: 21, ...chessPieceStatChoices["pawn"], currentPos: [6, 4], validSquaresToMove: [], team: "white", image: getChessPieceImage("pawn", "white"), movedAmount: 0 },
-        { id: 22, ...chessPieceStatChoices["pawn"], currentPos: [6, 5], validSquaresToMove: [], team: "white", image: getChessPieceImage("pawn", "white"), movedAmount: 0 },
-        { id: 23, ...chessPieceStatChoices["pawn"], currentPos: [6, 6], validSquaresToMove: [], team: "white", image: getChessPieceImage("pawn", "white"), movedAmount: 0 },
-        { id: 24, ...chessPieceStatChoices["pawn"], currentPos: [6, 7], validSquaresToMove: [], team: "white", image: getChessPieceImage("pawn", "white"), movedAmount: 0 },
+  const material = useMemo(() => {
+    const captured: { white: number[]; black: number[] } = { white: [], black: [] }
+    const counts = new Map<number, number>()
 
-        { id: 25, ...chessPieceStatChoices["rook"], currentPos: [7, 0], validSquaresToMove: [], team: "white", image: getChessPieceImage("rook", "white"), movedAmount: 0 },
-        { id: 26, ...chessPieceStatChoices["knight"], currentPos: [7, 1], validSquaresToMove: [], team: "white", image: getChessPieceImage("knight", "white"), },
-        { id: 27, ...chessPieceStatChoices["bishop"], currentPos: [7, 2], validSquaresToMove: [], team: "white", image: getChessPieceImage("bishop", "white"), },
-        { id: 28, ...chessPieceStatChoices["queen"], currentPos: [7, 3], validSquaresToMove: [], team: "white", image: getChessPieceImage("queen", "white"), },
-        { id: 29, ...chessPieceStatChoices["king"], currentPos: [7, 4], validSquaresToMove: [], team: "white", image: getChessPieceImage("king", "white"), movedAmount: 0 },
-        { id: 30, ...chessPieceStatChoices["bishop"], currentPos: [7, 5], validSquaresToMove: [], team: "white", image: getChessPieceImage("bishop", "white"), },
-        { id: 31, ...chessPieceStatChoices["knight"], currentPos: [7, 6], validSquaresToMove: [], team: "white", image: getChessPieceImage("knight", "white"), },
-        { id: 32, ...chessPieceStatChoices["rook"], currentPos: [7, 7], validSquaresToMove: [], team: "white", image: getChessPieceImage("rook", "white"), movedAmount: 0 },
+    for (let square = 0; square < 128; square += 1) {
+      if ((square & 0x88) !== 0) continue
+      const piece = viewing.board[square]
+      if (piece !== 0) counts.set(piece, (counts.get(piece) ?? 0) + 1)
+    }
+
+    const start: [number, number][] = [
+      [PAWN, 8],
+      [KNIGHT, 2],
+      [BISHOP, 2],
+      [ROOK, 2],
+      [QUEEN, 1],
     ]
 
-    const chessBoardRef = useRef<HTMLDivElement>(null!)
-    const autoPlayLoop = useRef<NodeJS.Timeout | undefined>(undefined)
+    let balance = 0
 
+    for (const [eachType, eachCount] of start) {
+      const whiteLeft = counts.get(eachType) ?? 0
+      const blackLeft = counts.get(-eachType) ?? 0
 
-    const [playerTeamSelection, playerTeamSelectionSet] = useState<"black" | "white">("white")
-    const [showingSettings, showingSettingsSet] = useState(false)
-    const [gameMode, gameModeSet] = useState<"auto" | "manual" | "verse">("auto")
-    const [currentTurn, currentTurnSet] = useState<"black" | "white">("white")
-    const [enpassantInPlay, enpassantInPlaySet] = useState<{
-        position: [number, number],
-        pieceToCollect: chessPiece
-    }>()
-    const [canCastle, canCastleSet] = useState<{
-        position: [number, number],
-        pieceToCollect: chessPiece
-    }[]>([])
-    const [chessPieces, chessPiecesSet] = useState<chessPiece[]>([...initialChessPieces])
-    const [capturedPieces, capturedPiecesSet] = useState<chessPiece[]>([])
-    const [activePiece, activePieceSet] = useState<chessPiece | null>(null)
-    const [positionsThatCheckEnemyKing, positionsThatCheckEnemyKingSet] = useState<[number, number][]>([])
-    const [positionsThatAttackCastleSquares, positionsThatAttackCastleSquaresSet] = useState<[number, number][]>([])
+      for (let index = 0; index < eachCount - whiteLeft; index += 1) captured.black.push(eachType)
+      for (let index = 0; index < eachCount - blackLeft; index += 1) captured.white.push(eachType)
 
-    const [stalemate, stalemateSet] = useState(false)
-    const [checkMatedKing, checkMatedKingSet] = useState<chessPiece>()
-    const [checkedKing, checkedKingSet] = useState<chessPiece>()
-
-    const chessBoardArr = useMemo<(chessPiece | null)[][]>(() => {
-        return makeNewChessBoard(chessPieces)
-    }, [chessPieces])
-
-    const blackPiecesCaptured = useMemo(() => {
-        let totalPoints = 0
-
-        return [capturedPieces.filter(each => {
-            let keepingRecord = false
-
-            if (each.team === "black") {
-                totalPoints += each.points
-                keepingRecord = true
-            }
-
-            return !keepingRecord
-        }), totalPoints]
-
-    }, [capturedPieces])
-
-    const whitePiecesCaptured = useMemo(() => {
-        let totalPoints = 0
-
-        return [capturedPieces.filter(each => {
-            let keepingRecord = false
-
-            if (each.team === "white") {
-                totalPoints += each.points
-                keepingRecord = true
-            }
-
-            return !keepingRecord
-        }), totalPoints]
-
-    }, [capturedPieces])
-
-    //make board correct size
-    useEffect(() => {
-        const smallestPx = window.innerWidth < window.innerHeight ? window.innerWidth : window.innerHeight
-        chessBoardRef.current.style.width = `${smallestPx}px`
-    }, [])
-
-    //start off
-    useEffect(() => {
-        if (gameMode === "manual") return
-
-        if (chessPieces.length === 2 && chessPieces[0].piece === "king" && chessPieces[1].piece === "king") {
-            stalemateSet(true)
-        }
-
-        if (stalemate || checkMatedKing && gameMode === "auto") {
-            setTimeout(resetAll, 20000);
-            return
-        }
-
-        autoPlayLoop.current = setInterval(() => {
-            autoPlay(chessPieces)
-        }, 800)
-
-        return () => { autoPlayLoop.current && clearInterval(autoPlayLoop.current) }
-    }, [chessPieces, currentTurn, chessBoardArr, gameMode, playerTeamSelection, checkedKing, checkMatedKing, stalemate])
-
-
-
-
-
-
-    function makeNewChessBoard(seenChessPieces: chessPiece[]) {
-        const newArr: (chessPiece | null)[][] = [
-            [null, null, null, null, null, null, null, null],
-            [null, null, null, null, null, null, null, null],
-            [null, null, null, null, null, null, null, null],
-            [null, null, null, null, null, null, null, null],
-            [null, null, null, null, null, null, null, null],
-            [null, null, null, null, null, null, null, null],
-            [null, null, null, null, null, null, null, null],
-            [null, null, null, null, null, null, null, null],
-        ]
-
-        seenChessPieces.forEach(eachChessPiece => {
-            newArr[eachChessPiece.currentPos[0]][eachChessPiece.currentPos[1]] = eachChessPiece
-        })
-
-        return newArr
+      balance += (whiteLeft - blackLeft) * PIECE_VALUE[eachType]
     }
 
-    function getChessPieceImage(piece: piece, team: "black" | "white") {
-        if (piece === "bishop") {
-            return team === "black" ? require(`@/public/chess/bbishop.png`).default.src : require(`@/public/chess/wbishop.png`).default.src
-        }
+    return { ...captured, balance }
+  }, [viewing])
 
-        if (piece === "king") {
-            return team === "black" ? require(`@/public/chess/bking.png`).default.src : require(`@/public/chess/wking.png`).default.src
-        }
+  /* ---- Playing a move ---------------------------------------------------- */
+  const play = useCallback(
+    (chosen: move) => {
+      const next = parseFen(fens[fens.length - 1])
+      const legal = findMove(generateMoves(next), chosen.from, chosen.to, chosen.promotion)
+      if (legal === null) return
 
-        if (piece === "knight") {
-            return team === "black" ? require(`@/public/chess/bknight.png`).default.src : require(`@/public/chess/wknight.png`).default.src
-        }
+      const san = moveToSan(next, legal)
+      makeMove(next, legal)
 
-        if (piece === "pawn") {
-            return team === "black" ? require(`@/public/chess/bpawn.png`).default.src : require(`@/public/chess/wpawn.png`).default.src
-        }
+      fensSet(previous => {
+        const updated = [...previous, toFen(next)]
+        viewIndexSet(updated.length - 1)
+        return updated
+      })
+      sansSet(previous => [...previous, san])
+      selectedSet(-1)
+      pendingSet(null)
+    },
+    [fens],
+  )
 
-        if (piece === "queen") {
-            return team === "black" ? require(`@/public/chess/bqueen.png`).default.src : require(`@/public/chess/wqueen.png`).default.src
-        }
+  /* ---- The opponent ------------------------------------------------------ */
+  const searchToken = useRef(0)
 
-        if (piece === "rook") {
-            return team === "black" ? require(`@/public/chess/brook.png`).default.src : require(`@/public/chess/wrook.png`).default.src
-        }
+  useEffect(() => {
+    if (opponent !== "computer") return
+    if (!atLive || finished) return
+    if (viewing.turn === humanSide) return
+
+    const token = (searchToken.current += 1)
+
+    // A beat's delay so the "thinking" state paints before the search — which
+    // is synchronous — takes the main thread away for a second or two.
+    const timer = window.setTimeout(() => {
+      if (searchToken.current !== token) return
+
+      const searchPosition = parseFen(fens[fens.length - 1])
+      const result = chooseMove(searchPosition, level)
+
+      if (searchToken.current !== token) return
+
+      if (result.move !== null) {
+        readoutSet({ depth: result.depth, ms: result.ms, nodes: result.nodes, score: result.score })
+        play(result.move)
+      }
+    }, 60)
+
+    return () => window.clearTimeout(timer)
+  }, [opponent, atLive, finished, viewing.turn, humanSide, level, fens, play])
+
+  /* ---- Choosing squares -------------------------------------------------- */
+  const attemptMove = useCallback(
+    (from: number, to: number) => {
+      const options = legalMoves.filter(
+        eachMove => eachMove.from === from && eachMove.to === to,
+      )
+      if (options.length === 0) return false
+
+      if (options.length > 1 && options[0].promotion !== 0) {
+        pendingSet({ from, to })
+        return true
+      }
+
+      play(options[0])
+      return true
+    },
+    [legalMoves, play],
+  )
+
+  const squareChosen = useCallback(
+    (square: number) => {
+      if (!humanToMove) return
+
+      if (selected >= 0 && attemptMove(selected, square)) return
+
+      const piece = viewing.board[square]
+      if (piece !== 0 && colorOf(piece) === viewing.turn) {
+        selectedSet(square === selected ? -1 : square)
+      } else {
+        selectedSet(-1)
+      }
+    },
+    [humanToMove, selected, attemptMove, viewing],
+  )
+
+  /* ---- Dragging ----------------------------------------------------------
+     Pointer events rather than HTML drag-and-drop: a drag image that follows
+     the cursor exactly, and the same code path on mouse, pen and trackpad. */
+  const squareFromPoint = useCallback(
+    (clientX: number, clientY: number) => {
+      const board = boardRef.current
+      if (board === null) return -1
+
+      const rect = board.getBoundingClientRect()
+      const size = rect.width / 8
+
+      let file = Math.floor((clientX - rect.left) / size)
+      let rank = 7 - Math.floor((clientY - rect.top) / size)
+
+      if (flipped) {
+        file = 7 - file
+        rank = 7 - rank
+      }
+
+      if (file < 0 || file > 7 || rank < 0 || rank > 7) return -1
+      return squareAt(file, rank)
+    },
+    [flipped],
+  )
+
+  // One handler on the board rather than sixty-four on the squares: the square
+  // is recoverable from the pointer position, and it is the same arithmetic
+  // the drop already needs.
+  const onPointerDown = (event: React.PointerEvent) => {
+    if (!humanToMove) return
+
+    const square = squareFromPoint(event.clientX, event.clientY)
+    if (square < 0) return
+
+    const piece = viewing.board[square]
+    if (piece === 0 || colorOf(piece) !== viewing.turn) {
+      squareChosen(square)
+      return
     }
 
-    const autoPlay = (passedChessPieces: chessPiece[]) => {
-        if (gameMode === "manual") return
+    selectedSet(square)
+    dragRef.current = { from: square, pointerId: event.pointerId }
+    dragFromSet(square)
+    boardRef.current?.setPointerCapture(event.pointerId)
+    moveGhost(event.clientX, event.clientY)
+  }
 
-        //oposite of player selection
-        const autoEnemyTeam = playerTeamSelection === "white" ? "black" : "white"
+  const moveGhost = (clientX: number, clientY: number) => {
+    const ghost = ghostRef.current
+    const board = boardRef.current
+    if (ghost === null || board === null) return
 
-        //ensures auto play only works on its turn
-        if (gameMode === "verse" && autoEnemyTeam !== currentTurn) {
-            return
-        }
+    const rect = board.getBoundingClientRect()
+    const size = rect.width / 8
+    ghost.style.width = `${size}px`
+    ghost.style.height = `${size}px`
+    ghost.style.transform = `translate3d(${clientX - rect.left - size / 2}px, ${clientY - rect.top - size / 2}px, 0)`
+  }
 
-        checkIfValidMovesLeft(chessBoardArr, passedChessPieces)
+  const onPointerMove = (event: React.PointerEvent) => {
+    if (dragRef.current === null) return
+    moveGhost(event.clientX, event.clientY)
+  }
+
+  const onPointerUp = (event: React.PointerEvent) => {
+    const drag = dragRef.current
+    if (drag === null) return
+
+    dragRef.current = null
+    dragFromSet(-1)
+    boardRef.current?.releasePointerCapture(event.pointerId)
+
+    const to = squareFromPoint(event.clientX, event.clientY)
+    if (to < 0 || to === drag.from) return
+
+    if (!attemptMove(drag.from, to)) selectedSet(-1)
+  }
+
+  /* ---- Controls ---------------------------------------------------------- */
+  const newGame = (side: color = humanSide) => {
+    searchToken.current += 1
+    fensSet([START_FEN])
+    sansSet([])
+    viewIndexSet(0)
+    selectedSet(-1)
+    pendingSet(null)
+    readoutSet(null)
+    humanSideSet(side)
+    flippedSet(side !== WHITE)
+  }
+
+  const takeBack = () => {
+    searchToken.current += 1
+
+    fensSet(previous => {
+      let count = 1
+      // Against the computer, one takeback should hand the move back to you,
+      // not hand it straight back to the engine.
+      if (opponent === "computer" && previous.length > 2) count = 2
+
+      const updated = previous.slice(0, Math.max(1, previous.length - count))
+      sansSet(list => list.slice(0, updated.length - 1))
+      viewIndexSet(updated.length - 1)
+      return updated
+    })
+
+    selectedSet(-1)
+    pendingSet(null)
+  }
+
+  /* ---- History browsing -------------------------------------------------- */
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.target instanceof HTMLInputElement) return
+
+      if (event.key === "ArrowLeft") {
+        event.preventDefault()
+        viewIndexSet(previous => Math.max(0, previous - 1))
+      } else if (event.key === "ArrowRight") {
+        event.preventDefault()
+        viewIndexSet(previous => Math.min(liveIndex, previous + 1))
+      } else if (event.key === "Home") {
+        viewIndexSet(0)
+      } else if (event.key === "End") {
+        viewIndexSet(liveIndex)
+      }
     }
 
-    const checkIfValidMovesLeft = (chessBoardArr: (chessPiece | null)[][], chessPieces: chessPiece[]) => {
-        const currentBlackTeamPieces = chessPieces.filter(eachPiece => eachPiece.team === "black")//5
-        const currentWhiteTeamPieces = chessPieces.filter(eachPiece => eachPiece.team === "white")//1
-
-        const currentTeamPieces = currentTurn === "white" ? currentWhiteTeamPieces : currentBlackTeamPieces//1
-        const otherTeamPieces = currentTurn === "white" ? currentBlackTeamPieces : currentWhiteTeamPieces//1
-
-        const rndTeamIndex = Math.floor(Math.random() * currentTeamPieces.length)//0
-
-        const chosenChessPiece = currentTeamPieces[rndTeamIndex]//king
-
-        const safeTiles = findValidMoves(chosenChessPiece, chessBoardArr)//none
-        const rndTileIndex = Math.floor(Math.random() * safeTiles.length)
-
-
-        if (safeTiles.length === 0) {
-            console.log(`$no moves to make on`, chosenChessPiece);
-            const newTeamPieces = currentTeamPieces.filter(eachPiece => eachPiece.id !== chosenChessPiece.id)//0
-            const newPiecesArr = [...newTeamPieces, ...otherTeamPieces]
-
-            if (newTeamPieces.length === 0) {
-                // check stalemate checkmate
-                if (checkedKing) {
-                    checkMatedKingSet(checkedKing)
-                    console.log(`$checkmate`);
-                } else {
-                    stalemateSet(true)
-                    console.log(`$stalemate`);
-                }
-
-                return
-            }
-
-            if (autoPlayLoop.current) clearInterval(autoPlayLoop.current)
-            checkIfValidMovesLeft(chessBoardArr, [...newPiecesArr])
-            return
-        }
-
-        //assign updated valid moves
-        chessPiecesSet(prevChessPieces => {
-            const newChessPieces = prevChessPieces.map(eachChessPiece => {
-                if (eachChessPiece.id === chosenChessPiece.id) {
-                    eachChessPiece.validSquaresToMove = [...safeTiles]
-                }
-
-                return eachChessPiece
-            })
-
-            return newChessPieces
-        })
-
-        activePieceSet(chosenChessPiece)
-
-        setTimeout(() => {
-            moveToSquare(chosenChessPiece, safeTiles[rndTileIndex])
-        }, 400);
-    }
-
-    const pieceMoves = (option: "front" | "left" | "bottom" | "right" | "topLeft" | "bottomLeft" | "bottomRight" | "topRight", passedChessBoardArr: (chessPiece | null)[][], currentPos: [number, number], team: "black" | "white") => {
-        const entireRowOffsetUp = team === "black" ? 1 : -1
-        const entireRowOffsetDown = team === "black" ? -1 : 1
-        const entireColumnOffsetLeft = team === "black" ? 1 : -1
-        const entireColumnOffsetRight = team === "black" ? -1 : 1
-
-        const currentRowPos = currentPos[0]
-        const currentColumnPos = currentPos[1]
-
-        if (option === "front") {
-            const newRow = currentRowPos + entireRowOffsetUp
-
-            let squareInFront: newSquare = undefined
-            if (passedChessBoardArr[newRow]) {
-                squareInFront = { state: passedChessBoardArr[newRow][currentColumnPos], position: [newRow, currentColumnPos] }
-            }
-
-            return squareInFront
-        }
-
-        if (option === "bottom") {
-            const newRow = currentRowPos + entireRowOffsetDown
-
-            let squareBehind: newSquare = undefined
-            if (passedChessBoardArr[newRow]) {
-                squareBehind = { state: passedChessBoardArr[newRow][currentColumnPos], position: [newRow, currentColumnPos] }
-            }
-
-            return squareBehind
-        }
-
-        if (option === "left") {
-            let squareLeft: newSquare = undefined
-            const newColumnPos = currentColumnPos + entireColumnOffsetLeft
-
-            if (passedChessBoardArr[currentRowPos][newColumnPos] !== undefined) {
-                squareLeft = { state: passedChessBoardArr[currentRowPos][newColumnPos], position: [currentRowPos, newColumnPos] }
-            }
-
-            return squareLeft
-        }
-
-        if (option === "right") {
-            let squareRight: newSquare = undefined
-            const newColumnPos = currentColumnPos + entireColumnOffsetRight
-
-            if (passedChessBoardArr[currentRowPos][newColumnPos] !== undefined) {
-                squareRight = { state: passedChessBoardArr[currentRowPos][newColumnPos], position: [currentRowPos, newColumnPos] }
-            }
-
-            return squareRight
-        }
-
-        if (option === "topLeft") {
-            const newRow = currentRowPos + entireRowOffsetUp
-            const newColumnPos = currentColumnPos + entireColumnOffsetLeft
-
-            let topLeftSquare: newSquare = undefined
-            if (passedChessBoardArr[newRow] && passedChessBoardArr[newRow][newColumnPos] !== undefined) {
-                topLeftSquare = { state: passedChessBoardArr[newRow][newColumnPos], position: [newRow, newColumnPos] }
-            }
-
-            return topLeftSquare
-        }
-
-        if (option === "topRight") {
-            const newRow = currentRowPos + entireRowOffsetUp
-            const newColumnPos = currentColumnPos + entireColumnOffsetRight
-
-            let topRightSquare: newSquare = undefined
-            if (passedChessBoardArr[newRow] && passedChessBoardArr[newRow][newColumnPos] !== undefined) {
-                topRightSquare = { state: passedChessBoardArr[newRow][newColumnPos], position: [newRow, newColumnPos] }
-            }
-
-            return topRightSquare
-        }
-
-        if (option === "bottomLeft") {
-            const newRow = currentRowPos + entireRowOffsetDown
-            const newColumnPos = currentColumnPos + entireColumnOffsetLeft
-
-            let bottomLeftSquare: newSquare = undefined
-            if (passedChessBoardArr[newRow] && passedChessBoardArr[newRow][newColumnPos] !== undefined) {
-                bottomLeftSquare = { state: passedChessBoardArr[newRow][newColumnPos], position: [newRow, newColumnPos] }
-            }
-
-            return bottomLeftSquare
-        }
-
-        if (option === "bottomRight") {
-            const newRow = currentRowPos + entireRowOffsetDown
-            const newColumnPos = currentColumnPos + entireColumnOffsetRight
-
-            let bottomRightSquare: newSquare = undefined
-            if (passedChessBoardArr[newRow] && passedChessBoardArr[newRow][newColumnPos] !== undefined) {
-                bottomRightSquare = { state: passedChessBoardArr[newRow][newColumnPos], position: [newRow, newColumnPos] }
-            }
-
-            return bottomRightSquare
-        }
-    }
-
-    const getPossibleMoves = (seenPiece: chessPiece, passedChessBoardArr: (chessPiece | null)[][]) => {
-        const validTilesToMove: [number, number][] = []//yx - row column
-
-        if (seenPiece.piece === "pawn") {
-            //check front
-            const frontTile = pieceMoves("front", passedChessBoardArr, seenPiece.currentPos, seenPiece.team)
-            if (frontTile && frontTile.state === null) {
-                validTilesToMove.push(frontTile.position)
-            }
-
-            //check double move
-            if (seenPiece.movedAmount === 0 && frontTile) {
-                const doubleFrontTile = pieceMoves("front", passedChessBoardArr, frontTile.position, seenPiece.team)
-                if (frontTile.state === null && doubleFrontTile && doubleFrontTile.state === null) {
-                    validTilesToMove.push(doubleFrontTile.position)
-                }
-            }
-
-            //check topleftDiag
-            const topLeft = pieceMoves("topLeft", passedChessBoardArr, seenPiece.currentPos, seenPiece.team)
-            if (topLeft && (topLeft.state && topLeft.state.team !== seenPiece.team)) {
-                validTilesToMove.push(topLeft.position)
-            }
-
-            //check topRightDiag
-            const topRight = pieceMoves("topRight", passedChessBoardArr, seenPiece.currentPos, seenPiece.team)
-            if (topRight && (topRight.state && topRight.state.team !== seenPiece.team)) {
-                validTilesToMove.push(topRight.position)
-            }
-
-            //en pessant check
-            if ((seenPiece.currentPos[0] === 3 || seenPiece.currentPos[0] === 4)) {
-                const leftTile = pieceMoves("left", passedChessBoardArr, seenPiece.currentPos, seenPiece.team)
-                if (leftTile && topLeft && (leftTile.state && leftTile.state.team !== seenPiece.team && leftTile.state.movedAmount === 1)) {
-                    validTilesToMove.push(topLeft.position)
-                    enpassantInPlaySet({
-                        position: topLeft.position,
-                        pieceToCollect: leftTile.state
-                    })
-                }
-
-                const rightTile = pieceMoves("right", passedChessBoardArr, seenPiece.currentPos, seenPiece.team)
-                if (rightTile && topRight && (rightTile.state && rightTile.state.team !== seenPiece.team && rightTile.state.movedAmount === 1)) {
-                    validTilesToMove.push(topRight.position)
-                    enpassantInPlaySet({
-                        position: topRight.position,
-                        pieceToCollect: rightTile.state
-                    })
-                }
-            }
-        }
-
-        if (seenPiece.piece === "rook") {
-            recuriveFrontCheck(seenPiece.currentPos)
-            recuriveBottomCheck(seenPiece.currentPos)
-            recuriveLeftCheck(seenPiece.currentPos)
-            recuriveRightCheck(seenPiece.currentPos)
-        }
-
-        if (seenPiece.piece === "bishop") {
-            recuriveTopLeftCheck(seenPiece.currentPos)
-            recuriveTopRightCheck(seenPiece.currentPos)
-            recuriveBottomLeftCheck(seenPiece.currentPos)
-            recuriveBottomRightCheck(seenPiece.currentPos)
-        }
-
-        if (seenPiece.piece === "queen") {
-            recuriveFrontCheck(seenPiece.currentPos)
-            recuriveBottomCheck(seenPiece.currentPos)
-            recuriveLeftCheck(seenPiece.currentPos)
-            recuriveRightCheck(seenPiece.currentPos)
-            recuriveTopLeftCheck(seenPiece.currentPos)
-            recuriveTopRightCheck(seenPiece.currentPos)
-            recuriveBottomLeftCheck(seenPiece.currentPos)
-            recuriveBottomRightCheck(seenPiece.currentPos)
-        }
-
-        if (seenPiece.piece === "knight") {
-            //do eight checks from current position
-            //check undefined null or here
-            const knightMovementArr = [[-1, -2], [-2, -1], [-2, 1], [-1, 2], [1, -2], [2, -1], [2, 1], [1, 2]]
-            const currentPosY = seenPiece.currentPos[0]
-            const currentPosX = seenPiece.currentPos[1]
-
-            knightMovementArr.forEach(movePair => {
-                const newRow = currentPosY + movePair[0]
-                const newColumn = currentPosX + movePair[1]
-
-                if (passedChessBoardArr[newRow] && passedChessBoardArr[newRow][newColumn] !== undefined) {
-                    const square = passedChessBoardArr[newRow][newColumn]
-
-                    if (square === null || square.team !== seenPiece.team) {
-                        validTilesToMove.push([newRow, newColumn])
-                    }
-                }
-            })
-        }
-
-        if (seenPiece.piece === "king") {
-            const kingMovementArr = [[-1, -1], [-1, 0], [-1, 1], [0, 1], [1, 1], [1, 0], [1, -1], [0, -1]]
-            const currentPosY = seenPiece.currentPos[0]
-            const currentPosX = seenPiece.currentPos[1]
-
-            kingMovementArr.forEach(movePair => {
-                const newRow = currentPosY + movePair[0]
-                const newColumn = currentPosX + movePair[1]
-
-                if (passedChessBoardArr[newRow] && passedChessBoardArr[newRow][newColumn] !== undefined) {
-                    const square = passedChessBoardArr[newRow][newColumn]
-
-                    if (square === null || square.team !== seenPiece.team) {
-                        validTilesToMove.push([newRow, newColumn])
-                    }
-                }
-            })
-
-            //castle
-            if (seenPiece.movedAmount === 0) {
-                const whiteLeftRook = chessPieces.find(eachPiece => eachPiece.id === 25)
-                const whiteRightRook = chessPieces.find(eachPiece => eachPiece.id === 32)
-                const blackLeftRook = chessPieces.find(eachPiece => eachPiece.id === 1)
-                const blackRightRook = chessPieces.find(eachPiece => eachPiece.id === 8)
-
-                if (seenPiece.team === "white" && whiteLeftRook && whiteLeftRook.movedAmount === 0) {
-                    //y x
-                    const positionsClearCheck1 = passedChessBoardArr[seenPiece.currentPos[0]][seenPiece.currentPos[1] - 1]
-                    const positionsClearCheck2 = passedChessBoardArr[seenPiece.currentPos[0]][seenPiece.currentPos[1] - 2]
-                    const positionsClearCheck3 = passedChessBoardArr[seenPiece.currentPos[0]][seenPiece.currentPos[1] - 3]
-
-                    if (positionsClearCheck1 === null && positionsClearCheck2 === null && positionsClearCheck3 === null) {
-                        const newPositionY = whiteLeftRook.currentPos[0]
-                        const newPositionX = whiteLeftRook.currentPos[1] + 1
-
-                        canCastleSet(prev => {
-                            const newArr = [...prev, {
-                                pieceToCollect: whiteLeftRook,
-                                position: [newPositionY, newPositionX] as [number, number]
-                            }]
-
-
-                            return newArr
-                        })
-
-                        validTilesToMove.push([newPositionY, newPositionX])
-                    }
-
-                }
-
-                if (seenPiece.team === "white" && whiteRightRook && whiteRightRook.movedAmount === 0) {
-
-                    const positionsClearCheck1 = passedChessBoardArr[seenPiece.currentPos[0]][seenPiece.currentPos[1] + 1]
-                    const positionsClearCheck2 = passedChessBoardArr[seenPiece.currentPos[0]][seenPiece.currentPos[1] + 2]
-
-                    if (positionsClearCheck1 === null && positionsClearCheck2 === null) {
-                        const newPositionY = whiteRightRook.currentPos[0]
-                        const newPositionX = whiteRightRook.currentPos[1] - 1
-
-                        canCastleSet(prev => {
-                            const newArr = [...prev, {
-                                pieceToCollect: whiteRightRook,
-                                position: [newPositionY, newPositionX] as [number, number]
-                            }]
-                            return newArr
-                        })
-
-                        validTilesToMove.push([newPositionY, newPositionX])
-                    }
-                }
-
-                if (seenPiece.team === "black" && blackLeftRook && blackLeftRook.movedAmount === 0) {
-                    const positionsClearCheck1 = passedChessBoardArr[seenPiece.currentPos[0]][seenPiece.currentPos[1] - 1]
-                    const positionsClearCheck2 = passedChessBoardArr[seenPiece.currentPos[0]][seenPiece.currentPos[1] - 2]
-                    const positionsClearCheck3 = passedChessBoardArr[seenPiece.currentPos[0]][seenPiece.currentPos[1] - 3]
-
-                    if (positionsClearCheck1 === null && positionsClearCheck2 === null && positionsClearCheck3 === null) {
-                        const newPositionY = blackLeftRook.currentPos[0]
-                        const newPositionX = blackLeftRook.currentPos[1] + 1
-
-                        canCastleSet(prev => {
-                            const newArr = [...prev]
-
-
-                            newArr.push({
-                                pieceToCollect: blackLeftRook,
-                                position: [newPositionY, newPositionX]
-                            })
-
-
-                            return newArr
-                        })
-
-                        validTilesToMove.push([newPositionY, newPositionX])
-
-                    }
-                }
-
-                if (seenPiece.team === "black" && blackRightRook && blackRightRook.movedAmount === 0) {
-                    const positionsClearCheck1 = passedChessBoardArr[seenPiece.currentPos[0]][seenPiece.currentPos[1] + 1]
-                    const positionsClearCheck2 = passedChessBoardArr[seenPiece.currentPos[0]][seenPiece.currentPos[1] + 2]
-
-                    if (positionsClearCheck1 === null && positionsClearCheck2 === null) {
-                        const newPositionY = blackRightRook.currentPos[0]
-                        const newPositionX = blackRightRook.currentPos[1] - 1
-
-                        canCastleSet(prev => {
-                            const newArr = [...prev]
-                            newArr.push({
-                                pieceToCollect: blackRightRook,
-                                position: [newPositionY, newPositionX]
-                            })
-
-                            return newArr
-                        })
-
-                        validTilesToMove.push([newPositionY, newPositionX])
-                    }
-                }
-            }
-        }
-
-        //small functions
-        function recuriveFrontCheck(passedPosition: [number, number]) {
-            const frontTile = pieceMoves("front", passedChessBoardArr, passedPosition, seenPiece.team)
-            if (!frontTile) return
-
-            if (frontTile.state === null) {
-                validTilesToMove.push(frontTile.position)
-                recuriveFrontCheck(frontTile.position)
-
-            } else if (frontTile.state && frontTile.state.team !== seenPiece.team) {
-                validTilesToMove.push(frontTile.position)
-            }
-        }
-        function recuriveBottomCheck(passedPosition: [number, number]) {
-            const bottomTile = pieceMoves("bottom", passedChessBoardArr, passedPosition, seenPiece.team)
-            if (!bottomTile) return
-
-            if (bottomTile.state === null) {
-                validTilesToMove.push(bottomTile.position)
-                recuriveBottomCheck(bottomTile.position)
-
-            } else if (bottomTile.state && bottomTile.state.team !== seenPiece.team) {
-                validTilesToMove.push(bottomTile.position)
-            }
-        }
-        function recuriveLeftCheck(passedPosition: [number, number]) {
-            const leftTile = pieceMoves("left", passedChessBoardArr, passedPosition, seenPiece.team)
-            if (!leftTile) return
-
-            if (leftTile.state === null) {
-                validTilesToMove.push(leftTile.position)
-                recuriveLeftCheck(leftTile.position)
-
-            } else if (leftTile.state && leftTile.state.team !== seenPiece.team) {
-                validTilesToMove.push(leftTile.position)
-            }
-        }
-        function recuriveRightCheck(passedPosition: [number, number]) {
-            const rightTile = pieceMoves("right", passedChessBoardArr, passedPosition, seenPiece.team)
-            if (!rightTile) return
-
-            if (rightTile.state === null) {
-                validTilesToMove.push(rightTile.position)
-                recuriveRightCheck(rightTile.position)
-
-            } else if (rightTile.state && rightTile.state.team !== seenPiece.team) {
-                validTilesToMove.push(rightTile.position)
-            }
-        }
-        function recuriveTopLeftCheck(passedPosition: [number, number]) {
-            const topLeftTile = pieceMoves("topLeft", passedChessBoardArr, passedPosition, seenPiece.team)
-            if (!topLeftTile) return
-
-            if (topLeftTile.state === null) {
-                validTilesToMove.push(topLeftTile.position)
-                recuriveTopLeftCheck(topLeftTile.position)
-
-            } else if (topLeftTile.state && topLeftTile.state.team !== seenPiece.team) {
-                validTilesToMove.push(topLeftTile.position)
-            }
-        }
-        function recuriveTopRightCheck(passedPosition: [number, number]) {
-            const topRightTile = pieceMoves("topRight", passedChessBoardArr, passedPosition, seenPiece.team)
-            if (!topRightTile) return
-
-            if (topRightTile.state === null) {
-                validTilesToMove.push(topRightTile.position)
-                recuriveTopRightCheck(topRightTile.position)
-
-            } else if (topRightTile.state && topRightTile.state.team !== seenPiece.team) {
-                validTilesToMove.push(topRightTile.position)
-            }
-        }
-        function recuriveBottomLeftCheck(passedPosition: [number, number]) {
-            const bottomLeftTile = pieceMoves("bottomLeft", passedChessBoardArr, passedPosition, seenPiece.team)
-            if (!bottomLeftTile) return
-
-            if (bottomLeftTile.state === null) {
-                validTilesToMove.push(bottomLeftTile.position)
-                recuriveBottomLeftCheck(bottomLeftTile.position)
-
-            } else if (bottomLeftTile.state && bottomLeftTile.state.team !== seenPiece.team) {
-                validTilesToMove.push(bottomLeftTile.position)
-            }
-        }
-        function recuriveBottomRightCheck(passedPosition: [number, number]) {
-            const bottomRightTile = pieceMoves("bottomRight", passedChessBoardArr, passedPosition, seenPiece.team)
-            if (!bottomRightTile) return
-
-            if (bottomRightTile.state === null) {
-                validTilesToMove.push(bottomRightTile.position)
-                recuriveBottomRightCheck(bottomRightTile.position)
-
-            } else if (bottomRightTile.state && bottomRightTile.state.team !== seenPiece.team) {
-                validTilesToMove.push(bottomRightTile.position)
-            }
-        }
-
-        return validTilesToMove
-    }
-
-    const findValidMoves = (seenPiece: chessPiece, passedChessBoardArr: (chessPiece | null)[][]) => {
-        const possibleMoves = getPossibleMoves(deepClone(seenPiece), deepClone(passedChessBoardArr))
-
-        // safe tiles where king is not in check
-        let tileCausesCheck = false
-        const safeTiles = possibleMoves.filter(eachXYPos => {
-            tileCausesCheck = checkIfFuturePositionCausesCheck(deepClone(eachXYPos), deepClone(seenPiece), chessPieces)
-            return !tileCausesCheck
-        })
-
-        return safeTiles
-    }
-
-    const checkIfFuturePositionCausesCheck = (futurePosition: [number, number], seenChessPiece: chessPiece, seenChessPieces: chessPiece[]): boolean => {
-        //update positions of chess pieces
-        const chessPiecesLocal = deepClone(seenChessPieces).filter(eachPiece => {
-            let returning = true
-
-            if (eachPiece.currentPos[0] === futurePosition[0] && eachPiece.currentPos[1] === futurePosition[1]) {
-                returning = false
-            }
-
-            return returning
-        }).map(eachPiece => {
-            if (eachPiece.id === seenChessPiece.id) {
-                eachPiece.currentPos = [...futurePosition]
-            }
-
-            return eachPiece
-        })
-
-        //get new chess board at hypothetical position
-        const chessBoardLocal = makeNewChessBoard(chessPiecesLocal)
-
-        //get kings from board
-        const kings = chessPiecesLocal.filter(eachPiece => eachPiece.piece === "king")
-
-        //get tile positions that attack the kings
-        const tilesBeingAttacked: [number, number][] = []
-        chessPiecesLocal.forEach(eachChessPiece => {
-            const seenTiles = getPossibleMoves(deepClone(eachChessPiece), deepClone(chessBoardLocal))
-
-            tilesBeingAttacked.push(...deepClone(seenTiles))
-
-            //maybe get this working to prevent castling across attacked position
-            // if (eachChessPiece.team !== seenChessPiece.team) {
-            //     tilesBeingAttackedByEnemy.push(...deepClone(seenTiles.filter(e => e[0] === 7 || e[0] === 0)))
-            // }
-        })
-
-
-        //check if king is being attacked
-        let needToDeleteThisPosition = false
-        kings.forEach(eachKing => {
-            tilesBeingAttacked.forEach(attackYX => {
-                const positionYAttacked = attackYX[0]
-                const positionXAttacked = attackYX[1]
-
-                //home king attacked by my move
-                if (positionYAttacked === eachKing.currentPos[0] && positionXAttacked === eachKing.currentPos[1]) {
-
-                    if (eachKing.team === seenChessPiece.team) {
-                        needToDeleteThisPosition = true
-                        // console.log(`$friendly king would be attacked`, [...futurePosition]);
-
-                    } else {
-                        // ooh checking another king
-                        positionsThatCheckEnemyKingSet(prev => [...prev, ...[futurePosition]])
-
-                        // console.log(`$this move checks the enemy king`, seenChessPiece, [...futurePosition]);
-                    }
-                }
-            })
-        })
-
-        return needToDeleteThisPosition
-    }
-
-    const moveToSquare = (seenPiece: chessPiece, posYX: [number, number], dontSwitchTurn = false) => {
-        //check if capturing a piece
-        const checkedPiece = chessBoardArr[posYX[0]][posYX[1]]
-        if (checkedPiece !== null && checkedPiece.team !== seenPiece.team) {
-            capturePiece(checkedPiece)
-        }
-
-        if (enpassantInPlay) {
-            if (enpassantInPlay.position[0] === posYX[0] && enpassantInPlay.position[1] === posYX[1]) {
-                capturePiece(enpassantInPlay.pieceToCollect)
-            }
-            enpassantInPlaySet(undefined)
-        }
-
-        if (canCastle.length > 0 && !dontSwitchTurn) {
-            canCastle.forEach(eachCastleObj => {
-
-                if (eachCastleObj.position[0] === posYX[0] && eachCastleObj.position[1] === posYX[1]) {
-                    if (eachCastleObj.pieceToCollect.id === 25) {
-                        const newYPos = eachCastleObj.pieceToCollect.currentPos[0]
-                        const newXPos = eachCastleObj.pieceToCollect.currentPos[1] + 2
-
-                        moveToSquare(eachCastleObj.pieceToCollect, [newYPos, newXPos], true)
-                    }
-
-                    if (eachCastleObj.pieceToCollect.id === 32) {
-                        const newYPos = eachCastleObj.pieceToCollect.currentPos[0]
-                        const newXPos = eachCastleObj.pieceToCollect.currentPos[1] - 2
-
-                        moveToSquare(eachCastleObj.pieceToCollect, [newYPos, newXPos], true)
-                    }
-
-
-                    if (eachCastleObj.pieceToCollect.id === 1) {
-                        const newYPos = eachCastleObj.pieceToCollect.currentPos[0]
-                        const newXPos = eachCastleObj.pieceToCollect.currentPos[1] + 2
-
-                        moveToSquare(eachCastleObj.pieceToCollect, [newYPos, newXPos], true)
-                    }
-
-
-                    if (eachCastleObj.pieceToCollect.id === 8) {
-                        const newYPos = eachCastleObj.pieceToCollect.currentPos[0]
-                        const newXPos = eachCastleObj.pieceToCollect.currentPos[1] - 2
-
-                        moveToSquare(eachCastleObj.pieceToCollect, [newYPos, newXPos], true)
-                    }
-                }
-            })
-
-
-            canCastleSet([])
-        }
-
-        //check if piece causes a check
-        checkedKingSet(undefined)
-
-        positionsThatCheckEnemyKing.forEach(eachPos => {
-            if (eachPos[0] === posYX[0] && eachPos[1] === posYX[1]) {
-                toast.success("check")
-
-                if (seenPiece.team === "white") {
-                    const whiteKing = chessPieces.find(each => each.piece === "king" && each.team === "white")!
-                    checkedKingSet(whiteKing)
-
-                } else {
-                    const blackKing = chessPieces.find(each => each.piece === "king" && each.team === "black")!
-                    checkedKingSet(blackKing)
-                }
-            }
-        })
-        positionsThatCheckEnemyKingSet([])
-
-        //write piece to new position
-        chessPiecesSet(prevChessPieces => {
-            const newChessPieces = JSON.parse(JSON.stringify(prevChessPieces)) as chessPiece[]
-
-            //get latest positions to chesspieces
-            return newChessPieces.map(eachPiece => {
-                if (eachPiece.id === seenPiece.id) {
-                    eachPiece.currentPos = posYX
-                    if (eachPiece.movedAmount !== undefined) eachPiece.movedAmount += 1
-
-                    checkPromotion(eachPiece)
-                    return eachPiece
-                }
-
-
-                return eachPiece
-            })
-        })
-
-        if (dontSwitchTurn) return
-        currentTurnSet(prevTurn => {
-            const currentPlay = seenPiece.team
-
-            let newTurn: "black" | "white" = "black"
-
-            if (currentPlay === "white") {
-                newTurn = "black"
-            } else {
-                newTurn = "white"
-            }
-
-            return newTurn
-        })
-    }
-
-    const checkPromotion = (seenPiece: chessPiece) => {
-        if (seenPiece.piece !== "pawn") return
-
-        const promotionOptions = ["rook", "knight", "bishop", "queen"]
-        const randPromoIndex = Math.floor(Math.random() * promotionOptions.length)
-
-        if (seenPiece.team === "white") {
-            if (seenPiece.currentPos[0] === 0) {
-                //promotion time
-                makeChanges(seenPiece)
-            }
-        } else {
-            //promotion time
-            //black promotion
-            if (seenPiece.currentPos[0] === 7) {
-                makeChanges(seenPiece)
-            }
-        }
-
-        function makeChanges(seenPiece: chessPiece) {
-            //promotion time
-            chessPiecesSet(prevPieces => {
-                return prevPieces.map(eachPiece => {
-                    if (eachPiece.id === seenPiece.id) {
-                        const newPieceStats = chessPieceStatChoices[promotionOptions[randPromoIndex]]
-                        eachPiece = { ...eachPiece, ...newPieceStats, image: getChessPieceImage(newPieceStats.piece, seenPiece.team) }
-                    }
-
-                    return eachPiece
-                })
-            })
-        }
-    }
-
-    const capturePiece = (seenPiece: chessPiece) => {
-        chessPiecesSet(prev => {
-            return prev.filter(eachChessPiece => eachChessPiece.id !== seenPiece.id)
-        })
-
-        capturedPiecesSet(prev => {
-            const newArr = [...prev, seenPiece]
-            return newArr
-        })
-    }
-
-    const resetAll = () => {
-
-        chessPiecesSet([...(Math.random() * 1 > 0.3 ? initialChessPieces : initialChessPieces.filter(each => each.id === 5 || each.id === 14 || each.id > 16))])
-        capturedPiecesSet([])
-        checkMatedKingSet(undefined)
-        stalemateSet(false)
-        autoPlayLoop.current && clearInterval(autoPlayLoop.current)
-    }
-
-    return (
-        <div style={{ display: "grid", gridTemplateColumns: "1rem auto auto" }}>
-            <div style={{ display: "grid", gridTemplateRows: `${whitePiecesCaptured[1] === 0 ? 0.5 : whitePiecesCaptured[1]}fr ${blackPiecesCaptured[1] === 0 ? 0.5 : blackPiecesCaptured[1]}fr` }}>
-                <div style={{ backgroundColor: "purple" }}></div>
-                <div style={{ backgroundColor: "gold" }}></div>
-            </div>
-
-            <div>
-                <div>
-                    {checkMatedKing && (
-                        <div style={{ fontWeight: "bold", textAlign: "center" }}>
-                            <p>Checkmated</p>
-                            <p>{checkMatedKing.team === "white" ? "White" : "Black"} is the winner</p>
-                        </div>
-                    )}
-
-                    {stalemate && (
-                        <div style={{ textAlign: "center", fontWeight: "bold" }}>
-                            <p>Stalemate</p>
-                        </div>
-                    )}
-                </div>
-                <div className={styles.chessBoard} ref={chessBoardRef}>
-                    {chessBoardArr.map((eachRowArr, eachRowArrIndex) => {
-                        return eachRowArr.map((eachSquare, eachSquareIndex) => {
-                            let validSquareToMove = false
-                            activePiece?.validSquaresToMove.forEach(eachPos => {
-                                if (eachPos[0] === eachRowArrIndex && eachPos[1] === eachSquareIndex) {
-                                    validSquareToMove = true
-                                }
-                            })
-
-                            return (
-                                <div key={`${eachRowArrIndex}${eachSquareIndex}`}
-                                    style={{ backgroundColor: validSquareToMove ? "orange" : "", color: eachSquare && eachSquare.team === "black" ? "purple" : "", }}
-                                    className={`${styles.chessSquare} ${eachRowArrIndex % 2 === 0 ? eachSquareIndex % 2 === 0 ? styles.lightSquare : styles.darkSquare : eachSquareIndex % 2 === 0 ? styles.darkSquare : styles.lightSquare}`}
-                                    onClick={() => {
-                                        if (eachSquare) {
-                                            if (currentTurn === eachSquare.team) {
-                                                const validMoves = findValidMoves(eachSquare, chessBoardArr)
-
-                                                //asign valid moves to active piece
-                                                chessPiecesSet(prevChessPieces => {
-                                                    const newChessPieces = prevChessPieces.map(eachChessPiece => {
-                                                        if (eachChessPiece.id === eachSquare.id) {
-                                                            eachChessPiece.validSquaresToMove = [...validMoves]
-                                                        }
-
-                                                        return eachChessPiece
-                                                    })
-
-                                                    return newChessPieces
-                                                })
-
-                                                activePieceSet(eachSquare)
-                                            } else toast.success(`${currentTurn}'s play`)
-                                        }
-
-                                        if (activePiece && validSquareToMove) {
-                                            moveToSquare(activePiece, [eachRowArrIndex, eachSquareIndex])
-                                        }
-                                    }}
-                                >
-                                    {eachSquare && <Image alt={`${eachSquare.piece} img`} priority={true} src={eachSquare.image} width={60} height={60} style={{ objectFit: "contain" }} />}
-                                </div>
-                            )
-                        })
-                    })}
-                </div>
-            </div>
-
-            <div>
-                <div style={{ position: "relative" }}>
-                    <div onClick={() => { showingSettingsSet(prev => !prev) }}>
-                        <svg style={{ width: "1.5rem", marginBlock: "1rem" }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M495.9 166.6c3.2 8.7 .5 18.4-6.4 24.6l-43.3 39.4c1.1 8.3 1.7 16.8 1.7 25.4s-.6 17.1-1.7 25.4l43.3 39.4c6.9 6.2 9.6 15.9 6.4 24.6c-4.4 11.9-9.7 23.3-15.8 34.3l-4.7 8.1c-6.6 11-14 21.4-22.1 31.2c-5.9 7.2-15.7 9.6-24.5 6.8l-55.7-17.7c-13.4 10.3-28.2 18.9-44 25.4l-12.5 57.1c-2 9.1-9 16.3-18.2 17.8c-13.8 2.3-28 3.5-42.5 3.5s-28.7-1.2-42.5-3.5c-9.2-1.5-16.2-8.7-18.2-17.8l-12.5-57.1c-15.8-6.5-30.6-15.1-44-25.4L83.1 425.9c-8.8 2.8-18.6 .3-24.5-6.8c-8.1-9.8-15.5-20.2-22.1-31.2l-4.7-8.1c-6.1-11-11.4-22.4-15.8-34.3c-3.2-8.7-.5-18.4 6.4-24.6l43.3-39.4C64.6 273.1 64 264.6 64 256s.6-17.1 1.7-25.4L22.4 191.2c-6.9-6.2-9.6-15.9-6.4-24.6c4.4-11.9 9.7-23.3 15.8-34.3l4.7-8.1c6.6-11 14-21.4 22.1-31.2c5.9-7.2 15.7-9.6 24.5-6.8l55.7 17.7c13.4-10.3 28.2-18.9 44-25.4l12.5-57.1c2-9.1 9-16.3 18.2-17.8C227.3 1.2 241.5 0 256 0s28.7 1.2 42.5 3.5c9.2 1.5 16.2 8.7 18.2 17.8l12.5 57.1c15.8 6.5 30.6 15.1 44 25.4l55.7-17.7c8.8-2.8 18.6-.3 24.5 6.8c8.1 9.8 15.5 20.2 22.1 31.2l4.7 8.1c6.1 11 11.4 22.4 15.8 34.3zM256 336a80 80 0 1 0 0-160 80 80 0 1 0 0 160z" /></svg>
+    window.addEventListener("keydown", onKeyDown)
+    return () => window.removeEventListener("keydown", onKeyDown)
+  }, [liveIndex])
+
+  /* ---- Render ------------------------------------------------------------ */
+  const files = flipped ? [7, 6, 5, 4, 3, 2, 1, 0] : [0, 1, 2, 3, 4, 5, 6, 7]
+  const ranks = flipped ? [0, 1, 2, 3, 4, 5, 6, 7] : [7, 6, 5, 4, 3, 2, 1, 0]
+
+  const checkedKing =
+    outcome.kind === "checkmate"
+      ? viewing.kings[viewing.turn]
+      : outcome.kind === "playing" && outcome.check
+        ? viewing.kings[viewing.turn]
+        : -1
+
+  const draggedPiece = dragFrom >= 0 ? viewing.board[dragFrom] : 0
+
+  return (
+    <main className={styles.page}>
+      <header className={styles.head}>
+        <Link href="/fun" className={styles.back}>← Playground</Link>
+
+        <p className="label labelPlain labelSignal">
+          Verified by perft to depth 5
+        </p>
+      </header>
+
+      <div className={styles.layout}>
+        {/* ---- Board -------------------------------------------------- */}
+        <section className={styles.boardArea}>
+          <PlayerStrip
+            side={flipped ? WHITE : -1 as color}
+            name={opponent === "human" ? "Black" : humanSide === WHITE ? DIFFICULTY_LABEL[level] : "You"}
+            captured={flipped ? material.white : material.black}
+            balance={flipped ? material.balance : -material.balance}
+            toMove={viewing.turn === (flipped ? WHITE : -1)}
+            thinking={thinking && viewing.turn === (flipped ? WHITE : -1)}
+          />
+
+          <div className={styles.boardFrame}>
+            <div
+              ref={boardRef}
+              className={styles.board}
+              onPointerDown={onPointerDown}
+              onPointerMove={onPointerMove}
+              onPointerUp={onPointerUp}
+              onPointerCancel={onPointerUp}
+            >
+              {ranks.map(eachRank =>
+                files.map(eachFile => {
+                  const square = squareAt(eachFile, eachRank)
+                  const piece = viewing.board[square]
+                  const light = (eachFile + eachRank) % 2 === 1
+
+                  const isTarget = targets.has(square)
+                  const isCapture = isTarget && piece !== 0
+
+                  return (
+                    <div
+                      key={square}
+                      className={styles.square}
+                      data-light={light}
+                      data-selected={square === selected}
+                      data-from={lastMove !== null && lastMove.from === square}
+                      data-to={lastMove !== null && lastMove.to === square}
+                      data-check={square === checkedKing}
+                    >
+                      {eachFile === (flipped ? 7 : 0) && (
+                        <span className={styles.rankLabel}>{eachRank + 1}</span>
+                      )}
+                      {eachRank === (flipped ? 7 : 0) && (
+                        <span className={styles.fileLabel}>{"abcdefgh"[eachFile]}</span>
+                      )}
+
+                      {piece !== 0 && square !== dragFrom && (
+                        <Image
+                          className={styles.piece}
+                          src={`/chess/${colorOf(piece) === WHITE ? "w" : "b"}${PIECE_IMAGE[typeOf(piece)]}.png`}
+                          alt=""
+                          width={90}
+                          height={90}
+                          draggable={false}
+                          priority={typeOf(piece) === PAWN}
+                        />
+                      )}
+
+                      {isTarget && <span className={styles.hint} data-capture={isCapture} />}
                     </div>
+                  )
+                }),
+              )}
 
-                    <div style={{ display: !showingSettings ? "none" : "grid", position: "absolute", right: 0, backgroundColor: "rgb(var(--color1))", padding: "1rem", whiteSpace: "nowrap", gap: "1rem", justifyItems: "center" }}>
-                        <p>Set GameMode To</p>
-
-                        <button onClick={() => gameModeSet("auto")}>Auto</button>
-                        <button onClick={() => gameModeSet("manual")}>Manual</button>
-                        <button onClick={() => gameModeSet("verse")}>Verse</button>
-
-                        <div style={{ display: "grid", gap: "1rem", justifyItems: "center" }}>
-                            {playerTeamSelection === "white" ? (
-                                <>
-                                    <p>Player Team White</p>
-                                    <button onClick={() => playerTeamSelectionSet("black")}>Switch</button>
-                                </>
-                            ) : (
-                                <>
-                                    <p>Player Team Black</p>
-                                    <button onClick={() => playerTeamSelectionSet("white")}>Switch</button>
-                                </>
-                            )}
-                        </div>
-
-                        <button onClick={resetAll}>Reset Game</button>
-                    </div>
-                </div>
-
+              {/* The piece being dragged, following the pointer exactly */}
+              <div ref={ghostRef} className={styles.ghost} data-on={dragFrom >= 0}>
+                {draggedPiece !== 0 && (
+                  <Image
+                    src={`/chess/${colorOf(draggedPiece) === WHITE ? "w" : "b"}${PIECE_IMAGE[typeOf(draggedPiece)]}.png`}
+                    alt=""
+                    width={90}
+                    height={90}
+                    draggable={false}
+                  />
+                )}
+              </div>
             </div>
+
+            {pending !== null && (
+              <PromotionPicker
+                side={viewing.turn}
+                onPick={type => {
+                  const chosen = findMove(legalMoves, pending.from, pending.to, type)
+                  if (chosen !== null) play(chosen)
+                  else pendingSet(null)
+                }}
+                onCancel={() => {
+                  pendingSet(null)
+                  selectedSet(-1)
+                }}
+              />
+            )}
+
+            {finished && atLive && (
+              <div className={styles.result}>
+                <p className={styles.resultTitle}>{outcomeTitle(outcome)}</p>
+                <p className={styles.resultBody}>{outcomeBody(outcome)}</p>
+                <button type="button" className="btn btnPrimary" onClick={() => newGame()}>
+                  <span>Play again</span>
+                </button>
+              </div>
+            )}
+          </div>
+
+          <PlayerStrip
+            side={flipped ? -1 as color : WHITE}
+            name={opponent === "human" ? "White" : humanSide === WHITE ? "You" : DIFFICULTY_LABEL[level]}
+            captured={flipped ? material.black : material.white}
+            balance={flipped ? -material.balance : material.balance}
+            toMove={viewing.turn === (flipped ? -1 : WHITE)}
+            thinking={thinking && viewing.turn === (flipped ? -1 : WHITE)}
+          />
+        </section>
+
+        {/* ---- Panel -------------------------------------------------- */}
+        <aside className={styles.panel}>
+          <div className={styles.status} data-state={finished ? "over" : "playing"}>
+            <p className="label labelPlain">
+              {finished ? "Result" : thinking ? "Thinking" : "To move"}
+            </p>
+            <p className={styles.statusText}>
+              {finished
+                ? outcomeTitle(outcome)
+                : `${viewing.turn === WHITE ? "White" : "Black"}${outcome.kind === "playing" && outcome.check ? " — in check" : ""}`}
+            </p>
+          </div>
+
+          <div className={styles.controlGroup}>
+            <p className="label labelPlain">Opponent</p>
+            <div className={styles.segmented}>
+              {(["computer", "human"] as opponent[]).map(eachOption => (
+                <button
+                  key={eachOption}
+                  type="button"
+                  data-active={opponent === eachOption}
+                  onClick={() => opponentSet(eachOption)}
+                >
+                  {eachOption === "computer" ? "Computer" : "Two players"}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {opponent === "computer" && (
+            <>
+              <div className={styles.controlGroup}>
+                <p className="label labelPlain">Strength</p>
+                <div className={styles.segmented}>
+                  {(Object.keys(DIFFICULTY_LABEL) as difficulty[]).map(eachLevel => (
+                    <button
+                      key={eachLevel}
+                      type="button"
+                      data-active={level === eachLevel}
+                      onClick={() => levelSet(eachLevel)}
+                    >
+                      {DIFFICULTY_LABEL[eachLevel]}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className={styles.controlGroup}>
+                <p className="label labelPlain">You play</p>
+                <div className={styles.segmented}>
+                  <button type="button" data-active={humanSide === WHITE} onClick={() => newGame(WHITE)}>
+                    White
+                  </button>
+                  <button type="button" data-active={humanSide !== WHITE} onClick={() => newGame(-1 as color)}>
+                    Black
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
+
+          <div className={styles.buttons}>
+            <button type="button" className="btn btnSm" onClick={() => newGame()}>
+              <span>New game</span>
+            </button>
+            <button
+              type="button"
+              className="btn btnSm"
+              onClick={takeBack}
+              disabled={liveIndex === 0}
+            >
+              <span>Take back</span>
+            </button>
+            <button type="button" className="btn btnSm" onClick={() => flippedSet(previous => !previous)}>
+              <span>Flip board</span>
+            </button>
+          </div>
+
+          <div className={styles.moves}>
+            <div className={styles.movesHead}>
+              <p className="label labelPlain">Moves</p>
+              {!atLive && (
+                <button type="button" className={styles.jump} onClick={() => viewIndexSet(liveIndex)}>
+                  Back to live
+                </button>
+              )}
+            </div>
+
+            <ol className={styles.moveList}>
+              {sans.length === 0 && <li className={styles.empty}>No moves yet.</li>}
+
+              {Array.from({ length: Math.ceil(sans.length / 2) }, (unused, eachPair) => (
+                <li key={eachPair}>
+                  <span className="readout">{eachPair + 1}.</span>
+
+                  {[0, 1].map(eachHalf => {
+                    const index = eachPair * 2 + eachHalf
+                    if (index >= sans.length) return <span key={eachHalf} />
+
+                    return (
+                      <button
+                        key={eachHalf}
+                        type="button"
+                        data-active={viewIndex === index + 1}
+                        onClick={() => viewIndexSet(index + 1)}
+                      >
+                        {sans[index]}
+                      </button>
+                    )
+                  })}
+                </li>
+              ))}
+            </ol>
+
+            <p className={styles.browseHint}>
+              <kbd>←</kbd> <kbd>→</kbd> step through the game
+            </p>
+          </div>
+
+          <div className={styles.readouts}>
+            {readout !== null && (
+              <p className="readout">
+                engine · depth {readout.depth} · {readout.nodes.toLocaleString()} nodes ·{" "}
+                {readout.ms}ms · eval {(readout.score / 100).toFixed(2)}
+              </p>
+            )}
+            <p className={`readout ${styles.fen}`}>{fens[viewIndex]}</p>
+          </div>
+        </aside>
+      </div>
+    </main>
+  )
+}
+
+/* ---- Sub-components ------------------------------------------------------ */
+function PlayerStrip({
+  side,
+  name,
+  captured,
+  balance,
+  toMove,
+  thinking,
+}: {
+  side: color
+  name: string
+  captured: number[]
+  balance: number
+  toMove: boolean
+  thinking: boolean
+}) {
+  return (
+    <div className={styles.strip} data-tomove={toMove}>
+      <span className={styles.stripDot} data-side={side === WHITE ? "white" : "black"} />
+      <span className={styles.stripName}>{name}</span>
+
+      <span className={styles.taken}>
+        {captured
+          .slice()
+          .sort((a, b) => PIECE_VALUE[b] - PIECE_VALUE[a])
+          .map((eachType, eachIndex) => (
+            <Image
+              key={`${eachType}-${eachIndex}`}
+              src={`/chess/${side === WHITE ? "b" : "w"}${PIECE_IMAGE[eachType]}.png`}
+              alt=""
+              width={22}
+              height={22}
+            />
+          ))}
+      </span>
+
+      {balance > 0 && <span className={`readout ${styles.balance}`}>+{balance}</span>}
+      {thinking && <span className={styles.thinking}>thinking…</span>}
+    </div>
+  )
+}
+
+function PromotionPicker({
+  side,
+  onPick,
+  onCancel,
+}: {
+  side: color
+  onPick: (type: number) => void
+  onCancel: () => void
+}) {
+  return (
+    <div className={styles.promotion} role="dialog" aria-label="Choose a promotion">
+      <div className={styles.promotionInner}>
+        <p className="label labelPlain">Promote to</p>
+
+        <div className={styles.promotionOptions}>
+          {[QUEEN, ROOK, BISHOP, KNIGHT].map(eachType => (
+            <button key={eachType} type="button" onClick={() => onPick(eachType)}>
+              <Image
+                src={`/chess/${side === WHITE ? "w" : "b"}${PIECE_IMAGE[eachType]}.png`}
+                alt={PIECE_IMAGE[eachType]}
+                width={64}
+                height={64}
+              />
+            </button>
+          ))}
         </div>
-    )
+
+        <button type="button" className={styles.cancel} onClick={onCancel}>
+          Cancel
+        </button>
+      </div>
+    </div>
+  )
+}
+
+/* ---- Wording ------------------------------------------------------------- */
+function outcomeTitle(outcome: ReturnType<typeof evaluateOutcome>) {
+  switch (outcome.kind) {
+    case "checkmate":
+      return `Checkmate — ${outcome.winner === WHITE ? "white" : "black"} wins`
+    case "stalemate":
+      return "Stalemate — draw"
+    case "fifty":
+      return "Draw — fifty-move rule"
+    case "repetition":
+      return "Draw — threefold repetition"
+    case "material":
+      return "Draw — insufficient material"
+    default:
+      return outcome.check ? "Check" : "Playing"
+  }
+}
+
+function outcomeBody(outcome: ReturnType<typeof evaluateOutcome>) {
+  switch (outcome.kind) {
+    case "checkmate":
+      return "The king is attacked and every reply still leaves it attacked."
+    case "stalemate":
+      return "No legal move, and the king is not in check. Half a point each."
+    case "fifty":
+      return "A hundred half-moves with no capture and no pawn move."
+    case "repetition":
+      return "The same position, with the same rights, for the third time."
+    case "material":
+      return "Neither side has the material to force mate."
+    default:
+      return ""
+  }
 }

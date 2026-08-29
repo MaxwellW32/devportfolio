@@ -1,4 +1,6 @@
 import Link from "next/link"
+
+import SpriteToggle from "@/components/player/SpriteToggle"
 import styles from "./footer.module.css"
 
 const socials = [
@@ -79,6 +81,8 @@ export default function Footer() {
           <p className="readout">
             © {new Date().getFullYear()} Maxwell Wedderburn
           </p>
+
+          <SpriteToggle variant="link" className={styles.sprite} />
 
           <p className="readout">
             Built with Next.js 16 · React 19 · No template

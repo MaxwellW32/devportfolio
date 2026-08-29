@@ -1,0 +1,292 @@
+.page {
+  min-height: 100svh;
+  display: grid;
+  grid-template-rows: auto auto 1fr auto;
+  gap: clamp(0.6rem, 0.4rem + 0.8vw, 1.1rem);
+  padding: clamp(0.75rem, 0.5rem + 1vw, 1.75rem);
+  background:
+    radial-gradient(ellipse 90% 40% at 50% 0%, color-mix(in oklch, var(--color-warm) 7%, transparent), transparent 70%),
+    var(--color-void);
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.back {
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-ink-faint);
+  transition: color 220ms;
+}
+
+.back:hover { color: var(--color-signal); }
+
+/* ---- Transport ----------------------------------------------------------- */
+.transport {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.25rem;
+  padding: 0.75rem 1rem;
+  background: var(--color-canvas);
+  border: 1px solid var(--color-hairline);
+  border-radius: 3px;
+}
+
+.inline {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.inline input[type="range"] {
+  width: 8rem;
+  height: 2px;
+  appearance: none;
+  background: var(--color-hairline);
+  border-radius: 99px;
+  cursor: pointer;
+}
+
+.inline input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: var(--color-signal);
+}
+
+.inline input[type="range"]::-moz-range-thumb {
+  width: 13px;
+  height: 13px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--color-signal);
+}
+
+.clock {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: var(--step--2);
+  color: var(--color-signal);
+}
+
+.clock span { opacity: 0.35; }
+
+/* ---- Timeline ------------------------------------------------------------ */
+.timeline {
+  display: grid;
+  align-content: start;
+  gap: 0.4rem;
+  padding: 0.75rem;
+  background: var(--color-canvas);
+  border: 1px solid var(--color-hairline);
+  border-radius: 3px;
+  overflow: hidden;
+  touch-action: none;
+}
+
+.rulerRow,
+.trackRow {
+  display: grid;
+  grid-template-columns: 9.5rem minmax(0, 1fr);
+  gap: 0.5rem;
+  align-items: stretch;
+}
+
+.gutter {
+  display: grid;
+  align-content: center;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.trackName {
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-ink-dim);
+}
+
+.gutter select {
+  width: 100%;
+  padding: 0.25rem 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--color-ink);
+  background: var(--color-surface);
+  border: 1px solid var(--color-hairline);
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.ruler {
+  display: grid;
+  grid-template-columns: repeat(16, 1fr);
+  height: 1.5rem;
+  cursor: pointer;
+  border-bottom: 1px solid var(--color-hairline);
+}
+
+.bar {
+  display: grid;
+  align-items: center;
+  padding-left: 0.3rem;
+  font-size: 0.62rem;
+  color: var(--color-ink-faint);
+  border-left: 1px solid var(--color-hairline);
+}
+
+.bar:first-child { border-left: 0; }
+
+.tracks {
+  position: relative;
+  display: grid;
+  gap: 0.4rem;
+}
+
+/* ---- Playhead -----------------------------------------------------------
+   Positioned over the lanes only, and offset by the gutter so it lines up
+   with beat zero rather than with the panel edge. */
+.playhead {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  /* The lanes start after the gutter, so beat zero is 10rem in and the
+     remaining width is what the fraction applies to. */
+  left: calc(10rem + (100% - 10rem) * var(--playhead, 0));
+  width: 2px;
+  background: var(--color-live);
+  box-shadow: 0 0 12px color-mix(in oklch, var(--color-live) 70%, transparent);
+  pointer-events: none;
+  z-index: 5;
+  transform: translateX(-1px);
+}
+
+.lane {
+  position: relative;
+  height: clamp(2.6rem, 2rem + 2vw, 3.6rem);
+  background: var(--color-surface);
+  border: 1px solid var(--color-hairline);
+  border-radius: 2px;
+  overflow: hidden;
+  cursor: copy;
+}
+
+.laneBar {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--color-hairline);
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.laneBar:nth-child(1) { left: 0%; }
+.laneBar:nth-child(2) { left: 6.25%; }
+.laneBar:nth-child(3) { left: 12.5%; }
+.laneBar:nth-child(4) { left: 18.75%; }
+.laneBar:nth-child(5) { left: 25%; }
+.laneBar:nth-child(6) { left: 31.25%; }
+.laneBar:nth-child(7) { left: 37.5%; }
+.laneBar:nth-child(8) { left: 43.75%; }
+.laneBar:nth-child(9) { left: 50%; }
+.laneBar:nth-child(10) { left: 56.25%; }
+.laneBar:nth-child(11) { left: 62.5%; }
+.laneBar:nth-child(12) { left: 68.75%; }
+.laneBar:nth-child(13) { left: 75%; }
+.laneBar:nth-child(14) { left: 81.25%; }
+.laneBar:nth-child(15) { left: 87.5%; }
+.laneBar:nth-child(16) { left: 93.75%; }
+
+/* ---- Clips --------------------------------------------------------------- */
+.clip {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  display: flex;
+  align-items: center;
+  padding-inline: 0.5rem;
+  background: hsl(var(--hue) 70% 50% / 0.34);
+  border: 1px solid hsl(var(--hue) 85% 62% / 0.8);
+  border-radius: 2px;
+  cursor: grab;
+  overflow: hidden;
+  transition: filter 160ms, box-shadow 160ms;
+}
+
+.clip:active { cursor: grabbing; }
+
+.clip[data-selected="true"] {
+  box-shadow: 0 0 0 1px var(--color-ink) inset;
+}
+
+.clip[data-active="true"] {
+  filter: brightness(1.5);
+}
+
+.clipName {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.02em;
+  color: var(--color-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+}
+
+.handle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 10px;
+  cursor: ew-resize;
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.22));
+}
+
+/* ---- Hints --------------------------------------------------------------- */
+.hints {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1.5rem;
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  line-height: 1.7;
+  color: var(--color-ink-faint);
+}
+
+.hints kbd {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.3rem;
+  height: 1.3rem;
+  padding-inline: 0.3rem;
+  font-size: 0.62rem;
+  color: var(--color-ink);
+  background: var(--color-surface);
+  border: 1px solid var(--color-hairline);
+  border-radius: 3px;
+}
+
+.count .readout { color: var(--color-signal); }
+
+@media (max-width: 720px) {
+  .rulerRow,
+  .trackRow { grid-template-columns: 6rem minmax(0, 1fr); }
+  .playhead { left: calc(6.5rem + (100% - 6.5rem) * var(--playhead, 0)); }
+}

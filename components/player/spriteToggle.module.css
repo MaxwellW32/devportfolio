@@ -1,0 +1,43 @@
+.button {
+  gap: 0.55rem;
+}
+
+.linkish {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex: none;
+  background: var(--color-ink-faint);
+  transition: background-color 240ms, box-shadow 240ms;
+}
+
+.dot[data-on="true"] {
+  background: var(--color-signal);
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--color-signal) 22%, transparent);
+}
+
+/* Inside a .btn the hover fill inverts the text, so the dot follows it */
+.button:hover .dot[data-on="true"] {
+  background: var(--color-void);
+  box-shadow: none;
+}
+
+/* He needs a keyboard and a fine pointer, so on touch the offer is withdrawn */
+@media (pointer: coarse), (prefers-reduced-motion: reduce) {
+  .button,
+  .linkish {
+    display: none;
+  }
+}

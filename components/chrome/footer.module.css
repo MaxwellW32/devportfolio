@@ -64,3 +64,18 @@
   font-size: var(--step--2);
   color: var(--color-ink-faint);
 }
+
+/* The character can be summoned from here too, for anyone who has met him on
+   the playground and then forgotten he follows you around. */
+.sprite {
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-ink-faint);
+  transition: color 220ms;
+}
+
+.sprite:hover {
+  color: var(--color-signal);
+}
