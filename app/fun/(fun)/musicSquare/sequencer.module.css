@@ -126,8 +126,16 @@
 
 .panelButtons {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(6.5rem, 1fr));
+  grid-template-columns: 1fr 1fr;
   gap: 0.4rem;
+}
+
+.panelButtons > :last-child {
+  grid-column: span 2;
+}
+
+.panelButtons span {
+  white-space: nowrap;
 }
 
 .note {
@@ -196,8 +204,10 @@
   text-overflow: ellipsis;
 }
 
+/* Wide, short cells: a square grid at this width would push the melody rows
+   off the bottom of the screen, and every hardware sequencer is wide anyway. */
 .cell {
-  aspect-ratio: 1;
+  height: clamp(1.15rem, 0.85rem + 1vw, 1.85rem);
   min-height: 0;
   padding: 0;
   background: var(--color-surface);

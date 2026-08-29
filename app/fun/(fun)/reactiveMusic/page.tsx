@@ -297,6 +297,7 @@ export default function Page() {
       context.strokeStyle = `rgba(220, 255, 190, ${0.35 + bands.level * 0.5})`
       context.lineWidth = 1.4
       context.stroke()
+      context.restore()
 
       /* --- the beat flash --- */
       if (pulse > 0.02) {
@@ -313,7 +314,7 @@ export default function Page() {
         sinceReadout = 0
 
         const intervals = [...beatTimes].sort((a, b) => a - b)
-        const median = intervals.length >= 4 ? intervals[Math.floor(intervals.length / 2)] : null
+        const median = intervals.length >= 3 ? intervals[Math.floor(intervals.length / 2)] : null
 
         readoutSet({
           ...bands,

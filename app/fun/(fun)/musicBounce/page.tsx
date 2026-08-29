@@ -7,6 +7,7 @@ import {
   SCALES,
   getAudio,
   midiToFrequency,
+  noteName,
   playBell,
   playPluck,
   scaleNote,
@@ -47,12 +48,16 @@ type ball = {
   trail: { x: number; y: number }[]
 }
 
+type wall = "left" | "right" | "top" | "bottom"
+
 type ripple = {
   x: number
   y: number
   at: number
   hue: number
   strength: number
+  wall: wall
+  position: number
 }
 
 type settings = {
@@ -112,6 +117,11 @@ export default function Page() {
     let height = 0
     let nextId = 1
 
+    // Strict mode mounts effects twice in development; without this the world
+    // would start with two sets of balls in it.
+    ballsRef.current = []
+    ripplesRef.current = []
+
     const resize = () => {
       const rect = canvas.getBoundingClientRect()
       const ratio = Math.min(window.devicePixelRatio || 1, 2)
@@ -165,7 +175,7 @@ export default function Page() {
        `position` is 0..1 along the wall that was struck. The wall is a
        keyboard: position picks the scale degree. */
     const strike = (
-      wall: "left" | "right" | "top" | "bottom",
+      wall: wall,
       position: number,
       speed: number,
       x: number,
@@ -198,7 +208,7 @@ export default function Page() {
         playPluck(when, midiToFrequency(midi), gain * 0.9, 0.24)
       }
 
-      ripplesRef.current.push({ x, y, at: when, hue, strength })
+      ripplesRef.current.push({ x, y, at: when, hue, strength, wall, position: degree / 10 })
     }
 
     /* ---- Loop ------------------------------------------------------------ */
@@ -265,19 +275,19 @@ export default function Page() {
       context.clearRect(0, 0, width, height)
 
       // A faint grid of the note divisions, so the walls read as instruments
-      context.strokeStyle = "rgba(255,255,255,0.05)"
+      context.strokeStyle = "rgba(255,255,255,0.11)"
       context.lineWidth = 1
       for (let index = 1; index < 10; index += 1) {
         const x = (width / 10) * index
         const y = (height / 10) * index
         context.beginPath()
         context.moveTo(x, 0)
-        context.lineTo(x, 8)
-        context.moveTo(x, height - 8)
+        context.lineTo(x, 16)
+        context.moveTo(x, height - 16)
         context.lineTo(x, height)
         context.moveTo(0, y)
-        context.lineTo(8, y)
-        context.moveTo(width - 8, y)
+        context.lineTo(16, y)
+        context.moveTo(width - 16, y)
         context.lineTo(width, y)
         context.stroke()
       }
@@ -299,6 +309,35 @@ export default function Page() {
         context.strokeStyle = `hsla(${eachRipple.hue}, 90%, 70%, ${(1 - progress) * 0.75})`
         context.lineWidth = 2 * (1 - progress) + 0.5
         context.stroke()
+
+        // Light up the tenth of the wall that just sounded, so it is obvious
+        // that the edges are keyboards rather than decoration.
+        if (progress < 0.45) {
+          const fade = 1 - progress / 0.45
+          const vertical = eachRipple.wall === "left" || eachRipple.wall === "right"
+          const span = (vertical ? height : width) / 10
+          const start = eachRipple.position * (vertical ? height : width)
+
+          context.strokeStyle = `hsla(${eachRipple.hue}, 95%, 72%, ${fade * 0.9})`
+          context.lineWidth = 4
+          context.beginPath()
+
+          if (eachRipple.wall === "left") {
+            context.moveTo(1, height - start)
+            context.lineTo(1, height - start - span)
+          } else if (eachRipple.wall === "right") {
+            context.moveTo(width - 1, height - start)
+            context.lineTo(width - 1, height - start - span)
+          } else if (eachRipple.wall === "top") {
+            context.moveTo(start, 1)
+            context.lineTo(start + span, 1)
+          } else {
+            context.moveTo(start, height - 1)
+            context.lineTo(start + span, height - 1)
+          }
+
+          context.stroke()
+        }
 
         return true
       })
@@ -417,7 +456,7 @@ export default function Page() {
         <Slider
           label="Root"
           value={settings.root}
-          display={SCALE_NAMES.length > 0 ? `${settings.root}` : ""}
+          display={noteName(settings.root)}
           min={40}
           max={64}
           onChange={value => settingsSet(previous => ({ ...previous, root: value }))}
