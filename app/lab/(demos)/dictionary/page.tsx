@@ -4,42 +4,52 @@ import React, { useState, useEffect } from "react";
 import parrot from "@/public/projects/dictionary/parrot.json";
 import { Lottie } from "lottie-react";
 import { toast } from "react-hot-toast";
+import { getDefinition, type definitionEntry } from "./getDefinition";
 
 export default function Page() {
-    interface Word {
-        word: string;
-        meanings: {
-            definitions: {
-                definition: string;
-            }[];
-        }[];
-    }
-
     const [word, setWord] = useState("");
-    const [topValue, setTopValue] = useState(Math.floor(Math.random() * 100));
-    const [foundWord, setFoundWord] = useState<Word[]>([]);
+    const [foundWord, setFoundWord] = useState<definitionEntry[]>([]);
+    const [searching, setSearching] = useState(false);
+
+    // Both parrot heights start at a FIXED value and are only randomised after
+    // mount. Seeding them with Math.random() made the server and client render
+    // different markup, and the resulting hydration mismatch left the page's
+    // event handlers unattached — which is why the search button did nothing.
+    const [topValue, setTopValue] = useState(40);
+    const [secondTop, setSecondTop] = useState(70);
 
     //control parrots
     useEffect(() => {
-        const interval = setInterval(() => {
+        const roll = () => {
             setTopValue(Math.floor(Math.random() * 100));
-        }, 4000);
+            setSecondTop(Math.floor(Math.random() * 100));
+        };
+
+        roll();
+        const interval = setInterval(roll, 4000);
 
         return () => clearInterval(interval);
     }, []);
 
 
-    const findNewWord = () => {
-        if (word === "") return
+    const findNewWord = async () => {
+        if (word.trim() === "" || searching) return
 
-        fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`)
-            .then((Response) => Response.json())
-            .then((foundWord) => {
-                setFoundWord(foundWord);
-            }).catch(err => {
-                toast.error("Error seen, please try again")
-                console.log(`$err`, err);
-            })
+        setSearching(true)
+
+        try {
+            const result = await getDefinition(word)
+
+            if (!result.ok) {
+                setFoundWord([])
+                toast.error(result.error)
+                return
+            }
+
+            setFoundWord(result.entries)
+        } finally {
+            setSearching(false)
+        }
     }
 
 
@@ -62,7 +72,7 @@ export default function Page() {
                         }}
                     ></input>
 
-                    <button onClick={findNewWord}>Search</button>
+                    <button onClick={findNewWord} disabled={searching}>{searching ? "…" : "Search"}</button>
                 </div>
             </section>
 
@@ -86,7 +96,7 @@ export default function Page() {
                 <Lottie src={parrot} loop autoplay />
             </div>
 
-            <div style={{ animationDelay: "12s", top: `${topValue + Math.floor(Math.random() * 100)}%`, }} className={`${styles.moveParrot} ${styles.blue}`}>
+            <div style={{ animationDelay: "12s", top: `${secondTop}%` }} className={`${styles.moveParrot} ${styles.blue}`}>
                 <Lottie src={parrot} loop autoplay />
             </div>
         </main>

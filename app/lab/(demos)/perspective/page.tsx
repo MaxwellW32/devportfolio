@@ -8,7 +8,6 @@ import { getPlaylist } from "./getPlaylist";
 import { removeFromLocalStorage, retreiveFromLocalStorage, saveToLocalStorage } from "@/utility/saveToStorage";
 
 const defaultVids = [
-    "oihY8GiXXgQ",
     "tcaw6lzYt1Q",
     "ZU038QQW-K4",
     "ktBMxkLUIwY",
@@ -27,8 +26,6 @@ const defaultVids = [
     "MEiVnNNpJLA",
     "gQDX-sf89p4",
     "u_5-I0MhUww",
-    "G3e-cpL7ofc",
-    "3-yRTEFAv6g",
 ]
 
 export default function Page() {

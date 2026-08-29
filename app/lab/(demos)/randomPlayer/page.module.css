@@ -1,26 +1,78 @@
 .mainVidPlayer {
-    height: 100svh;
-    padding-block: 2rem;
+    min-height: 100svh;
+    padding: clamp(1.25rem, 1rem + 2vw, 2.5rem);
     display: grid;
-    gap: 1rem;
+    gap: 1.25rem;
     align-content: flex-start;
 }
 
+/* The controls row: input, search, and a fresh-random button.
+   The original had no gap, so all three ran together as one string. */
 .vidSearchCont {
     display: flex;
     flex-wrap: wrap;
+    align-items: center;
     justify-content: center;
+    gap: 0.65rem;
+    width: min(100%, 46rem);
+    margin-inline: auto;
 }
 
-.vidSearchCont>button {
-    border-radius: 0;
+.vidSearchInput {
+    flex: 1 1 14rem;
+    min-width: 0;
+    padding: 0.7rem 0.95rem;
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    color: var(--color-ink);
+    background: var(--color-canvas);
+    border: 1px solid var(--color-hairline);
+    border-radius: 2px;
+    transition: border-color 220ms;
+}
+
+.vidSearchInput::placeholder {
+    color: var(--color-ink-faint);
+}
+
+.vidSearchInput:focus {
+    outline: none;
+    border-color: var(--color-signal);
+}
+
+.vidSearchCont > button {
+    flex: none;
+    padding: 0.7rem 1.1rem;
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: var(--color-ink);
+    background: none;
+    border: 1px solid var(--color-hairline);
+    border-radius: 2px;
+    cursor: pointer;
+    transition: color 220ms, border-color 220ms, background-color 220ms;
+}
+
+.vidSearchCont > button:hover {
+    color: var(--color-void);
+    background: var(--color-signal);
+    border-color: var(--color-signal);
 }
 
 .vidCont {
     overflow: auto;
+    display: grid;
+    justify-items: center;
 }
 
-.vidCont>iframe {
-    aspect-ratio: 16/9;
+.vidCont > iframe {
+    width: min(100%, 72rem);
+    aspect-ratio: 16 / 9;
+    height: auto;
     max-height: 100%;
+    border: 1px solid var(--color-hairline);
+    border-radius: 3px;
 }

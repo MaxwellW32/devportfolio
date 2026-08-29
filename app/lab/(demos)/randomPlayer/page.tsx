@@ -2,25 +2,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import styles from "./page.module.css"
 import { getVideos } from "./getVideos";
+import { getRandomWord } from "./getRandomWord";
 import ShowVideoRandPlayer from "./ShowVideoRandPlayer";
 import { toast } from "react-hot-toast";
 
-const myBackupVideoIds = ["ktBMxkLUIwY", "tcaw6lzYt1Q", "rULyu_wFWGU", "ZD6C498MB4U", "ytQ5CYE1VZw", "iI34LYmJ1Fs", "h3EJICKwITw", "3JBKp0YbSEc", "r_0JjYUe5jo", "oihY8GiXXgQ", "nceqQyqIa5o", "1RdrlReJmTY", "RRl_C73vFtQ",];
-
-async function getRandomWord() {
-    try {
-        const response = await fetch(`https://api.wordnik.com/v4/words.json/randomWords?hasDictionaryDef=true&minCorpusCount=0&minLength=5&maxLength=15&limit=1&api_key=a2a73e7b926c924fad7001ca3111acd55af2ffabf50eb4ae5`)
-        const data = await response.json()
-
-        return data[0].word
-
-    } catch (error) {
-        console.log(`$error with random word`);
-        console.log(error);
-
-        return null
-    }
-}
+const myBackupVideoIds = ["ktBMxkLUIwY", "tcaw6lzYt1Q", "rULyu_wFWGU", "ZD6C498MB4U", "ytQ5CYE1VZw", "iI34LYmJ1Fs", "h3EJICKwITw", "3JBKp0YbSEc", "r_0JjYUe5jo", "nceqQyqIa5o", "1RdrlReJmTY", "RRl_C73vFtQ",];
 
 export default function VideoGenerator() {
     const [search, searchSet] = useState("");
@@ -58,7 +44,7 @@ export default function VideoGenerator() {
     //Start off
     useEffect(() => {
         const startOff = async () => {
-            const randomWord = await getRandomWord() ?? "cats"
+            const randomWord = await getRandomWord()
             searchSet(randomWord)
             searchForVideos(randomWord);
         }
@@ -110,8 +96,6 @@ export default function VideoGenerator() {
 
         if (connectedToYoutube === "true") {
             const word = await getRandomWord()
-
-            if (!word) return toast.error("couldn't get a random word")
 
             searchSet(word)
             searchForVideos(word)
@@ -172,11 +156,6 @@ export default function VideoGenerator() {
                         <button
                             onClick={async () => {
                                 const word = await getRandomWord()
-
-                                if (!word) {
-                                    toast.error("couldn't get a random word")
-                                    return
-                                }
 
                                 searchSet(word)
                                 searchForVideos(word)

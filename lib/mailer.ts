@@ -6,14 +6,15 @@ import nodemailer from "nodemailer"
    MAILER
 
    Same convention as the other projects (cheers, polyedge): SMTP settings
-   resolve from either naming scheme, so one .env works everywhere.
+   resolve from any of three naming schemes, so one .env works everywhere and
+   this site's own pre-existing EMAIL / EMAIL_PASS pair keeps working too.
 
-     EMAIL_SERVER_HOST / SMTP_HOST          default smtp.gmail.com
-     EMAIL_SERVER_PORT / SMTP_PORT          default 587
-     EMAIL_SERVER_USER / SMTP_USER
-     EMAIL_SERVER_PASSWORD / SMTP_PASS
-     EMAIL_FROM        / SMTP_FROM          optional "Name <addr>"
-     CONTACT_TO                             optional; defaults to the SMTP user
+     host  EMAIL_SERVER_HOST      / SMTP_HOST              default smtp.gmail.com
+     port  EMAIL_SERVER_PORT      / SMTP_PORT              default 587
+     user  EMAIL_SERVER_USER      / SMTP_USER / EMAIL
+     pass  EMAIL_SERVER_PASSWORD  / SMTP_PASS / EMAIL_PASS
+     from  EMAIL_FROM             / SMTP_FROM              optional "Name <addr>"
+     to    CONTACT_TO                                      optional, defaults to user
 
    Next.js loads .env itself, so there is no dotenv call here.
    ========================================================================= */
@@ -25,8 +26,8 @@ export const smtpConfig = {
   port,
   secure: (process.env.SMTP_SECURE ?? "").toLowerCase() === "true" || port === 465,
   auth: {
-    user: process.env.EMAIL_SERVER_USER ?? process.env.SMTP_USER,
-    pass: process.env.EMAIL_SERVER_PASSWORD ?? process.env.SMTP_PASS,
+    user: process.env.EMAIL_SERVER_USER ?? process.env.SMTP_USER ?? process.env.EMAIL,
+    pass: process.env.EMAIL_SERVER_PASSWORD ?? process.env.SMTP_PASS ?? process.env.EMAIL_PASS,
   },
 }
 
