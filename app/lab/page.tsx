@@ -2,18 +2,18 @@ import type { Metadata } from "next"
 import Link from "next/link"
 
 import Reveal from "@/components/ui/Reveal"
-import { landingPageExamples } from "@/lib/landingPageExamplesData"
 import styles from "./lab.module.css"
 
 export const metadata: Metadata = {
   title: "Lab",
   description:
-    "Small self-contained builds — interface experiments, API integrations and landing-page studies.",
+    "Small self-contained builds — interface experiments, API integrations, and the CSS I wanted to understand properly.",
 }
 
 /* ============================================================================
    TO ADD A BUILD: append to `builds` below and create app/lab/<slug>/page.tsx.
-   Landing-page studies come from lib/landingPageExamplesData.ts instead.
+   The landing-page studies moved out to their own project — see the note in
+   the "Client-facing studies" section below.
    ========================================================================= */
 
 type build = {
@@ -107,21 +107,25 @@ export default function Page() {
       </section>
 
       <section className={`shellWide ${styles.section}`}>
-        <h2 className={styles.sectionTitle}>Landing-page studies</h2>
+        <h2 className={styles.sectionTitle}>Client-facing studies</h2>
         <p className={styles.sectionLede}>
-          Visual exercises — each one chasing a specific mood with a different
-          technique, from scroll choreography to WebGL.
+          The complete demo sites — nine of them, each chasing a different mood
+          for a different kind of business — live in their own project now.
+          They outgrew being one page each in here.
         </p>
 
-        <div className={styles.grid}>
-          {landingPageExamples.map((eachPage, eachIndex) => (
-            <Reveal key={eachPage.link} delay={eachIndex * 60}>
-              <Link href={eachPage.link} className={`card ${styles.card}`}>
-                <p className="label labelPlain">{eachPage.category}</p>
-                <h3 className={styles.cardTitle}>{eachPage.title}</h3>
-              </Link>
-            </Reveal>
-          ))}
+        <div className={styles.outLink}>
+          <a
+            href="https://squaremaxtech.com"
+            target="_blank"
+            rel="noreferrer"
+            className="btn"
+          >
+            <span>Browse the website studies</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </a>
         </div>
       </section>
     </main>

@@ -26,23 +26,20 @@ const eslintConfig = [
 
   /* --------------------------------------------------------------------------
      LEGACY DEMOS
-     The small builds under /lab and the older playground toys predate this
-     rebuild. They work, and they are self-contained throwaway demos, so their
-     pre-existing hook-purity and require()-import issues are reported as
-     warnings rather than errors — otherwise `npm run check` is all noise and
-     no signal for the code that actually matters.
+     The small builds under /lab predate this rebuild. They work, and they are
+     self-contained throwaway demos, so their pre-existing hook-purity and
+     require()-import issues are reported as warnings rather than errors —
+     otherwise `npm run check` is all noise and no signal for the code that
+     actually matters.
 
-     New work does not get this treatment. If you rewrite one of these, delete
+     New work does not get this treatment. Everything under app/fun was
+     rewritten and holds to the strict rules, which is why none of it is
+     listed here any more. If you rewrite one of the remaining demos, delete
      its path from the list and fix what surfaces.
      ----------------------------------------------------------------------- */
   {
     files: [
       "app/lab/**/*.{ts,tsx}",
-      "app/fun/(fun)/chess/**/*.{ts,tsx}",
-      "app/fun/(fun)/luckRanked/**/*.{ts,tsx}",
-      "app/fun/(fun)/music*/**/*.{ts,tsx}",
-      "app/fun/(fun)/reactiveMusic/**/*.{ts,tsx}",
-      "components/landingPages/**/*.{ts,tsx}",
       "useful/**/*.{ts,tsx}",
     ],
     rules: {

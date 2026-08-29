@@ -33,7 +33,7 @@ export const metadata: Metadata = {
     template: "%s — Maxwell Wedderburn",
   },
   description:
-    "Full-stack engineer building trading systems, AI-driven products and multi-tenant platforms. I build the instrument before I trust the reading.",
+    "Full-stack engineer building trading systems, AI-driven products and multi-tenant platforms. I build the instrument before I trust the reading — and I am glad to explain any of it.",
   openGraph: {
     title: "Maxwell Wedderburn — Full-stack engineer",
     description:
@@ -49,8 +49,11 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
+    // globals.css sets scroll-behavior: smooth, and data-scroll-behavior tells
+    // Next to keep route transitions instant rather than animating the jump.
     <html
       lang="en"
+      data-scroll-behavior="smooth"
       className={`${spaceGrotesk.variable} ${inter.variable} ${jetbrains.variable}`}
     >
       <body className="grain">

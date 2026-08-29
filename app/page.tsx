@@ -33,9 +33,10 @@ export default function Page() {
             </h1>
 
             <p className={styles.heroLede}>
-              Full-stack engineer. I build trading systems that measure themselves,
-              AI products that hold their shape when the model misbehaves, and
-              platforms that stay correct as they grow.
+              Full-stack engineer in Kingston. I build trading systems that measure
+              themselves, AI products that hold their shape when the model
+              misbehaves, and platforms that stay correct as they grow — and I am
+              always happy to walk you through how any of it works.
             </p>
 
             <div className={styles.heroActions}>
@@ -91,7 +92,7 @@ export default function Page() {
             <header className={styles.sectionHead}>
               <p className="label">How I work</p>
               <h2 className={styles.sectionTitle}>
-                Anyone can ship. The question is whether you would know if it were wrong.
+                Shipping is the easy half. Knowing it is right is the job.
               </h2>
             </header>
           </Reveal>
@@ -118,10 +119,10 @@ export default function Page() {
           <Reveal>
             <header className={styles.sectionHead}>
               <p className="label">Selected work</p>
-              <h2 className={styles.sectionTitle}>Four I would defend in an interview.</h2>
+              <h2 className={styles.sectionTitle}>Four I would happily talk you through.</h2>
               <p className={styles.sectionLede}>
-                Each of these has a hard part — a problem where the obvious solution was
-                wrong, and the right one took real thought.
+                Each of these has a hard part — a problem where the obvious solution
+                was wrong, and finding the right one was the best week of the build.
               </p>
             </header>
           </Reveal>
@@ -155,7 +156,7 @@ export default function Page() {
           <Reveal>
             <header className={styles.sectionHead}>
               <p className="label">Track record</p>
-              <h2 className={styles.sectionTitle}>Things I have actually shipped.</h2>
+              <h2 className={styles.sectionTitle}>What I have shipped so far.</h2>
             </header>
           </Reveal>
 
@@ -195,9 +196,10 @@ export default function Page() {
                   And some things built purely because I wanted to know if I could.
                 </h2>
                 <p className={styles.sectionLede}>
-                  Procedural worlds, a chess engine, audio-reactive visualisers, and a
-                  character who runs along the headings of the page. No client asked for
-                  any of it.
+                  Procedural worlds, a chess engine verified against published perft
+                  counts, four things made of nothing but oscillators, and a character
+                  who runs along the headings of every page on this site. No client
+                  asked for any of it.
                 </p>
 
                 <div className={styles.heroActions}>

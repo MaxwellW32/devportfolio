@@ -17,13 +17,13 @@ import styles from "./reactive.module.css"
    energy against a fixed threshold does not work, because a quiet track never
    crosses it and a loud one is over it permanently. What does work is
    comparing the current bass energy against a rolling average of the last
-   second and a half of itself: a beat is a local spike relative to how loud
-   the track already is, which is scale-free and therefore works on anything.
+   second of itself: a beat is a local spike relative to how loud the track
+   already is, which is scale-free and therefore works on anything.
    ========================================================================= */
 
 const FFT_SIZE = 2048
-const HISTORY = 90
-const BEAT_SENSITIVITY = 1.32
+const HISTORY = 60
+const BEAT_SENSITIVITY = 1.2
 const BEAT_REFRACTORY = 0.22
 
 type source = "none" | "demo" | "file" | "mic"

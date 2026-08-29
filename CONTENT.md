@@ -8,7 +8,6 @@ No component edits, no CSS, no rebuild ritual — change the data, save, done.
 | Add / remove / reorder a project | `lib/projects.ts` |
 | Change my bio, principles, skills, achievements | `lib/profile.ts` |
 | Add a playground toy | `lib/FunData.ts` |
-| Add a landing-page study | `lib/landingPageExamplesData.ts` |
 | Add a screenshot | drop a file in `public/shots/` |
 
 ---
@@ -158,16 +157,37 @@ demonstrate, not what it is made of.
 
 `state` is honest: `polished`, `playable`, or `sketch`.
 
-### The platformer character
+### Sound
 
-The character on `/fun` treats any element with `data-platform-enabled` as a
-one-way platform. To make a new heading landable:
+The four audio toys share one synthesiser at
+`app/fun/(fun)/_audio/synth.ts` — voices, scales, and the two schedulers.
+Nothing on those pages is a sample; it is all oscillators and one noise buffer.
+If you add another audio toy, use `createStepScheduler` or `createTransport`
+from there rather than a `setInterval`. The comment at the top of that file
+explains why that matters more than it sounds like it should.
+
+The `_audio` folder starts with an underscore, so Next.js treats it as private
+and never routes to it.
+
+### The character
+
+He lives in `components/player/` and is mounted once in the root layout, so he
+walks the whole site rather than only `/fun`.
+
+- **Waking him up:** `SpriteToggle`, or <kbd>Shift</kbd>+<kbd>P</kbd> anywhere.
+  The state persists in localStorage.
+- **Platforms:** any `h1`, `h2`, `h3`, `.card` or `.btn` inside `#main`, plus
+  anything with `data-platform-enabled` or the class `platform`. Opt a subtree
+  out with `data-platform-disabled`.
+- **Float mode:** <kbd>F</kbd>. Gravity off, WASD in all four directions, and
+  whatever is under his chest gets outlined so <kbd>E</kbd> can follow it.
+- **Full-screen toys:** he suspends himself whenever `body[data-immersive]` is
+  true, so the games keep their own WASD.
 
 ```tsx
-<h2 data-platform-enabled>Some heading</h2>
+<h2 data-platform-enabled>A heading he can stand on</h2>
+<section data-platform-disabled>...nothing in here is landable...</section>
 ```
-
-It re-measures on layout changes, so this works on anything.
 
 ---
 
@@ -178,6 +198,13 @@ It re-measures on layout changes, so this works on anything.
 
 The `(demos)` group makes it full-bleed with a "show site nav" toggle.
 
+### The landing-page studies moved out
+
+The client-facing demo sites used to live at `/lab/pages`. They are now their
+own Next.js project (`websiteprojects`, deployed alongside squaremaxtech.com),
+where each one is a real multi-page site rather than a single route. `/lab`
+links out to them.
+
 ---
 
 ## Commands
@@ -187,6 +214,7 @@ npm run dev          # development server
 npm run build        # production build
 npm run check        # typecheck + lint, run this before deploying
 npm run capture      # screenshot live sites
+npm run perft        # verify the chess move generator against published counts
 ```
 
 ---
@@ -198,6 +226,7 @@ app/
   page.tsx                    home
   projects/                   the catalogue + case study pages
   fun/(fun)/                  playground toys (full-screen)
+  fun/(fun)/_audio/           the shared synthesiser
   lab/                        small builds + landing-page studies
   globals.css                 the whole design system
 lib/
@@ -209,7 +238,7 @@ components/
   chrome/                     navbar, footer, immersive mode
   projects/                   card, explorer rail, screenshot, status tag
   hero/                       the animated signal plot
-  player/                     the platformer character
+  player/                     the character, mounted site-wide
 public/shots/                 ← drop screenshots here, named by slug
 scripts/capture.ts            the screenshot crawler
 ```

@@ -57,9 +57,9 @@ export const funItems: funItem[] = [
   {
     slug: "luckRanked",
     title: "Luck Ranked",
-    claim: "How well can you actually track a shuffle? A cup game that keeps score honestly.",
-    tags: ["Game", "Three.js"],
-    state: "playable",
+    claim: "How well can you really follow a shuffle? It scores you against chance and tells you when the gap stops being luck.",
+    tags: ["Game", "Statistics"],
+    state: "polished",
   },
   {
     slug: "musicSquare",

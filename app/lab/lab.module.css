@@ -70,3 +70,11 @@
   font-size: var(--step--1);
   line-height: 1.65;
 }
+
+/* The landing-page studies moved into their own project; what is left here is
+   the link out to them. */
+.outLink {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}

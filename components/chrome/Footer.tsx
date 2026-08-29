@@ -29,7 +29,7 @@ export default function Footer() {
             <p className={styles.headline}>
               Got something hard?
               <br />
-              That is the interesting part.
+              That is my favourite kind of message.
             </p>
 
             <div className={styles.actions}>

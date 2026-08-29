@@ -12,9 +12,9 @@ export const profile = {
   linkedin: "https://www.linkedin.com/in/maxwell-wedderburn/",
   /** Shown as the hero pitch on the about page. */
   bio: [
-    "I started building because I wanted to automate my own drudgery. As a NOC engineer I replaced a paper-based tracking system with a real-time platform, and wrote VBA automations to compile information nobody wanted to compile by hand. That instinct never left.",
-    "Since then I have built production sites for clients, a multi-tenant website platform, AI narrative engines, and — most recently — trading systems where being wrong costs money. That last one changed how I work. When a bug shows up as a number in a ledger rather than a red test, you learn very quickly to build the measuring device before you trust the measurement.",
-    "I have been building AI into products since getting structured JSON back from a model reliably was still a real problem. I now build with Claude daily. I learn fast, I read the source when the docs are thin, and I would rather kill my own idea on evidence than defend it on pride.",
+    "I got into this by trying to make my own job easier. As a NOC engineer I replaced a paper-based tracking system with a real-time platform, and wrote VBA automations to compile the reports nobody enjoyed compiling by hand. Watching people's days get shorter because of something I built is still the reason I do this.",
+    "Since then I have shipped production sites for clients, a multi-tenant website platform, AI narrative engines, and trading systems where being wrong costs real money. That last one taught me the habit I am proudest of: build the measuring device before you trust the measurement — and say plainly what was measured, what was estimated, and which is which.",
+    "I learn fast and I enjoy it. I was coercing structured JSON out of models with Zod before that was a documented pattern, and I build with Claude every day now. Hand me an unfamiliar codebase and a bug nobody can reproduce and I will happily spend the afternoon there. I document as I go so the next person is not stuck, I am easy to work with, and I am always glad to hear about a new opportunity.",
   ],
 }
 
@@ -29,19 +29,24 @@ export const capabilities: { value: string; label: string }[] = [
 /* ---- How I work --------------------------------------------------------- */
 export const principles: { title: string; body: string }[] = [
   {
-    title: "Measure before you believe",
+    title: "Build the measuring device first",
     body:
-      "My trading work journals the state of the world at the moment of every decision, so a result can be audited later instead of assumed. Every number carries a label saying whether it was measured live, measured in simulation, derived or modelled — because pooling those four is how you fool yourself.",
+      "My trading work journals the state of the world at the moment of every decision, so a result can be audited later rather than assumed. Every number carries a label saying whether it was measured live, measured in simulation, derived or modelled — because quietly pooling those four is the easiest way to fool yourself.",
   },
   {
     title: "Write the decision down",
     body:
-      "Every project I run keeps a notes directory of one-fact files: what was tried, what the evidence said, and what was decided. It means the next session cannot quietly relitigate a settled question from memory, and it means someone else could pick the work up.",
+      "Every project I run keeps a notes directory of one-fact files: what was tried, what the evidence said, what was decided. It means a settled question does not get quietly relitigated from memory, and it means someone else can pick the work up on a Monday without me in the room.",
   },
   {
-    title: "Kill your own ideas",
+    title: "Be glad to be wrong early",
     body:
-      "I have deleted more trading strategies than I have kept, each with a written verdict explaining the evidence that retired it. One looked strong across 441 samples and vanished at 1,423 — it was noise from counting the wrong unit. Finding that out is the job.",
+      "I have retired more trading strategies than I have kept, each with a written verdict explaining the evidence that killed it. One looked strong across 441 samples and vanished at 1,423 — it was noise from counting the wrong unit. Finding that out is not a setback, it is the whole job.",
+  },
+  {
+    title: "Say it in plain language",
+    body:
+      "The best part of a hard problem is getting to explain it afterwards. I write documentation and commit messages someone can actually follow, I flag risk before it is a surprise, and I would rather over-communicate a tradeoff than have a stakeholder discover it in production.",
   },
   {
     title: "Design for the real user",
@@ -49,14 +54,9 @@ export const principles: { title: string; body: string }[] = [
       "A merchant on a prepaid phone with patchy signal is not an edge case in Jamaica, it is the median. So the marketplace is local-first with a durable outbox, and the bus tracker polls rather than holding a socket open. The right architecture depends on whose hands it lands in.",
   },
   {
-    title: "Learn in public, fast",
-    body:
-      "I was using Zod to coerce structured JSON out of OpenAI before it was a documented pattern, and moved to building whole systems with Claude as soon as that was better. New tools do not intimidate me; I read the source and find out.",
-  },
-  {
     title: "Own it in production",
     body:
-      "Most of what I have built runs on Linux VPS boxes I configured, behind nginx, under PM2, with the backups and the deploy scripts written. Shipping is not the same as running, and I do both.",
+      "Most of what I have built runs on Linux boxes I configured, behind nginx, under PM2, with the backups and the deploy scripts written. Shipping is not the same as running, and I like doing both — including the 2am pager part.",
   },
 ]
 

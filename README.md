@@ -23,6 +23,7 @@ npm run dev          # http://localhost:3000
 | `npm run check` | typecheck + lint — run before deploying |
 | `npm run capture` | screenshot every project with a live link |
 | `npm run capture:install` | one-time Chromium download for the above |
+| `npm run perft` | verifies the chess move generator against published node counts |
 
 ## Environment
 
@@ -53,7 +54,7 @@ it could not send rather than failing silently.
 /projects/[slug]      case study, for projects marked caseStudy: true
 /fun                  playground index, with the platformer character
 /fun/[toy]            full-screen playground pieces
-/lab                  small builds and landing-page studies
+/lab                  small builds
 /lab/[demo]           the demos themselves
 /aboutMe              bio, principles, toolkit
 /contactUs            contact form
@@ -76,8 +77,15 @@ entire site follows.
 - **`components/hero/SignalCanvas.tsx`** — the animated hero plot. Mean-reverting
   random walk with a moving average; cursor height drives volatility. Pauses
   when off-screen or when the tab is hidden.
-- **`components/player/Player.tsx`** — the platformer character on `/fun`. Any
-  element with `data-platform-enabled` becomes a one-way platform.
+- **`components/player/Player.tsx`** — the character. He is mounted in the root
+  layout and walks the whole site: headings, cards and buttons are one-way
+  platforms, and <kbd>F</kbd> turns gravity off so he becomes a slow, silly
+  mouse that can follow links. He lives in a fixed, clipped overlay, which is
+  what stops him extending the document as he walks toward its edge.
+- **`app/fun/(fun)/chess/engine.ts`** — chess rules, verified by perft against
+  the published node counts for six reference positions to depth five.
+- **`app/fun/(fun)/_audio/synth.ts`** — the synthesiser behind all four audio
+  toys, and the lookahead scheduler that keeps them in time.
 - **`app/fun/(fun)/seedWorld/worldGen.ts`** — deterministic terrain. Every tile
   is a pure function of `(seed, x, y)`, so the world is infinite and stored
   nowhere.

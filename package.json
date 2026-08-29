@@ -13,7 +13,8 @@
     "typecheck": "tsc --noEmit",
     "check": "npm run typecheck && npm run lint",
     "capture": "tsx scripts/capture.ts",
-    "capture:install": "playwright install chromium"
+    "capture:install": "playwright install chromium",
+    "perft": "tsx scripts/perft.ts"
   },
   "dependencies": {
     "@react-three/fiber": "^9.7.0",
