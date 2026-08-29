@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useMemo, useRef, useState } from "react"
 
 import type { project, projectTier } from "@/lib/projects"
 import { tierLabels, tierOrder } from "@/lib/projects"
@@ -40,19 +40,14 @@ export default function ProjectExplorer({ projects, shots, counts }: explorerPro
       .filter(eachGroup => eachGroup.items.length > 0)
   }, [visible])
 
-  // Filtering away the selected project should move the selection, not blank it
-  useEffect(() => {
-    if (visible.length === 0) return
-    if (!visible.some(eachProject => eachProject.slug === activeSlug)) {
-      activeSlugSet(visible[0].slug)
-    }
-  }, [visible, activeSlug])
-
+  // Filtering away the selected project falls back to the first visible one.
+  // Derived rather than synced through an effect, so there is no cascading
+  // render and no frame where the panel is blank.
   const active = visible.find(eachProject => eachProject.slug === activeSlug) ?? visible[0]
 
   const move = useCallback(
     (direction: 1 | -1) => {
-      const index = visible.findIndex(eachProject => eachProject.slug === activeSlug)
+      const index = visible.findIndex(eachProject => eachProject.slug === active?.slug)
       if (index === -1) return
 
       const next = visible[(index + direction + visible.length) % visible.length]
@@ -63,7 +58,7 @@ export default function ProjectExplorer({ projects, shots, counts }: explorerPro
       button?.scrollIntoView({ block: "nearest" })
       button?.focus()
     },
-    [visible, activeSlug],
+    [visible, active],
   )
 
   const onKeyDown = (e: React.KeyboardEvent) => {
@@ -89,7 +84,7 @@ export default function ProjectExplorer({ projects, shots, counts }: explorerPro
             {counts.total} projects. {counts.caseStudies} worth a deep dive.
           </h1>
           <p className={styles.lede}>
-            Pick anything on the left. Each entry carries its stack, what it
+            Pick anything from the index. Each entry carries its stack, what it
             proves, and — where there was one — the genuinely hard problem
             underneath it.
           </p>

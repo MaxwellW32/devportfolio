@@ -9,7 +9,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "check": "npm run typecheck && npm run lint",
     "capture": "tsx scripts/capture.ts",
@@ -32,7 +32,6 @@
     "zod": "^4.5.2"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3.3.1",
     "@tailwindcss/postcss": "^4.3.3",
     "@types/crypto-js": "^4.2.2",
     "@types/node": "^26.4.0",
@@ -40,7 +39,7 @@
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.0",
     "@types/three": "^0.185.4",
-    "eslint": "^10.9.1",
+    "eslint": "^9.39.5",
     "eslint-config-next": "^16.3.3",
     "playwright": "^1.62.1",
     "tailwindcss": "^4.3.3",

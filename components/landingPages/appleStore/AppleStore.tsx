@@ -112,7 +112,7 @@ export default function AppleStore() {
     const findSafeIndex = (option: "up" | "down", seenValue: number) => {
         if (option === "up") {
             if (seenValue > iphones.length - 1) {
-                let newValue = seenValue - iphones.length
+                const newValue = seenValue - iphones.length
                 return newValue
             } else {
                 return seenValue
@@ -121,7 +121,7 @@ export default function AppleStore() {
         } else {
             //down
             if (seenValue < 0) {//-2
-                let newValue = iphones.length + seenValue
+                const newValue = iphones.length + seenValue
                 return newValue
             } else {
                 return seenValue

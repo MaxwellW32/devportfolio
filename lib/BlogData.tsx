@@ -1,6 +1,13 @@
 import type React from "react"
+import type { StaticImageData } from "next/image"
+
+import blog1 from "@/public/blog1image.webp"
+import blog2 from "@/public/blog2image.webp"
+import blog3 from "@/public/blog3image.webp"
+import blog4 from "@/public/blog4image.webp"
+import blog5 from "@/public/blog5image.webp"
 export type blog = {
-    image: string,
+    image: StaticImageData,
     category: string,
     datePosted: Date,
     title: string,
@@ -10,7 +17,7 @@ export type blog = {
 
 export const blogs: blog[] = [
     {
-        image: require(`@/public/blog1image.webp`).default.src,
+        image: blog1,
         category: "html",
         datePosted: new Date("2022-12-24"),
         title: "Getting started with html.",
@@ -23,7 +30,7 @@ export const blogs: blog[] = [
         ]
     },
     {
-        image: require(`@/public/blog2image.webp`).default.src,
+        image: blog2,
         category: "css",
         datePosted: new Date("2022-12-24"),
         title: "Getting started with css.",
@@ -35,7 +42,7 @@ export const blogs: blog[] = [
         ]
     },
     {
-        image: require(`@/public/blog3image.webp`).default.src,
+        image: blog3,
         category: "javascript",
         datePosted: new Date("2022-12-24"),
         title: "Getting started with javascript.",
@@ -47,7 +54,7 @@ export const blogs: blog[] = [
         ]
     },
     {
-        image: require(`@/public/blog4image.webp`).default.src,
+        image: blog4,
         category: "next",
         datePosted: new Date("2022-12-24"),
         title: "Getting started with next.",
@@ -59,7 +66,7 @@ export const blogs: blog[] = [
         ]
     },
     {
-        image: require(`@/public/blog5image.webp`).default.src,
+        image: blog5,
         category: "react",
         datePosted: new Date("2022-12-24"),
         title: "Getting started with react.",

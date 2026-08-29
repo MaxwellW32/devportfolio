@@ -532,8 +532,8 @@ export default function Page() {
                     const positionsClearCheck3 = passedChessBoardArr[seenPiece.currentPos[0]][seenPiece.currentPos[1] - 3]
 
                     if (positionsClearCheck1 === null && positionsClearCheck2 === null && positionsClearCheck3 === null) {
-                        let newPositionY = whiteLeftRook.currentPos[0]
-                        let newPositionX = whiteLeftRook.currentPos[1] + 1
+                        const newPositionY = whiteLeftRook.currentPos[0]
+                        const newPositionX = whiteLeftRook.currentPos[1] + 1
 
                         canCastleSet(prev => {
                             const newArr = [...prev, {
@@ -556,8 +556,8 @@ export default function Page() {
                     const positionsClearCheck2 = passedChessBoardArr[seenPiece.currentPos[0]][seenPiece.currentPos[1] + 2]
 
                     if (positionsClearCheck1 === null && positionsClearCheck2 === null) {
-                        let newPositionY = whiteRightRook.currentPos[0]
-                        let newPositionX = whiteRightRook.currentPos[1] - 1
+                        const newPositionY = whiteRightRook.currentPos[0]
+                        const newPositionX = whiteRightRook.currentPos[1] - 1
 
                         canCastleSet(prev => {
                             const newArr = [...prev, {
@@ -577,8 +577,8 @@ export default function Page() {
                     const positionsClearCheck3 = passedChessBoardArr[seenPiece.currentPos[0]][seenPiece.currentPos[1] - 3]
 
                     if (positionsClearCheck1 === null && positionsClearCheck2 === null && positionsClearCheck3 === null) {
-                        let newPositionY = blackLeftRook.currentPos[0]
-                        let newPositionX = blackLeftRook.currentPos[1] + 1
+                        const newPositionY = blackLeftRook.currentPos[0]
+                        const newPositionX = blackLeftRook.currentPos[1] + 1
 
                         canCastleSet(prev => {
                             const newArr = [...prev]
@@ -603,8 +603,8 @@ export default function Page() {
                     const positionsClearCheck2 = passedChessBoardArr[seenPiece.currentPos[0]][seenPiece.currentPos[1] + 2]
 
                     if (positionsClearCheck1 === null && positionsClearCheck2 === null) {
-                        let newPositionY = blackRightRook.currentPos[0]
-                        let newPositionX = blackRightRook.currentPos[1] - 1
+                        const newPositionY = blackRightRook.currentPos[0]
+                        const newPositionX = blackRightRook.currentPos[1] - 1
 
                         canCastleSet(prev => {
                             const newArr = [...prev]
@@ -761,7 +761,7 @@ export default function Page() {
         const kings = chessPiecesLocal.filter(eachPiece => eachPiece.piece === "king")
 
         //get tile positions that attack the kings
-        let tilesBeingAttacked: [number, number][] = []
+        const tilesBeingAttacked: [number, number][] = []
         chessPiecesLocal.forEach(eachChessPiece => {
             const seenTiles = getPossibleMoves(deepClone(eachChessPiece), deepClone(chessBoardLocal))
 

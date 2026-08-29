@@ -117,7 +117,7 @@ function Worm({ boardInfo }: { boardInfo: boardInfoType | undefined }) {
         let randY = 0
 
         if (seenCloseToMouse.current) {
-            let smallLimit = 30
+            const smallLimit = 30
             let changeMulti = 1
 
             if (Math.random() * 1 > .5) changeMulti *= -1

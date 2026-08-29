@@ -29,7 +29,7 @@ const SHELL_SPEED = 320
 const MAX_BOUNCES = 3
 const SHELL_LIFETIME = 5
 const RELOAD = 0.45
-const ENEMY_RELOAD = 2.1
+const ENEMY_RELOAD = 3.1
 
 type vector = { x: number; y: number }
 
@@ -186,7 +186,8 @@ export default function Page() {
         y,
         angle: Math.PI,
         turret: Math.PI,
-        cooldown: 0.6 + i * 0.35,
+        // Staggered, with a grace period so a wave never opens with a volley
+        cooldown: 2.2 + i * 0.5,
         alive: true,
         wanderAngle: Math.PI,
       })
@@ -391,10 +392,12 @@ export default function Page() {
         enemy.turret = lead ?? Math.atan2(toPlayerY, toPlayerX)
 
         enemy.cooldown -= delta
-        if (enemy.cooldown <= 0 && distance < 460) {
+        if (enemy.cooldown <= 0 && distance < 400) {
           // A little spread, so perfect prediction does not make them unfair
-          fire(enemy, enemy.turret + (Math.random() - 0.5) * 0.09, false)
-          enemy.cooldown = ENEMY_RELOAD + Math.random() * 0.8
+          // Perfect prediction would be unplayable; the spread is what makes
+          // dodging possible without making the lead calculation pointless.
+          fire(enemy, enemy.turret + (Math.random() - 0.5) * 0.22, false)
+          enemy.cooldown = ENEMY_RELOAD + Math.random() * 1.2
         }
       }
 

@@ -30,11 +30,13 @@ type weights = {
   cohesion: number
 }
 
+const DEFAULT_WEIGHTS: weights = { separation: 1.6, alignment: 1, cohesion: 0.9 }
+
 export default function Page() {
   const mountRef = useRef<HTMLDivElement | null>(null)
-  const weightsRef = useRef<weights>({ separation: 1.6, alignment: 1, cohesion: 0.9 })
 
-  const [weights, weightsSet] = useState<weights>(weightsRef.current)
+  const [weights, weightsSet] = useState<weights>(DEFAULT_WEIGHTS)
+  const weightsRef = useRef<weights>(DEFAULT_WEIGHTS)
   const [fps, fpsSet] = useState(0)
 
   // Keep the render loop reading current values without re-creating the scene
@@ -350,7 +352,7 @@ export default function Page() {
         <button
           type="button"
           className="btn btnSm"
-          onClick={() => weightsSet({ separation: 1.6, alignment: 1, cohesion: 0.9 })}
+          onClick={() => weightsSet(DEFAULT_WEIGHTS)}
         >
           <span>Reset weights</span>
         </button>

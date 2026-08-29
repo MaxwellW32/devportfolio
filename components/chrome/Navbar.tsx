@@ -2,8 +2,19 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useSyncExternalStore } from "react"
 import styles from "./navbar.module.css"
+
+const SCROLL_THRESHOLD = 24
+
+function subscribeToScroll(onChange: () => void) {
+  window.addEventListener("scroll", onChange, { passive: true })
+  return () => window.removeEventListener("scroll", onChange)
+}
+
+function isScrolled() {
+  return window.scrollY > SCROLL_THRESHOLD
+}
 
 const navLinks = [
   { label: "Work", href: "/projects" },
@@ -15,22 +26,18 @@ const navLinks = [
 
 export default function Navbar() {
   const pathname = usePathname()
-  const [scrolled, scrolledSet] = useState(false)
   const [menuOpen, menuOpenSet] = useState(false)
 
-  useEffect(() => {
-    const onScroll = () => scrolledSet(window.scrollY > 24)
-    onScroll()
-    window.addEventListener("scroll", onScroll, { passive: true })
-    return () => window.removeEventListener("scroll", onScroll)
-  }, [])
+  // Scroll position is browser state, not React state — subscribing to it
+  // directly avoids a setState-inside-an-effect and the cascading render it
+  // would cause on a page that loads already scrolled.
+  const scrolled = useSyncExternalStore(subscribeToScroll, isScrolled, () => false)
 
-  // Route change should always dismiss the mobile sheet
-  useEffect(() => {
-    menuOpenSet(false)
-  }, [pathname])
+  // Navigating dismisses the sheet. Handled on the click that causes the
+  // navigation rather than by reacting to the pathname, so there is no
+  // setState inside an effect and no extra render on every route change.
 
-  // A open sheet takes over the screen, so stop the page behind it scrolling
+  // An open sheet takes over the screen, so stop the page behind it scrolling
   useEffect(() => {
     document.body.style.overflow = menuOpen ? "hidden" : ""
     return () => {
@@ -94,7 +101,11 @@ export default function Navbar() {
         <ul>
           {navLinks.map((eachLink, eachLinkIndex) => (
             <li key={eachLink.href} style={{ "--i": eachLinkIndex } as React.CSSProperties}>
-              <Link href={eachLink.href} data-active={isActive(eachLink.href)}>
+              <Link
+                href={eachLink.href}
+                data-active={isActive(eachLink.href)}
+                onClick={() => menuOpenSet(false)}
+              >
                 <span className="readout">0{eachLinkIndex + 1}</span>
                 {eachLink.label}
               </Link>
@@ -102,7 +113,7 @@ export default function Navbar() {
           ))}
         </ul>
 
-        <a href="/resume.pdf" download className="btn btnPrimary">
+        <a href="/resume.pdf" download className="btn btnPrimary" onClick={() => menuOpenSet(false)}>
           <span>Download résumé</span>
         </a>
       </div>

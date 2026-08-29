@@ -165,9 +165,9 @@ export default function Page() {
                         }
                     }
 
-                    let r = barHeight + (25 * (i / bufferLength));
-                    let g = 250 * (i / bufferLength);
-                    let b = 50;
+                    const r = barHeight + (25 * (i / bufferLength));
+                    const g = 250 * (i / bufferLength);
+                    const b = 50;
 
                     ctx.fillStyle = "rgb(" + r + "," + g + "," + b + ")";
                     ctx.fillRect(x, CanvasHeight - ((barHeight / highestBeatValuePossible) * CanvasHeight), barWidth, barHeight);
@@ -441,8 +441,8 @@ export default function Page() {
     }
 
     function moveBox(boxStatsPassed: bounceBoxStats, containerPassed: HTMLDivElement, boxRefPassed: HTMLDivElement, mainDivRefPassed: HTMLDivElement) {
-        let currentPosX = boxStatsPassed.xPosition
-        let currentPosY = boxStatsPassed.yPosition
+        const currentPosX = boxStatsPassed.xPosition
+        const currentPosY = boxStatsPassed.yPosition
 
         let newPosX = currentPosX + (boxStatsPassed.xDirection * boxStatsPassed.speed)
         let newPosY = currentPosY + (boxStatsPassed.yDirection * boxStatsPassed.speed)
@@ -544,7 +544,7 @@ export default function Page() {
         if (el === null) return
         const rect = el.getBoundingClientRect();
 
-        let offsetY = e.clientY - rect.top;
+        const offsetY = e.clientY - rect.top;
         const percentDecimalY = (offsetY / rect.height);
         let newTarget = highestBeatValuePossible - Math.floor(highestBeatValuePossible * percentDecimalY)
 

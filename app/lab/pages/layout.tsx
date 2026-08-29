@@ -13,7 +13,7 @@ export default function HompagesRootLayout({
 
   const checkCurrentIndex = () => {
     const seenLink = document.URL.split("/lab/pages/")[1]
-    let seenIndex = landingPageExamples.findIndex(eachPage => {
+    const seenIndex = landingPageExamples.findIndex(eachPage => {
       const currentLink = eachPage.link.split("/lab/pages/")[1]
 
       if (seenLink === currentLink) {

@@ -91,7 +91,7 @@ export default function Page() {
     }
 
     const rotateBox = (options: "ArrowUp" | "ArrowDown" | "ArrowLeft" | "ArrowRight") => {
-        let xRotationAmount = 10
+        const xRotationAmount = 10
 
         if (options === "ArrowUp") {
             setBoxStats((prevStats) => {

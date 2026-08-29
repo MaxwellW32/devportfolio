@@ -63,9 +63,13 @@
   gap: 0.4rem;
   overflow-x: auto;
   padding-bottom: 2px;
+  /* min-width lets the row actually scroll instead of crushing its children */
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .filter {
+  flex: none;
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;

@@ -1,0 +1,21 @@
+.page {
+  padding-block: clamp(3rem, 2rem + 4vw, 5rem) clamp(4rem, 3rem + 4vw, 7rem);
+}
+
+.head {
+  display: grid;
+  gap: 1.15rem;
+  justify-items: start;
+  margin-bottom: clamp(2rem, 1.5rem + 2vw, 3rem);
+}
+
+.title {
+  font-size: var(--step-4);
+  letter-spacing: -0.04em;
+}
+
+.lede {
+  max-width: 52ch;
+  color: var(--color-ink-dim);
+  line-height: 1.7;
+}

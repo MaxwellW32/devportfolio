@@ -1,36 +1,90 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Maxwell Wedderburn — Portfolio
 
-## Getting Started
+Full-stack engineer's portfolio. Next.js 16, React 19, Tailwind 4, TypeScript.
 
-First, run the development server:
+**To change the content, read [CONTENT.md](CONTENT.md).** Everything you will
+want to edit lives in four data files and one folder — no component or CSS edits
+needed.
+
+---
+
+## Running it
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev          # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+| Command | What it does |
+| --- | --- |
+| `npm run dev` | development server |
+| `npm run build` | production build |
+| `npm run start` | serve the production build |
+| `npm run check` | typecheck + lint — run before deploying |
+| `npm run capture` | screenshot every project with a live link |
+| `npm run capture:install` | one-time Chromium download for the above |
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Environment
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+Copy `.env.example` to `.env` and fill in the SMTP credentials. The naming
+matches the other projects (cheers, polyedge), so one set of values works
+across all of them.
 
-## Learn More
+```
+EMAIL_SERVER_HOST     default smtp.gmail.com
+EMAIL_SERVER_PORT     default 587
+EMAIL_SERVER_USER
+EMAIL_SERVER_PASSWORD
+EMAIL_FROM            optional, "Name <addr>"
+CONTACT_TO            optional, defaults to EMAIL_SERVER_USER
+YT_KEY                optional, only the Random Player / Perspective demos
+```
 
-To learn more about Next.js, take a look at the following resources:
+Without SMTP the site builds and runs fine — the contact form just reports that
+it could not send rather than failing silently.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+## The shape of it
 
-## Deploy on Vercel
+```
+/                     home — hero, principles, featured work, track record
+/projects             the catalogue: index rail + morphing detail panel
+/projects/[slug]      case study, for projects marked caseStudy: true
+/fun                  playground index, with the platformer character
+/fun/[toy]            full-screen playground pieces
+/lab                  small builds and landing-page studies
+/lab/[demo]           the demos themselves
+/aboutMe              bio, principles, toolkit
+/contactUs            contact form
+/blog                 writing
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Design system
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+`app/globals.css` holds the whole thing: colour tokens, a fluid type scale, and
+a small set of primitives (`.btn`, `.chip`, `.card`, `.label`, `.readout`,
+`.reveal`, `.status`). Components use CSS Modules on top of those tokens.
+
+The accent colour is defined once as `--color-signal`. Change that value and the
+entire site follows.
+
+### Notable pieces
+
+- **`components/projects/ProjectExplorer.tsx`** — the index rail plus detail
+  panel, keyboard navigable with arrow keys.
+- **`components/hero/SignalCanvas.tsx`** — the animated hero plot. Mean-reverting
+  random walk with a moving average; cursor height drives volatility. Pauses
+  when off-screen or when the tab is hidden.
+- **`components/player/Player.tsx`** — the platformer character on `/fun`. Any
+  element with `data-platform-enabled` becomes a one-way platform.
+- **`app/fun/(fun)/seedWorld/worldGen.ts`** — deterministic terrain. Every tile
+  is a pure function of `(seed, x, y)`, so the world is infinite and stored
+  nowhere.
+- **`scripts/capture.ts`** — the screenshot crawler.
+
+### Images
+
+Drop a file at `public/shots/<slug>.png` and it appears on that project. No
+import, no config. Missing images fall back to a generated placeholder derived
+from the slug, so nothing ever renders broken. See CONTENT.md.

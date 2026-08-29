@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef } from "react"
 import styles from "./player.module.css"
 
 /* ============================================================================
@@ -38,17 +38,16 @@ type platform = { left: number; right: number; top: number }
 
 export default function Player() {
   const elementRef = useRef<HTMLDivElement | null>(null)
-  const [visible, visibleSet] = useState(false)
 
   useEffect(() => {
     const element = elementRef.current
     if (element === null) return
 
+    // A keyboard platformer is not usable on touch, and it has no business
+    // animating for someone who asked for reduced motion. Both are also hidden
+    // in CSS, so nothing renders in those cases either.
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return
-    // A keyboard platformer is not usable on touch, so leave it off there
     if (window.matchMedia("(pointer: coarse)").matches) return
-
-    visibleSet(true)
 
     /* ---- State --------------------------------------------------------- */
     const state = {
@@ -270,22 +269,20 @@ export default function Player() {
       <div
         ref={elementRef}
         className={styles.player}
-        style={{ width: WIDTH, height: HEIGHT, opacity: visible ? 1 : 0 }}
+        style={{ width: WIDTH, height: HEIGHT }}
         aria-hidden="true"
       />
 
-      {visible && (
-        <p className={styles.hint}>
-          <span className="label labelPlain labelSignal">Try this</span>
-          <kbd>A</kbd><kbd>D</kbd> run
-          <span>·</span>
-          <kbd>W</kbd> jump
-          <span>·</span>
-          <kbd>S</kbd> drop through
-          <span>·</span>
-          every heading is a platform
-        </p>
-      )}
+      <p className={styles.hint}>
+        <span className="label labelPlain labelSignal">Try this</span>
+        <kbd>A</kbd><kbd>D</kbd> run
+        <span>·</span>
+        <kbd>W</kbd> jump
+        <span>·</span>
+        <kbd>S</kbd> drop through
+        <span>·</span>
+        every heading is a platform
+      </p>
     </>
   )
 }

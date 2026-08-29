@@ -57,8 +57,8 @@ export default function MusicBox({ container, boxStatsStarter = { boxWidth: 10, 
     function makeReactiveCube(direction: "top" | "bottom" | "left" | "right", containerPassed: HTMLDivElement, boxStatsPassed: boxStats) {
         const newCube = document.createElement("div")
 
-        let cubeWidth = Math.floor(Math.random() * (boxStatsPassed.boxWidth * 5)) + 20
-        let cubeHueVariation = Math.floor(Math.random() * 30) + 2
+        const cubeWidth = Math.floor(Math.random() * (boxStatsPassed.boxWidth * 5)) + 20
+        const cubeHueVariation = Math.floor(Math.random() * 30) + 2
         let cubeX = boxStatsPassed.xPosition
         let cubeY = boxStatsPassed.yPosition
 
@@ -101,8 +101,8 @@ export default function MusicBox({ container, boxStatsStarter = { boxWidth: 10, 
     }
 
     function moveBox(boxStatsPassed: boxStats, containerPassed: HTMLDivElement, boxRefPassed: HTMLDivElement) {
-        let currentPosX = boxStatsPassed.xPosition
-        let currentPosY = boxStatsPassed.yPosition
+        const currentPosX = boxStatsPassed.xPosition
+        const currentPosY = boxStatsPassed.yPosition
 
         let newPosX = currentPosX + (boxStatsPassed.xDirection * boxStatsPassed.speed)
         let newPosY = currentPosY + (boxStatsPassed.yDirection * boxStatsPassed.speed)

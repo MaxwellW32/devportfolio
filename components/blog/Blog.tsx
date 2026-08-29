@@ -1,6 +1,7 @@
-import Image from 'next/image'
-import Link from 'next/link'
-import React from 'react'
+import Image from "next/image"
+import type { StaticImageData } from "next/image"
+import Link from "next/link"
+import styles from "./blog.module.css"
 
 export default function Blog({
   image,
@@ -9,43 +10,90 @@ export default function Blog({
   title,
   messages,
   slug,
-  inPreview
+  inPreview,
 }: {
-  image: string,
-  category: string,
-  datePosted: Date,
-  title: string,
-  messages?: React.JSX.Element[],
-  slug: string,
+  image: StaticImageData
+  category: string
+  datePosted: Date
+  title: string
+  messages?: React.JSX.Element[]
+  slug: string
   inPreview?: boolean
 }) {
+  const formattedDate = datePosted.toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  })
 
+  /* ---- Listing card --------------------------------------------------- */
+  if (inPreview) {
+    return (
+      <article className={`card ${styles.card}`}>
+        <Link href={`/blog/${slug}`} className={styles.hit} aria-label={title}>
+          <span />
+        </Link>
 
+        <div className={styles.thumb}>
+          <Image
+            alt=""
+            width={400}
+            height={400}
+            src={image}
+            sizes="(max-width: 700px) 100vw, 220px"
+          />
+        </div>
 
+        <div className={styles.cardBody}>
+          <p className="label labelPlain">
+            <Link href={`/blog/category/${category}`} className={styles.category}>
+              {category}
+            </Link>
+            <span className={styles.dot}>·</span>
+            <time dateTime={datePosted.toISOString()}>{formattedDate}</time>
+          </p>
+
+          <h2 className={styles.cardTitle}>{title}</h2>
+
+          <p className={styles.cue}>
+            Read
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </p>
+        </div>
+      </article>
+    )
+  }
+
+  /* ---- Full post ------------------------------------------------------- */
   return (
-    <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem", padding: "2rem", backgroundColor: "var(--primaryColor)", alignItems: "center", justifyContent: "center" }}>
-      <Image alt={`${category}'s image`} width={200} height={200} src={image} style={{ flex: "0 0 auto", aspectRatio: "1/1", width: "200px", objectFit: "cover" }} />
+    <article className={styles.post}>
+      <header className={styles.postHead}>
+        <Link href="/blog" className={styles.back}>← All writing</Link>
 
-      <div style={{ flex: 1 }}>
-        <p style={{ textTransform: "capitalize" }}>{category}<span style={{ paddingInline: "1rem" }}>-</span><span>{datePosted.toDateString()}</span></p>
+        <p className="label labelPlain">
+          <Link href={`/blog/category/${category}`} className={styles.category}>
+            {category}
+          </Link>
+          <span className={styles.dot}>·</span>
+          <time dateTime={datePosted.toISOString()}>{formattedDate}</time>
+        </p>
 
-        <h1>{title}</h1>
+        <h1 className={styles.postTitle}>{title}</h1>
+      </header>
 
-        {!inPreview && messages !== undefined && (
-          <div>
-            {messages.map((eachMessage, eachMessageIndex) => eachMessage)}
-          </div>
-        )}
+      <div className={styles.hero}>
+        <Image alt="" width={1200} height={600} src={image} sizes="100vw" priority />
       </div>
 
-      {inPreview && (
-        <Link href={`/blog/${slug}`}>
-          <button style={{ flex: "0 0 auto", whiteSpace: "nowrap", alignSelf: "center", paddingInline: "3rem" }}>
-            Read More
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M470.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L402.7 256 265.4 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160zm-352 160l160-160c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L210.7 256 73.4 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0z" /></svg>
-          </button>
-        </Link>
+      {messages !== undefined && (
+        <div className={`prose ${styles.body}`}>
+          {messages.map((eachMessage, eachMessageIndex) => (
+            <div key={eachMessageIndex}>{eachMessage}</div>
+          ))}
+        </div>
       )}
-    </div>
+    </article>
   )
 }

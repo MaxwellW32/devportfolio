@@ -64,9 +64,9 @@ export default function GuessCup() {
     }
 
     function makeRandomColor() {
-        let randomNum1 = Math.floor(Math.random() * 256)
-        let randomNum2 = Math.floor(Math.random() * 256)
-        let randomNum3 = Math.floor(Math.random() * 256)
+        const randomNum1 = Math.floor(Math.random() * 256)
+        const randomNum2 = Math.floor(Math.random() * 256)
+        const randomNum3 = Math.floor(Math.random() * 256)
 
         return `${randomNum1},${randomNum2},${randomNum3}`
     }

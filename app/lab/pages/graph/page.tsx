@@ -232,8 +232,8 @@ function Cube() {
 function Graph({ columnNames, positionValuesSeen }: { columnNames: string[], positionValuesSeen: number[] }) {
 
     const ceilingNum = useMemo(() => {
-        let max = Math.max(...positionValuesSeen);
-        let roundedUp = Math.ceil(max / 10) * 10;
+        const max = Math.max(...positionValuesSeen);
+        const roundedUp = Math.ceil(max / 10) * 10;
 
         return roundedUp;
     }, [positionValuesSeen])
@@ -368,8 +368,8 @@ function Worm() {
     }
 
     function move() {
-        let randX = Math.floor(Math.random() * window.innerWidth)
-        let randY = Math.floor(Math.random() * window.innerHeight)
+        const randX = Math.floor(Math.random() * window.innerWidth)
+        const randY = Math.floor(Math.random() * window.innerHeight)
 
         currentPosSet({ x: randX, y: randY })
     }

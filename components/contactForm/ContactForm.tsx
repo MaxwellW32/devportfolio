@@ -5,7 +5,7 @@ import { toast } from "react-hot-toast"
 import { z } from "zod"
 
 import { retreiveFromLocalStorage, saveToLocalStorage } from "@/utility/saveToStorage"
-import { sendNodeEmail } from "@/serverFunctions/handleNodeEmails"
+import { sendContactMessage } from "@/serverFunctions/handleNodeEmails"
 import styles from "./contactform.module.css"
 
 const phoneRegex = /^([+]?[\s0-9]+)?(\d{3}|[(]?[0-9]+[)])?([-]?[\s]?[0-9])+$/
@@ -48,20 +48,18 @@ export default function ContactForm() {
   const [formObj, formObjSet] = useState<contactForm>({ ...emptyForm })
   const [errors, errorsSet] = useState<Partial<Record<contactFormKey, string>>>({})
   const [sending, sendingSet] = useState(false)
-  const [restored, restoredSet] = useState(false)
 
-  /* ---- Restore an unsent draft ----------------------------------------- */
+
+  /* ---- Restore an unsent draft -----------------------------------------
+     localStorage cannot be read in the state initialiser: the server renders
+     an empty form, so seeding from storage there is a hydration mismatch.
+     Reading it once after mount is the correct pattern, and the one case the
+     set-state-in-effect rule cannot distinguish. */
   useEffect(() => {
     const previous = retreiveFromLocalStorage("contactForm") as contactForm | null
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (previous !== null) formObjSet({ ...emptyForm, ...previous })
-    restoredSet(true)
   }, [])
-
-  /* ---- Keep the draft, but only after the restore has happened ---------- */
-  useEffect(() => {
-    if (!restored) return
-    saveToLocalStorage("contactForm", formObj)
-  }, [formObj, restored])
 
   /**
    * Show an error for one field as you leave it. Zod's `.pick()` needs a
@@ -108,23 +106,12 @@ export default function ContactForm() {
     sendingSet(true)
 
     try {
-      // Build the body as real lines — the previous version interpolated an
-      // array straight into a template literal, which comma-joined it.
-      const body = [
-        `Name: ${formObj.name}`,
-        `Email: ${formObj.email}`,
-        `Phone: ${formObj.phone || "—"}`,
-        `Subject: ${formObj.subject}`,
-        "",
-        formObj.message,
-      ].join("\n")
+      const sent = await sendContactMessage(formObj)
 
-      await sendNodeEmail({
-        sendTo: "maxwellwedderburn32@gmail.com",
-        replyTo: formObj.email,
-        subject: `Portfolio message from ${formObj.name}`,
-        text: body,
-      })
+      if (!sent.ok) {
+        toast.error(sent.error)
+        return
+      }
 
       toast.success("Sent — I will come back to you shortly.")
       formObjSet({ ...emptyForm })
@@ -139,7 +126,13 @@ export default function ContactForm() {
   }
 
   const update = (key: contactFormKey, value: string) => {
-    formObjSet(previous => ({ ...previous, [key]: value }))
+    formObjSet(previous => {
+      const next = { ...previous, [key]: value }
+      // Saved on edit rather than in an effect — one less render cycle, and
+      // the draft is durable the instant the visitor types.
+      saveToLocalStorage("contactForm", next)
+      return next
+    })
   }
 
   return (

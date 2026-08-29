@@ -103,7 +103,7 @@ export default function Page() {
     function handleBoxStatsInputs(e: React.ChangeEvent<HTMLInputElement>, index: number) {
         musicBoxControlsSet(prevBoxControls => {
             const newBoxControls = [...prevBoxControls]
-            // @ts-ignore
+            // @ts-expect-error - the input name is a runtime string, not a known key of boxStats
             newBoxControls[index].boxStats[e.target.name] = parseInt(e.target.value)
 
             return newBoxControls

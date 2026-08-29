@@ -81,3 +81,13 @@
 @media (max-width: 760px) {
   .hint { display: none; }
 }
+
+/* The character is keyboard-driven, so it has no place on touch — and no
+   business animating for someone who asked for reduced motion. The component
+   also bails out of its loop in both cases; this makes sure nothing paints. */
+@media (pointer: coarse), (prefers-reduced-motion: reduce) {
+  .player,
+  .hint {
+    display: none;
+  }
+}

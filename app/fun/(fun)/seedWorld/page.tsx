@@ -37,7 +37,9 @@ export default function Page() {
   const [seed, seedSet] = useState("kingston-signal-01")
   const [draftSeed, draftSeedSet] = useState("kingston-signal-01")
   const [zoom, zoomSet] = useState(0.7)
-  const [standing, standingSet] = useState<worldSample | null>(null)
+  // The readout is throttled state rather than a ref read during render — a
+  // ref read would not re-render, so the coordinates would sit frozen.
+  const [standing, standingSet] = useState<(worldSample & { x: number; y: number }) | null>(null)
   const [showLegend, showLegendSet] = useState(true)
 
   // Mutable per-frame state kept out of React so the loop never re-renders
@@ -227,7 +229,11 @@ export default function Page() {
       sinceReadout += delta
       if (sinceReadout > 0.15) {
         sinceReadout = 0
-        standingSet(sampleWorld(seeds.current, player.current.x, player.current.y))
+        standingSet({
+          ...sampleWorld(seeds.current, player.current.x, player.current.y),
+          x: Math.round(player.current.x),
+          y: Math.round(player.current.y),
+        })
       }
 
       frameId = requestAnimationFrame(frame)
@@ -299,7 +305,7 @@ export default function Page() {
           <div>
             <dt>Position</dt>
             <dd className="readout">
-              {Math.round(player.current.x)}, {Math.round(player.current.y)}
+              {standing ? `${standing.x}, ${standing.y}` : "—"}
             </dd>
           </div>
           <div>
