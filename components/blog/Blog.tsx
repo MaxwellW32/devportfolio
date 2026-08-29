@@ -15,7 +15,7 @@ export default function Blog({
   category: string,
   datePosted: Date,
   title: string,
-  messages?: JSX.Element[],
+  messages?: React.JSX.Element[],
   slug: string,
   inPreview?: boolean
 }) {

@@ -12,9 +12,9 @@ export default function Page() {
     const canvasRef = useRef<HTMLCanvasElement>(null!)
     const canvasAndVisualiserContRef = useRef<HTMLDivElement | null>(null);
 
-    const moveAnimationFrameId = useRef<number>()
-    const visualiserAnimationFrame = useRef<number>()
-    const beatsForSquareAnimationFrame = useRef<number>()
+    const moveAnimationFrameId = useRef<number | undefined>(undefined)
+    const visualiserAnimationFrame = useRef<number | undefined>(undefined)
+    const beatsForSquareAnimationFrame = useRef<number | undefined>(undefined)
 
     const canvasMidPoint = useRef(0)
     const boxStats = useRef<bounceBoxStats>({
@@ -27,7 +27,7 @@ export default function Page() {
         hue: 360
     })
     const originalBoxStats = useRef<bounceBoxStats>({ ...boxStats.current })
-    const audioAnalyserRef = useRef<AnalyserNode>()
+    const audioAnalyserRef = useRef<AnalyserNode | undefined>(undefined)
     const [audioUrl, audioUrlSet] = useState("");
     const [showingSettings, showingSettingsSet] = useState(audioUrl === "" ? true : false)
     const [usingVisualiser, usingVisualiserSet] = useState(false);
@@ -39,7 +39,7 @@ export default function Page() {
     const [activeBar, activeBarSet] = useState<barRange>()
     const [viewingRuleSettings, viewingRuleSettingsSet] = useState(false)
     const [activePosition, activePositionSet] = useState<"start" | "end">()
-    const scaleTimeoutRef = useRef<NodeJS.Timeout>()
+    const scaleTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
 
     const defaultRules = {
         scale: {

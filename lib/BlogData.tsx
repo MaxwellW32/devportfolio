@@ -1,9 +1,10 @@
+import type React from "react"
 export type blog = {
     image: string,
     category: string,
     datePosted: Date,
     title: string,
-    messages?: JSX.Element[],
+    messages?: React.JSX.Element[],
     slug: string
 }
 

@@ -1,393 +1,366 @@
 "use client"
-import React, { useEffect, useRef, useState } from 'react'
-import styles from "./style.module.css"
-import { toast } from 'react-hot-toast';
 
-//row one is color
-//row two is objects
-//row three is frequency
-//row four is animation
+import { useCallback, useEffect, useRef, useState } from "react"
+import Link from "next/link"
 
-const seedOptions = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"]
-const seedLetterToNumber: { [key: string]: number } = {
-    a: 1,
-    b: 2,
-    c: 3,
-    d: 4,
-    e: 5,
-    f: 6,
-    g: 7,
-    h: 8,
-    i: 9,
-    j: 10,
-    k: 11,
-    l: 12,
-    m: 13,
-    n: 14,
-    o: 15,
-    p: 16,
-    q: 17,
-    r: 18,
-    s: 19,
-    t: 20,
-    u: 21,
-    v: 22,
-    w: 23,
-    x: 24,
-    y: 25,
-    z: 26,
-};
+import { biomes, deriveSeeds, isWalkable, sampleWorld, type worldSample } from "./worldGen"
+import styles from "./seedWorld.module.css"
+
+/* ============================================================================
+   SEED WORLD
+
+   Type a seed, walk around. Type the same seed tomorrow and every tile is
+   where you left it — because nothing is stored. Every tile is a pure function
+   of (seed, x, y), so the world is infinite and free.
+
+   See worldGen.ts for the generator itself.
+   ========================================================================= */
+
+const TILE = 16
+const DETAIL_CUTOFF = 10 // below this zoom, skip per-tile decoration
+
+const alphabet = "abcdefghijklmnopqrstuvwxyz0123456789"
+
+function randomSeed() {
+  let out = ""
+  for (let i = 0; i < 12; i++) {
+    out += alphabet[Math.floor(Math.random() * alphabet.length)]
+    if (i === 3 || i === 7) out += "-"
+  }
+  return out
+}
 
 export default function Page() {
-    const mainContRef = useRef<HTMLDivElement | null>(null)
-    const canvasRef = useRef<HTMLDivElement | null>(null)
-    const markerRef = useRef<HTMLDivElement | null>(null)
+  const canvasRef = useRef<HTMLCanvasElement | null>(null)
+  const wrapRef = useRef<HTMLDivElement | null>(null)
 
-    const [viewingSettings, viewingSettingsSet] = useState(false)
-    const [, refresherSet] = useState(false)
+  const [seed, seedSet] = useState("kingston-signal-01")
+  const [draftSeed, draftSeedSet] = useState("kingston-signal-01")
+  const [zoom, zoomSet] = useState(0.7)
+  const [standing, standingSet] = useState<worldSample | null>(null)
+  const [showLegend, showLegendSet] = useState(true)
 
-    type keys = {
-        up: boolean,
-        down: boolean,
-        left: boolean,
-        right: boolean,
+  // Mutable per-frame state kept out of React so the loop never re-renders
+  const player = useRef({ x: 0, y: 0 })
+  const keys = useRef({ up: false, down: false, left: false, right: false, boost: false })
+  const seeds = useRef(deriveSeeds(seed))
+  const zoomRef = useRef(zoom)
+
+  useEffect(() => {
+    seeds.current = deriveSeeds(seed)
+    player.current = { x: 0, y: 0 }
+  }, [seed])
+
+  useEffect(() => {
+    zoomRef.current = zoom
+  }, [zoom])
+
+  /* ---- Input ------------------------------------------------------------ */
+  useEffect(() => {
+    const setKey = (e: KeyboardEvent, down: boolean) => {
+      const key = e.key.toLowerCase()
+
+      if (key === "w" || key === "arrowup") keys.current.up = down
+      else if (key === "s" || key === "arrowdown") keys.current.down = down
+      else if (key === "a" || key === "arrowleft") keys.current.left = down
+      else if (key === "d" || key === "arrowright") keys.current.right = down
+      else if (key === "shift") keys.current.boost = down
+      else return
+
+      // Arrow keys would otherwise scroll the page under the canvas
+      e.preventDefault()
     }
 
-    const keysDown = useRef<keys>({
-        up: false,
-        down: false,
-        left: false,
-        right: false,
-    })
-
-    type playerType = {
-        x: number,
-        y: number,
-        size: number,
-        color: string,
-        speed: number,
-        element: HTMLDivElement | null
+    const onDown = (e: KeyboardEvent) => {
+      // Never swallow keystrokes meant for the seed field
+      if (e.target instanceof HTMLInputElement) return
+      setKey(e, true)
     }
-    const seed = useRef("abcdefghijklmnop-macdefghijklmnop-abcfhfghijklmnop-abcdefggojklmnop")
-    const userEnteredSeed = useRef(seed.current)
-    const canvasSize = useRef(10_000_000)
+    const onUp = (e: KeyboardEvent) => setKey(e, false)
 
-    type biomeType = {
-        x: number,
-        y: number,
-        el: HTMLDivElement,
+    window.addEventListener("keydown", onDown)
+    window.addEventListener("keyup", onUp)
+
+    return () => {
+      window.removeEventListener("keydown", onDown)
+      window.removeEventListener("keyup", onUp)
     }
-    const biomeSize = useRef(canvasSize.current / 5_000)
-    const biomes = useRef<biomeType[]>([])
-    const closestBiomeId = useRef("")
+  }, [])
 
-    const playerStats = useRef<playerType>({
-        x: 0,
-        y: 0,
-        size: 10,
-        color: "green",
-        speed: 10,
-        element: null
-    })
+  /* ---- Render loop ------------------------------------------------------ */
+  useEffect(() => {
+    const canvas = canvasRef.current
+    const wrap = wrapRef.current
+    if (canvas === null || wrap === null) return
 
-    //start Off
-    useEffect(() => {
-        if (mainContRef.current === null || canvasRef.current === null || playerStats.current.element === null) return
+    const ctx = canvas.getContext("2d")
+    if (ctx === null) return
 
-        //initial fit to screen
-        fitElementToScreen(mainContRef.current)
+    let width = 0
+    let height = 0
+    let frameId = 0
+    let lastTime = performance.now()
+    let sinceReadout = 0
 
-        //event listender to always fit screen
-        window.addEventListener("resize", () => mainContRef.current !== null && fitElementToScreen(mainContRef.current))
-
-        //initial set canvas to correct size
-        canvasRef.current.style.height = `${canvasSize.current}px`
-        canvasRef.current.style.width = `${canvasSize.current}px`
-
-        playerStats.current.element.style.height = `${playerStats.current.size}px`
-        playerStats.current.element.style.width = `${playerStats.current.size}px`
-        playerStats.current.element.style.backgroundColor = playerStats.current.color
-
-        //center player on screen
-        playerStats.current.x = canvasRef.current.clientWidth / 2 - playerStats.current.size / 2
-        playerStats.current.y = canvasRef.current.clientHeight / 2 - playerStats.current.size / 2
-        playerStats.current.element.style.translate = `${playerStats.current.x}px ${playerStats.current.y}px`
-
-        generateBiomes()
-
-        //add event listeners to move player
-        window.addEventListener("keydown", handleKeyDown)
-        window.addEventListener("keyup", handleKeyUp)
-
-        //loop to display world
-        setInterval(handleFrame, 20);
-
-        return () => {
-            window.removeEventListener("resize", () => mainContRef.current !== null && fitElementToScreen(mainContRef.current))
-            window.removeEventListener("keydown", handleKeyDown)
-            window.removeEventListener("keyup", handleKeyUp)
-        }
-    }, [])
-
-    function fitElementToScreen(element: HTMLElement) {
-        element.style.height = `${window.innerHeight}px`
-        element.style.width = `${window.innerWidth}px`
+    const resize = () => {
+      const rect = wrap.getBoundingClientRect()
+      const dpr = Math.min(window.devicePixelRatio || 1, 2)
+      width = rect.width
+      height = rect.height
+      canvas.width = Math.round(width * dpr)
+      canvas.height = Math.round(height * dpr)
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+      ctx.imageSmoothingEnabled = false
     }
 
-    function generateBiomes(radius = 1) {
-        // Clear previous biomes and canvas
-        biomes.current.forEach(eachBiome => {
-            eachBiome.el.remove()
-        })
-        biomes.current = [];
+    resize()
+    const observer = new ResizeObserver(resize)
+    observer.observe(wrap)
 
-        // Get closest biome border
-        const nearestBorderX = roundToNearestInteger(playerStats.current.x, biomeSize.current);
-        const nearestBorderY = roundToNearestInteger(playerStats.current.y, biomeSize.current);
-        closestBiomeId.current = `${nearestBorderX}${nearestBorderY}`
+    const frame = (now: number) => {
+      const delta = Math.min((now - lastTime) / 1000, 0.05)
+      lastTime = now
 
-        // console.log(`Player position:`, playerStats.x, playerStats.y);
-        // console.log(`Nearest whole number:`, nearestBorderX, nearestBorderY);
+      const tileSize = TILE * zoomRef.current
+      const speed = (keys.current.boost ? 26 : 9) * delta
 
-        // Loop through the surrounding squares
-        for (let xOffset = -radius; xOffset <= radius; xOffset++) {
-            for (let yOffset = -radius; yOffset <= radius; yOffset++) {
-                // Skip if both offsets are 0 (the center biome)
-                if (xOffset === 0 && yOffset === 0) continue;
+      // --- move, refusing to walk into deep water ---
+      let nextX = player.current.x
+      let nextY = player.current.y
 
-                // Calculate biome position
-                const biomeX = nearestBorderX + xOffset * biomeSize.current;
-                const biomeY = nearestBorderY + yOffset * biomeSize.current;
+      if (keys.current.up) nextY -= speed
+      if (keys.current.down) nextY += speed
+      if (keys.current.left) nextX -= speed
+      if (keys.current.right) nextX += speed
 
-                // Generate the biome
-                generateBiome(biomeX, biomeY);
-            }
+      // Axis-separated so sliding along a coastline still works
+      if (isWalkable(sampleWorld(seeds.current, nextX, player.current.y))) {
+        player.current.x = nextX
+      }
+      if (isWalkable(sampleWorld(seeds.current, player.current.x, nextY))) {
+        player.current.y = nextY
+      }
+
+      // --- draw ---
+      const cols = Math.ceil(width / tileSize) + 2
+      const rows = Math.ceil(height / tileSize) + 2
+
+      const originX = Math.floor(player.current.x - cols / 2)
+      const originY = Math.floor(player.current.y - rows / 2)
+
+      // Sub-tile offset keeps scrolling smooth rather than snapping
+      const shiftX = (player.current.x - cols / 2 - originX) * tileSize
+      const shiftY = (player.current.y - rows / 2 - originY) * tileSize
+
+      ctx.clearRect(0, 0, width, height)
+
+      const drawDetail = tileSize >= DETAIL_CUTOFF
+
+      for (let row = 0; row < rows; row++) {
+        for (let col = 0; col < cols; col++) {
+          const worldX = originX + col
+          const worldY = originY + row
+          const sample = sampleWorld(seeds.current, worldX, worldY)
+
+          const screenX = Math.floor(col * tileSize - shiftX)
+          const screenY = Math.floor(row * tileSize - shiftY)
+          const size = Math.ceil(tileSize) + 1
+
+          ctx.fillStyle = sample.biome.colour
+          ctx.fillRect(screenX, screenY, size, size)
+
+          // Shade by elevation so relief reads even within one biome
+          const shade = (sample.elevation - 0.5) * 0.34
+          if (shade > 0.01) {
+            ctx.fillStyle = `rgba(255,255,255,${Math.min(shade, 0.18)})`
+            ctx.fillRect(screenX, screenY, size, size)
+          } else if (shade < -0.01) {
+            ctx.fillStyle = `rgba(0,0,0,${Math.min(-shade, 0.2)})`
+            ctx.fillRect(screenX, screenY, size, size)
+          }
+
+          if (!drawDetail || sample.biome.detail === "none") continue
+
+          // Decoration is itself seeded, so it never shimmers between frames
+          const jitter = ((worldX * 73856093) ^ (worldY * 19349663)) >>> 0
+          if (jitter % 5 !== 0) continue
+
+          const dx = screenX + ((jitter >>> 4) % Math.max(1, Math.floor(tileSize)))
+          const dy = screenY + ((jitter >>> 9) % Math.max(1, Math.floor(tileSize)))
+
+          ctx.fillStyle = sample.biome.detailColour
+
+          if (sample.biome.detail === "trees") {
+            ctx.fillRect(dx, dy - tileSize * 0.18, Math.max(1, tileSize * 0.16), tileSize * 0.34)
+          } else if (sample.biome.detail === "rocks") {
+            ctx.fillRect(dx, dy, Math.max(1, tileSize * 0.2), Math.max(1, tileSize * 0.14))
+          } else if (sample.biome.detail === "waves") {
+            ctx.fillRect(dx, dy, Math.max(1, tileSize * 0.34), 1)
+          } else {
+            ctx.fillRect(dx, dy, Math.max(1, tileSize * 0.1), Math.max(1, tileSize * 0.2))
+          }
         }
+      }
 
-        // Generate the center biome
-        generateBiome(nearestBorderX, nearestBorderY);
+      // --- the player, always dead centre ---
+      const cx = width / 2
+      const cy = height / 2
+      const bodyRadius = Math.max(3, tileSize * 0.3)
+
+      ctx.beginPath()
+      ctx.arc(cx, cy + 1, bodyRadius * 1.1, 0, Math.PI * 2)
+      ctx.fillStyle = "rgba(0,0,0,0.35)"
+      ctx.fill()
+
+      ctx.beginPath()
+      ctx.arc(cx, cy, bodyRadius, 0, Math.PI * 2)
+      ctx.fillStyle = "oklch(88% 0.21 122)"
+      ctx.fill()
+
+      ctx.beginPath()
+      ctx.arc(cx, cy, bodyRadius + 4, 0, Math.PI * 2)
+      ctx.strokeStyle = "oklch(88% 0.21 122 / 0.35)"
+      ctx.lineWidth = 1
+      ctx.stroke()
+
+      // --- readout, throttled well below frame rate ---
+      sinceReadout += delta
+      if (sinceReadout > 0.15) {
+        sinceReadout = 0
+        standingSet(sampleWorld(seeds.current, player.current.x, player.current.y))
+      }
+
+      frameId = requestAnimationFrame(frame)
     }
 
-    function generateBiome(x: number, y: number) {
-        //consider the biomes location...
-        //then consider the seed...
-        //start with 
-        //color...
-        //elements
-        //frequency of elements
-        //rotations
-        //gradient
+    frameId = requestAnimationFrame(frame)
 
-        if (canvasRef.current === null) return
-
-        const newBiome: biomeType = {
-            x: x,
-            y: y,
-            el: document.createElement("div")
-        }
-
-        newBiome.el.style.width = `${biomeSize.current}px`
-        newBiome.el.style.height = `${biomeSize.current}px`
-        newBiome.el.style.translate = `${x}px ${y}px`
-        newBiome.el.classList.add(styles.biome)
-
-        const seedArray = seed.current.split("-")
-        //modifiers declaration
-        const colorModification = seedLetterToNumber[seedArray[0][0]] * 100
-        const elementsModification = seedLetterToNumber[seedArray[1][0]] * 100
-
-        //custom biome settings
-        const biomeTotalPosition = x + y
-        const biomeColor = (biomeTotalPosition + colorModification) % 360
-
-        newBiome.el.style.backgroundColor = `hsl(${biomeColor},100%, 50%)`
-
-        biomes.current.push(newBiome)
-        canvasRef.current.appendChild(newBiome.el)
+    return () => {
+      cancelAnimationFrame(frameId)
+      observer.disconnect()
     }
+  }, [])
 
-    function centerPlayerOnScreen(x: number, y: number, parentElement: HTMLElement) {
-        parentElement.scrollTop = y - parentElement.clientHeight / 2
-        parentElement.scrollLeft = x - parentElement.clientWidth / 2
-    }
+  const applySeed = useCallback(() => {
+    const cleaned = draftSeed.trim().toLowerCase()
+    if (cleaned.length === 0) return
+    seedSet(cleaned)
+  }, [draftSeed])
 
-    function handleKeyDown(e: KeyboardEvent) {
-        const seenKey = e.key.toLowerCase()
+  const legendEntries = Object.values(biomes)
 
-        if (seenKey === "arrowup" || seenKey === "w") {
-            keysDown.current.up = true
-        }
+  return (
+    <main className={styles.page}>
+      <div ref={wrapRef} className={styles.stage}>
+        <canvas ref={canvasRef} className={styles.canvas} />
+      </div>
 
-        if (seenKey === "arrowdown" || seenKey === "s") {
-            keysDown.current.down = true
-        }
+      {/* ---- Overlay chrome --------------------------------------------- */}
+      <header className={styles.topBar}>
+        <Link href="/fun" className={styles.back}>← Playground</Link>
 
-        if (seenKey === "arrowleft" || seenKey === "a") {
-            keysDown.current.left = true
-        }
+        <div className={styles.seedBox}>
+          <label className="label labelPlain" htmlFor="seed">Seed</label>
 
-        if (seenKey === "arrowright" || seenKey === "d") {
-            keysDown.current.right = true
-        }
+          <input
+            id="seed"
+            value={draftSeed}
+            spellCheck={false}
+            onChange={e => draftSeedSet(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === "Enter") applySeed()
+            }}
+          />
 
-    }
+          <button type="button" className="btn btnSm" onClick={applySeed}>
+            <span>Generate</span>
+          </button>
 
-    function handleKeyUp(e: KeyboardEvent) {
-        const seenKey = e.key.toLowerCase()
+          <button
+            type="button"
+            className="btn btnSm"
+            onClick={() => {
+              const next = randomSeed()
+              draftSeedSet(next)
+              seedSet(next)
+            }}
+          >
+            <span>Random</span>
+          </button>
+        </div>
+      </header>
 
-        if (seenKey === "arrowup" || seenKey === "w") {
-            keysDown.current.up = false
-        }
+      <aside className={styles.readout}>
+        <p className="label labelSignal">Standing on</p>
 
-        if (seenKey === "arrowdown" || seenKey === "s") {
-            keysDown.current.down = false
-        }
+        <p className={styles.biomeName}>{standing?.biome.name ?? "—"}</p>
 
-        if (seenKey === "arrowleft" || seenKey === "a") {
-            keysDown.current.left = false
-        }
+        <dl>
+          <div>
+            <dt>Position</dt>
+            <dd className="readout">
+              {Math.round(player.current.x)}, {Math.round(player.current.y)}
+            </dd>
+          </div>
+          <div>
+            <dt>Elevation</dt>
+            <dd className="readout">{standing ? standing.elevation.toFixed(3) : "—"}</dd>
+          </div>
+          <div>
+            <dt>Moisture</dt>
+            <dd className="readout">{standing ? standing.moisture.toFixed(3) : "—"}</dd>
+          </div>
+          <div>
+            <dt>Temperature</dt>
+            <dd className="readout">{standing ? standing.temperature.toFixed(3) : "—"}</dd>
+          </div>
+        </dl>
 
-        if (seenKey === "arrowright" || seenKey === "d") {
-            keysDown.current.right = false
-        }
+        <p className={styles.note}>
+          Nothing here is stored. Every tile is a pure function of the seed and
+          its coordinates, so the world is infinite and identical every time.
+        </p>
+      </aside>
 
-    }
+      <footer className={styles.bottomBar}>
+        <p className={styles.keys}>
+          <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move
+          <span>·</span>
+          <kbd>Shift</kbd> sprint
+        </p>
 
-    function movePlayer() {
-        if (playerStats.current.element === null) return
+        <label className={styles.zoom}>
+          <span className="label labelPlain">Zoom</span>
+          <input
+            type="range"
+            min={0.35}
+            max={3}
+            step={0.1}
+            value={zoom}
+            onChange={e => zoomSet(Number(e.target.value))}
+          />
+          <span className="readout">{zoom.toFixed(1)}×</span>
+        </label>
 
-        if (keysDown.current.up) {
-            playerStats.current.y -= playerStats.current.speed
-        }
-        if (keysDown.current.down) {
-            playerStats.current.y += playerStats.current.speed
-        }
-        if (keysDown.current.left) {
-            playerStats.current.x -= playerStats.current.speed
-        }
-        if (keysDown.current.right) {
-            playerStats.current.x += playerStats.current.speed
-        }
+        <button
+          type="button"
+          className="btn btnSm"
+          onClick={() => showLegendSet(prev => !prev)}
+        >
+          <span>{showLegend ? "Hide" : "Show"} biomes</span>
+        </button>
+      </footer>
 
-        playerStats.current.element.style.translate = `${playerStats.current.x}px ${playerStats.current.y}px`
-    }
-
-    function handleFrame() {
-        if (mainContRef.current === null) return
-
-        movePlayer()
-
-        //center canvas around player
-        centerPlayerOnScreen(playerStats.current.x, playerStats.current.y, mainContRef.current)
-
-        //get closest biome
-        const nearestBorderX = roundToNearestInteger(playerStats.current.x, biomeSize.current);
-        const nearestBorderY = roundToNearestInteger(playerStats.current.y, biomeSize.current);
-        const currentClosestBiomeId = `${nearestBorderX}${nearestBorderY}`
-
-        if (currentClosestBiomeId !== closestBiomeId.current) {
-            generateBiomes()
-        }
-    }
-
-    function roundToNearestInteger(num: number, degree: number) {
-        return Math.round(num / degree) * degree
-    }
-
-    function assignRefToPlayerStats(e: HTMLDivElement | null) {
-        if (e === null) return
-
-        playerStats.current.element = e
-    }
-
-    function refresh() {
-        refresherSet(prev => !prev)
-    }
-
-    return (
-        <main ref={mainContRef} className={styles.mainCont}>
-            <div ref={canvasRef} className={styles.canvas}>
-                <div ref={assignRefToPlayerStats} className={styles.player}></div>
-                <div ref={markerRef} className={styles.marker}></div>
-            </div>
-
-            <div style={{ position: "absolute", top: 0, right: 0 }}>
-                <button
-                    onClick={() => {
-                        viewingSettingsSet(prev => !prev)
-                    }}
-                >settings</button>
-
-                <div style={{ padding: "1rem", border: "1px solid #000", display: !viewingSettings ? "none" : "" }}>
-                    <input type="text" placeholder="Enter a seed a-z" value={userEnteredSeed.current}
-                        onChange={(e) => {
-                            refresh()
-
-                            userEnteredSeed.current = e.target.value
-                        }}
-                    />
-
-                    <button
-                        onClick={() => {
-                            refresh()
-                            let newSeedArray = []
-
-                            const amtToAdd = 16
-
-                            for (let i = 0; i < 4; i++) {
-                                let newCharactersString = ""
-
-                                for (let j = 0; j < amtToAdd; j++) {
-                                    newCharactersString += seedOptions[Math.floor(Math.random() * seedOptions.length)]
-                                }
-
-                                newSeedArray[i] = newCharactersString
-                            }
-
-                            const combinedString = newSeedArray.join("-")
-                            seed.current = combinedString
-                            userEnteredSeed.current = combinedString
-                        }}
-                    >randomize</button>
-
-                    <button
-                        onClick={() => {
-                            refresh()
-
-                            let newSeedArray = userEnteredSeed.current.split("-").slice(0, 4)
-                            if (newSeedArray.length < 4) {
-                                toast.error("incorrect format, ensure 16 digit characters are separates by a dash (-)")
-                            }
-
-                            newSeedArray = newSeedArray.map(eachStringRow => {
-                                if (eachStringRow.length === 16) {
-                                    return eachStringRow
-
-                                } else if (eachStringRow.length > 16) {
-                                    //more
-                                    return eachStringRow.slice(0, 16)
-
-                                } else {
-                                    //less
-                                    const amtToAdd = 16 - eachStringRow.length
-                                    let newCharactersString = ""
-
-                                    for (let index = 0; index < amtToAdd; index++) {
-                                        newCharactersString += seedOptions[Math.floor(Math.random() * seedOptions.length)]
-                                    }
-
-                                    return eachStringRow + newCharactersString
-                                }
-                            })
-
-                            seed.current = newSeedArray.join("-")
-                            userEnteredSeed.current = seed.current
-
-                            generateBiomes()
-                        }}
-                    >Generate</button>
-                </div>
-            </div>
-        </main>
-    )
+      {showLegend && (
+        <ul className={styles.legend}>
+          {legendEntries.map(eachBiome => (
+            <li key={eachBiome.id} data-active={standing?.biome.id === eachBiome.id}>
+              <span style={{ background: eachBiome.colour }} />
+              {eachBiome.name}
+            </li>
+          ))}
+        </ul>
+      )}
+    </main>
+  )
 }

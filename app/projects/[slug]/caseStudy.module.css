@@ -1,0 +1,276 @@
+/* ============================================================================
+   CASE STUDY
+   ========================================================================= */
+
+.hero {
+  position: relative;
+  overflow: hidden;
+  padding-block: clamp(2rem, 1rem + 4vw, 4rem) clamp(2rem, 1.5rem + 3vw, 3.5rem);
+}
+
+.heroInner {
+  position: relative;
+  display: grid;
+  gap: 1.25rem;
+  justify-items: start;
+}
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-ink-faint);
+  transition: color 240ms;
+}
+
+.back:hover {
+  color: var(--color-signal);
+}
+
+.back svg {
+  width: 1em;
+  height: 1em;
+  transition: transform 380ms var(--ease-out-expo);
+}
+
+.back:hover svg {
+  transform: translateX(-3px);
+}
+
+.heroMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.25rem;
+  margin-top: 1rem;
+}
+
+.title {
+  font-size: var(--step-5);
+  letter-spacing: -0.045em;
+}
+
+.tagline {
+  max-width: 40ch;
+  font-size: var(--step-1);
+  color: var(--color-ink-dim);
+  line-height: 1.5;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+/* ---- Screenshot ---------------------------------------------------------- */
+.shot {
+  position: relative;
+  aspect-ratio: 21 / 9;
+  border: 1px solid var(--color-hairline);
+  border-radius: 3px;
+  background: var(--color-surface);
+  overflow: hidden;
+}
+
+.shot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, color-mix(in oklch, var(--color-void) 55%, transparent), transparent 55%);
+  pointer-events: none;
+}
+
+/* ---- Metrics ------------------------------------------------------------- */
+.metrics {
+  list-style: none;
+  margin: clamp(1.5rem, 1rem + 2vw, 2.5rem) 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(11rem, 100%), 1fr));
+  gap: 1px;
+  background: var(--color-hairline);
+  border: 1px solid var(--color-hairline);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.metrics li {
+  display: grid;
+  gap: 0.4rem;
+  padding: 1.35rem 1.35rem;
+  background: var(--color-void);
+}
+
+.metrics li span:first-child {
+  font-size: var(--step-2);
+  font-weight: 600;
+  color: var(--color-signal);
+  line-height: 1;
+}
+
+.metrics li span:last-child {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-ink-faint);
+  line-height: 1.5;
+}
+
+/* ---- Body ---------------------------------------------------------------- */
+.body {
+  display: grid;
+  gap: clamp(2.5rem, 2rem + 2vw, 4rem);
+  padding-block: clamp(3rem, 2rem + 4vw, 6rem);
+}
+
+.block {
+  display: grid;
+  gap: 1.15rem;
+  justify-items: start;
+}
+
+.prose {
+  max-width: var(--measure);
+  color: var(--color-ink-dim);
+  font-size: var(--step-0);
+  line-height: 1.85;
+}
+
+/* ---- The hard part ------------------------------------------------------- */
+.hardPart {
+  display: grid;
+  gap: 1rem;
+  padding: clamp(1.5rem, 1rem + 2vw, 2.5rem);
+  background: color-mix(in oklch, var(--color-signal) 5%, var(--color-canvas));
+  border: 1px solid color-mix(in oklch, var(--color-signal) 25%, transparent);
+  border-left-width: 3px;
+  border-left-color: var(--color-signal);
+  border-radius: 2px;
+}
+
+.hardPart h2 {
+  font-size: var(--step-2);
+  letter-spacing: -0.03em;
+}
+
+.hardPart p:last-child {
+  max-width: var(--measure);
+  color: var(--color-ink-dim);
+  font-size: var(--step-0);
+  line-height: 1.85;
+}
+
+/* ---- Lists --------------------------------------------------------------- */
+.bullets {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.9rem;
+  max-width: var(--measure);
+}
+
+.bullets li {
+  position: relative;
+  padding-left: 1.6rem;
+  color: var(--color-ink-dim);
+  line-height: 1.7;
+}
+
+.bullets li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.65em;
+  width: 0.7rem;
+  height: 1px;
+  background: var(--color-ink-faint);
+}
+
+.bullets[data-signal] li {
+  color: var(--color-ink);
+}
+
+.bullets[data-signal] li::before {
+  background: var(--color-signal);
+}
+
+.stack {
+  max-width: var(--measure);
+}
+
+/* ---- Related ------------------------------------------------------------- */
+.related {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 1rem;
+  width: 100%;
+}
+
+.related li {
+  display: grid;
+  gap: 0.3rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--color-hairline);
+}
+
+.related li span {
+  color: var(--color-ink-faint);
+  font-size: var(--step--1);
+}
+
+/* ---- Pager --------------------------------------------------------------- */
+.pager {
+  border-top: 1px solid var(--color-hairline);
+  background: var(--color-canvas);
+}
+
+.pagerInner {
+  display: grid;
+  gap: 1px;
+  background: var(--color-hairline);
+}
+
+@media (min-width: 700px) {
+  .pagerInner {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.pagerLink {
+  display: grid;
+  gap: 0.5rem;
+  padding: clamp(1.5rem, 1rem + 2vw, 2.5rem);
+  background: var(--color-canvas);
+  transition: background-color 320ms var(--ease-out-expo);
+}
+
+.pagerLink:hover {
+  background: var(--color-surface);
+}
+
+.pagerLink[data-direction="next"] {
+  text-align: right;
+  justify-items: end;
+}
+
+.pagerLink > span:last-child {
+  font-family: var(--font-display);
+  font-size: var(--step-2);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  transition: color 320ms;
+}
+
+.pagerLink:hover > span:last-child {
+  color: var(--color-signal);
+}

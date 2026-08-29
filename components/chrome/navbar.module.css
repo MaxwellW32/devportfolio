@@ -1,0 +1,233 @@
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  border-bottom: 1px solid transparent;
+  transition: border-color 400ms var(--ease-out-expo), background-color 400ms var(--ease-out-expo);
+}
+
+.header[data-scrolled="true"] {
+  background: color-mix(in oklch, var(--color-void) 82%, transparent);
+  backdrop-filter: blur(14px) saturate(1.4);
+  border-bottom-color: var(--color-hairline);
+}
+
+.header[data-open="true"] {
+  background: var(--color-void);
+  border-bottom-color: var(--color-hairline);
+}
+
+.bar {
+  height: var(--nav-h);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+/* ---- Brand ------------------------------------------------------------- */
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: none;
+}
+
+/* Four squares that rotate into a diamond on hover — the "max" mark */
+.mark {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2px;
+  width: 1.4rem;
+  height: 1.4rem;
+  flex: none;
+  transition: transform 600ms var(--ease-spring);
+}
+
+.mark span {
+  background: var(--color-ink-faint);
+  border-radius: 1px;
+  transition: background-color 400ms var(--ease-out-expo);
+}
+
+.mark span:nth-child(1) { transition-delay: 0ms; }
+.mark span:nth-child(2) { transition-delay: 60ms; }
+.mark span:nth-child(4) { transition-delay: 120ms; }
+.mark span:nth-child(3) { transition-delay: 180ms; }
+
+.brand:hover .mark {
+  transform: rotate(45deg);
+}
+
+.brand:hover .mark span {
+  background: var(--color-signal);
+}
+
+.brandText {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+.brandName {
+  font-family: var(--font-display);
+  font-size: var(--step--1);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.brandRole {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-ink-faint);
+}
+
+/* ---- Links ------------------------------------------------------------- */
+.links {
+  display: none;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 0.35rem;
+}
+
+@media (min-width: 900px) {
+  .links { display: flex; }
+}
+
+.link {
+  position: relative;
+  display: block;
+  padding: 0.5rem 0.9rem;
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  letter-spacing: 0.04em;
+  color: var(--color-ink-dim);
+  border-radius: 2px;
+  transition: color 240ms var(--ease-out-expo);
+}
+
+.link:hover { color: var(--color-ink); }
+
+.link[data-active="true"] { color: var(--color-signal); }
+
+/* Underline marker that only the active item carries */
+.link[data-active="true"]::after {
+  content: "";
+  position: absolute;
+  left: 0.9rem;
+  right: 0.9rem;
+  bottom: 0.1rem;
+  height: 1px;
+  background: currentColor;
+}
+
+/* ---- Tail -------------------------------------------------------------- */
+.tail {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: none;
+}
+
+.resume { display: none; }
+
+@media (min-width: 900px) {
+  .resume { display: inline-flex; }
+}
+
+/* Two bars that cross into an X */
+.toggle {
+  display: grid;
+  place-content: center;
+  gap: 5px;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  background: none;
+  border: 1px solid var(--color-hairline);
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+@media (min-width: 900px) {
+  .toggle { display: none; }
+}
+
+.toggle span {
+  display: block;
+  width: 1.1rem;
+  height: 1.5px;
+  background: var(--color-ink);
+  transition: transform 380ms var(--ease-out-expo), opacity 240ms;
+}
+
+.header[data-open="true"] .toggle span:first-child {
+  transform: translateY(3.25px) rotate(45deg);
+}
+
+.header[data-open="true"] .toggle span:last-child {
+  transform: translateY(-3.25px) rotate(-45deg);
+}
+
+/* ---- Mobile sheet ------------------------------------------------------ */
+.sheet {
+  display: grid;
+  gap: 2rem;
+  align-content: start;
+  padding: 2rem var(--gutter) 3rem;
+  height: calc(100dvh - var(--nav-h));
+  overflow-y: auto;
+  background: var(--color-void);
+}
+
+.sheet[hidden] { display: none; }
+
+@media (min-width: 900px) {
+  .sheet { display: none; }
+}
+
+.sheet ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+}
+
+.sheet li {
+  border-bottom: 1px solid var(--color-hairline);
+  animation: sheetIn 520ms var(--ease-out-expo) both;
+  animation-delay: calc(var(--i) * 55ms);
+}
+
+.sheet a {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  padding: 1.15rem 0;
+  font-family: var(--font-display);
+  font-size: var(--step-2);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+.sheet a[data-active="true"] { color: var(--color-signal); }
+
+.sheet a span {
+  font-size: var(--step--2);
+  color: var(--color-ink-faint);
+  letter-spacing: 0.1em;
+}
+
+.sheet > a {
+  justify-self: start;
+}
+
+@keyframes sheetIn {
+  from {
+    opacity: 0;
+    transform: translateY(0.75rem);
+  }
+}

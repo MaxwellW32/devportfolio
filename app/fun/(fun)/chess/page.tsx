@@ -91,7 +91,7 @@ export default function Page() {
     ]
 
     const chessBoardRef = useRef<HTMLDivElement>(null!)
-    const autoPlayLoop = useRef<NodeJS.Timeout>()
+    const autoPlayLoop = useRef<NodeJS.Timeout | undefined>(undefined)
 
 
     const [playerTeamSelection, playerTeamSelectionSet] = useState<"black" | "white">("white")

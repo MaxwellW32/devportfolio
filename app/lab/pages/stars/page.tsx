@@ -88,7 +88,7 @@ function Worm({ boardInfo }: { boardInfo: boardInfoType | undefined }) {
         }
     }, [])
 
-    const movingInterval = useRef<undefined | NodeJS.Timeout>()
+    const movingInterval = useRef<NodeJS.Timeout | undefined>(undefined)
     function start() {
         setTimeout(() => {
             canShowSet(true)

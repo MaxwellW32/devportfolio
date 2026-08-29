@@ -1,0 +1,83 @@
+.player {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 60;
+  pointer-events: none;
+  background-image: url("../../public/fighter.webp");
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: bottom center;
+  transform-origin: center bottom;
+  transition: opacity 400ms ease;
+  will-change: transform;
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.55));
+}
+
+/* A small squash while running sells the weight without a sprite sheet */
+.player[data-running="true"] {
+  animation: bob 340ms steps(2, end) infinite;
+}
+
+/* Stretch slightly while airborne */
+.player[data-grounded="false"] {
+  filter: drop-shadow(0 14px 14px rgba(0, 0, 0, 0.4));
+}
+
+@keyframes bob {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -2px; }
+}
+
+.hint {
+  position: fixed;
+  left: 50%;
+  bottom: 1.25rem;
+  translate: -50% 0;
+  z-index: 61;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  max-width: calc(100vw - 2rem);
+  padding: 0.6rem 1rem;
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-ink-faint);
+  background: color-mix(in oklch, var(--color-void) 84%, transparent);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--color-hairline);
+  border-radius: 99px;
+  pointer-events: none;
+  animation: hintIn 700ms var(--ease-out-expo) 900ms both;
+}
+
+.hint kbd {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.4rem;
+  height: 1.4rem;
+  font-family: inherit;
+  font-size: 0.68rem;
+  color: var(--color-ink);
+  background: var(--color-surface);
+  border: 1px solid var(--color-hairline);
+  border-radius: 3px;
+}
+
+.hint > span:not([class]) {
+  opacity: 0.35;
+  margin-inline: 0.25rem;
+}
+
+@keyframes hintIn {
+  from { opacity: 0; translate: -50% 0.75rem; }
+  to { opacity: 1; translate: -50% 0; }
+}
+
+@media (max-width: 760px) {
+  .hint { display: none; }
+}

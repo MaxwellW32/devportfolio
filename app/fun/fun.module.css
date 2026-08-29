@@ -1,0 +1,121 @@
+.page {
+  position: relative;
+  padding-bottom: clamp(3rem, 2rem + 4vw, 6rem);
+}
+
+/* ---- Hero ---------------------------------------------------------------- */
+.hero {
+  position: relative;
+  padding-block: clamp(3rem, 2rem + 5vw, 6rem) clamp(2rem, 1.5rem + 3vw, 3.5rem);
+  overflow: hidden;
+}
+
+.heroInner {
+  position: relative;
+  display: grid;
+  gap: 1.35rem;
+  max-width: 58rem;
+}
+
+.title {
+  font-size: var(--step-5);
+  letter-spacing: -0.045em;
+  /* a platform needs a definite edge to land on */
+  justify-self: start;
+}
+
+.lede {
+  max-width: 58ch;
+  color: var(--color-ink-dim);
+  line-height: 1.75;
+}
+
+.lede kbd {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--color-ink);
+  background: var(--color-surface);
+  border: 1px solid var(--color-hairline);
+  border-radius: 3px;
+  vertical-align: middle;
+}
+
+/* ---- Grid ---------------------------------------------------------------- */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(20rem, 100%), 1fr));
+  gap: clamp(1rem, 0.75rem + 1vw, 1.5rem);
+}
+
+.grid > * { height: 100%; }
+
+.card {
+  display: grid;
+  align-content: start;
+  gap: 0.85rem;
+  height: 100%;
+  padding: clamp(1.25rem, 1rem + 1vw, 1.75rem);
+}
+
+.cardHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.arrow {
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  color: var(--color-ink-faint);
+  border: 1px solid var(--color-hairline);
+  border-radius: 50%;
+  transition: color 320ms var(--ease-out-expo), border-color 320ms, transform 420ms var(--ease-out-expo);
+}
+
+.arrow svg { width: 0.85rem; height: 0.85rem; }
+
+.card:hover .arrow {
+  color: var(--color-signal);
+  border-color: var(--color-signal);
+  transform: translateX(3px);
+}
+
+.cardTitle {
+  font-size: var(--step-2);
+  justify-self: start;
+  transition: color 320ms var(--ease-out-expo);
+}
+
+.card:hover .cardTitle { color: var(--color-signal); }
+
+.claim {
+  color: var(--color-ink-dim);
+  font-size: var(--step--1);
+  line-height: 1.65;
+}
+
+/* ---- Outro --------------------------------------------------------------- */
+.outro {
+  display: grid;
+  gap: 1.5rem;
+  justify-items: start;
+  padding-top: clamp(3rem, 2rem + 4vw, 6rem);
+}
+
+.outroTitle {
+  font-size: var(--step-3);
+  justify-self: start;
+}
+
+.outroActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}

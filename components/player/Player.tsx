@@ -1,223 +1,291 @@
 "use client"
-import { useEffect, useRef } from "react";
-import styles from "./style.module.css"
+
+import { useEffect, useRef, useState } from "react"
+import styles from "./player.module.css"
+
+/* ============================================================================
+   THE PLATFORMER CHARACTER
+
+   Every heading on this page is a one-way platform. Run along them, jump
+   between them, and press S to drop through the one you are standing on.
+
+   Notes on what makes this behave, since the naive version does not:
+
+   - Platform rectangles are stored in PAGE coordinates (rect + scrollY), not
+     viewport coordinates. Otherwise everything shifts the moment you scroll.
+   - Collision is one-way and resolved on the DOWNWARD crossing only: you land
+     when your feet cross a platform's top edge this frame having been above it
+     last frame. That is what lets you jump up through a heading and still land
+     on it coming down.
+   - Movement is delta-timed off requestAnimationFrame, so the character moves
+     at the same speed regardless of refresh rate.
+   - Coyote time and jump buffering are in here because without them the jump
+     feels broken even though the physics are "correct".
+   ========================================================================= */
+
+const WIDTH = 42
+const HEIGHT = 64
+
+const GRAVITY = 2600
+const MOVE_SPEED = 320
+const JUMP_VELOCITY = -820
+const MAX_FALL = 1400
+const COYOTE_TIME = 0.1
+const JUMP_BUFFER = 0.12
+const DROP_THROUGH_GRACE = 0.22
+
+type platform = { left: number; right: number; top: number }
 
 export default function Player() {
-  type PlayerStats = {
-    width: number;
-    height: number;
-    step: number;
-    top: number;
-    left: number;
-    falling: boolean,
-    directionFacing: "left" | "right";
-  }
+  const elementRef = useRef<HTMLDivElement | null>(null)
+  const [visible, visibleSet] = useState(false)
 
-  type collisionObjectsType = {
-    [key: string]: {
-      floorEl: HTMLElement,
-      floorLocaInfo: DOMRect,
-    }
-  }
-
-  const floorElements: string = `[data-platform-enabled]`
-  const playerRef = useRef<HTMLDivElement | null>(null)
-  const playerInfo = useRef<PlayerStats>({
-    width: 50,
-    height: 76,
-    step: 3,
-    top: 0,
-    left: 0,
-    falling: true,
-    directionFacing: "left",
-  })
-  const collisionObjects = useRef<collisionObjectsType>({})
-
-  const loopStarted = useRef(false)
-  const moveLoopInterval = useRef<NodeJS.Timeout | undefined>(undefined)
-
-  const triggerKeys = ["w", "a", "s", "d"]
-  const keysPressed = useRef<{
-    "up": boolean,
-    "down": boolean,
-    "left": boolean,
-    "right": boolean,
-  }>({
-    "up": false,
-    "down": false,
-    "left": false,
-    "right": false,
-  })
-
-  //add key down
   useEffect(() => {
-    window.addEventListener("keydown", (e) => handleKeyDown(e))
-    window.addEventListener("keyup", (e) => handleKeyUp(e))
+    const element = elementRef.current
+    if (element === null) return
 
-    return () => {
-      window.removeEventListener("keydown", (e) => handleKeyDown(e))
-      window.removeEventListener("keyup", (e) => handleKeyUp(e))
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return
+    // A keyboard platformer is not usable on touch, so leave it off there
+    if (window.matchMedia("(pointer: coarse)").matches) return
+
+    visibleSet(true)
+
+    /* ---- State --------------------------------------------------------- */
+    const state = {
+      x: 40,
+      y: 0,
+      vx: 0,
+      vy: 0,
+      facing: 1 as 1 | -1,
+      grounded: false,
+      running: false,
+      coyote: 0,
+      jumpBuffer: 0,
+      dropThrough: 0,
+      awake: false,
     }
-  }, [])
 
-  //get collision objects
-  useEffect(() => {
-    const sharedFunc = () => {
-      //get all platform elements
-      getAllFloorElements(floorElements)
+    const keys = { left: false, right: false, down: false }
+    let platforms: platform[] = []
+
+    /* ---- Platforms ------------------------------------------------------ */
+    const measurePlatforms = () => {
+      const found: platform[] = []
+      const nodes = document.querySelectorAll<HTMLElement>("[data-platform-enabled]")
+
+      nodes.forEach(eachNode => {
+        const rect = eachNode.getBoundingClientRect()
+        if (rect.width < 24 || rect.height === 0) return
+
+        // Page coordinates, so scrolling does not invalidate them
+        found.push({
+          left: rect.left + window.scrollX,
+          right: rect.right + window.scrollX,
+          top: rect.top + window.scrollY,
+        })
+      })
+
+      platforms = found
     }
-    sharedFunc()
 
-    //run on resize
-    window.addEventListener("resize", sharedFunc)
+    measurePlatforms()
 
-    return () => {
-      window.removeEventListener("resize", sharedFunc)
+    // Re-measure when the layout actually changes, not on every scroll frame
+    const resizeObserver = new ResizeObserver(measurePlatforms)
+    resizeObserver.observe(document.body)
+
+    /* ---- Input ---------------------------------------------------------- */
+    const wake = () => {
+      if (state.awake) return
+      state.awake = true
+
+      // Drop in from the top of the current view the first time it is used
+      state.x = window.scrollX + 60
+      state.y = window.scrollY + 40
+      measurePlatforms()
     }
-  }, [])
 
-  function getAllFloorElements(searchElements: string) {
-    const elements: NodeListOf<HTMLElement> = document.querySelectorAll(searchElements);
-
-    const newCollisionObjects: collisionObjectsType = {}
-
-    elements.forEach((eachEl, index) => {
-      //add class
-
-      newCollisionObjects[index] = {
-        floorEl: eachEl,
-        floorLocaInfo: eachEl.getBoundingClientRect(),
+    const onKeyDown = (e: KeyboardEvent) => {
+      // Never hijack typing
+      const target = e.target
+      if (
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement ||
+        (target instanceof HTMLElement && target.isContentEditable)
+      ) {
+        return
       }
-    })
 
-    collisionObjects.current = { ...newCollisionObjects }
-  }
+      const key = e.key.toLowerCase()
 
-  function manageLoop(option: "start" | "stop") {
-    loopStarted.current = option === "start"
-    // console.log(`$loop ${option}`);
+      if (key === "a" || key === "arrowleft") {
+        wake()
+        keys.left = true
+      } else if (key === "d" || key === "arrowright") {
+        wake()
+        keys.right = true
+      } else if (key === "s" || key === "arrowdown") {
+        wake()
+        keys.down = true
+      } else if (key === "w" || key === "arrowup" || key === " ") {
+        wake()
+        state.jumpBuffer = JUMP_BUFFER
+        // Space and arrows scroll the page otherwise
+        if (key === " " || key === "arrowup") e.preventDefault()
+      } else {
+        return
+      }
 
-    if (option === "start") {
-      moveLoopInterval.current = setInterval(() => {
-        movePlayer()
-      }, 0)
-
-    } else {
-      clearInterval(moveLoopInterval.current)
-    }
-  }
-
-  function handleKeyDown(e: KeyboardEvent) {
-    const seenKey = e.key.toLowerCase()
-
-    //start loop if not started
-    if (triggerKeys.includes(seenKey) && !loopStarted.current) {
-      manageLoop("start")
-    }
-
-    //note key press
-    if (seenKey === "w") keysPressed.current["up"] = true
-    if (seenKey === "s") keysPressed.current["down"] = true
-    if (seenKey === "a") keysPressed.current["left"] = true
-    if (seenKey === "d") keysPressed.current["right"] = true
-  }
-  function handleKeyUp(e: KeyboardEvent) {
-    const seenKey = e.key.toLowerCase()
-
-    //note key press
-    if (seenKey === "w") keysPressed.current["up"] = false
-    if (seenKey === "s") keysPressed.current["down"] = false
-    if (seenKey === "a") keysPressed.current["left"] = false
-    if (seenKey === "d") keysPressed.current["right"] = false
-  }
-
-  function movePlayer() {
-    const futurePosition = { top: playerInfo.current.top, left: playerInfo.current.left }
-
-    //move player up
-    if (keysPressed.current["up"]) {
-      futurePosition.top -= playerInfo.current.step * 2
-    }
-
-    //move player down
-    if (keysPressed.current["down"] || playerInfo.current.falling) {
-      futurePosition.top += playerInfo.current.step
-    }
-
-    //move player left
-    if (keysPressed.current["left"]) {
-      futurePosition.left -= playerInfo.current.step
-      playerInfo.current.directionFacing = "left"
-    }
-
-    //move player right
-    if (keysPressed.current["right"]) {
-      futurePosition.left += playerInfo.current.step
-      playerInfo.current.directionFacing = "right"
-    }
-
-    //calculate platforms
-    let closestFloorTop = document.body.scrollHeight  //start off with full safe height
-    let onAFloor = false
-
-    for (const key in collisionObjects.current) {
-      const seenCollisionObject = collisionObjects.current[key]
-
-      const playerOverlappingFloorX = futurePosition.left + playerInfo.current.width >= seenCollisionObject.floorLocaInfo.left && futurePosition.left <= seenCollisionObject.floorLocaInfo.right
-      const playerOverlappingFloorY = futurePosition.top + playerInfo.current.height >= seenCollisionObject.floorLocaInfo.top && futurePosition.top + playerInfo.current.height <= seenCollisionObject.floorLocaInfo.top + 2 //check in range
-
-      //check player is overlapping
-      if (playerOverlappingFloorY && playerOverlappingFloorX) {
-        closestFloorTop = seenCollisionObject.floorLocaInfo.top
-        onAFloor = true
+      if (key === "arrowleft" || key === "arrowright" || key === "arrowdown") {
+        e.preventDefault()
       }
     }
 
-    //if on a platform stop falling
-    playerInfo.current.falling = !onAFloor
+    const onKeyUp = (e: KeyboardEvent) => {
+      const key = e.key.toLowerCase()
 
-    const maxX = window.innerWidth - playerInfo.current.width - 5 //px
-    const maxY = closestFloorTop - playerInfo.current.height
-
-    //keep left in bounds
-    if (futurePosition.left >= 0 && futurePosition.left <= maxX) {
-      playerInfo.current.left = futurePosition.left
-
-    } else if (futurePosition.left < 0) {
-      playerInfo.current.left = 0
-
-    } else if (futurePosition.left > maxX) {
-      playerInfo.current.left = maxX
+      if (key === "a" || key === "arrowleft") keys.left = false
+      else if (key === "d" || key === "arrowright") keys.right = false
+      else if (key === "s" || key === "arrowdown") keys.down = false
+      else if (key === "w" || key === "arrowup" || key === " ") {
+        // Short hop: releasing early cuts the rise
+        if (state.vy < 0) state.vy *= 0.45
+      }
     }
 
+    window.addEventListener("keydown", onKeyDown)
+    window.addEventListener("keyup", onKeyUp)
 
-    //keep top in bounds
-    if (futurePosition.top >= 0 && futurePosition.top <= maxY) {
-      playerInfo.current.top = futurePosition.top
+    /* ---- Loop ----------------------------------------------------------- */
+    let frameId = 0
+    let lastTime = performance.now()
 
-    } else if (futurePosition.top < 0) {
-      playerInfo.current.top = 0
+    const loop = (now: number) => {
+      const delta = Math.min((now - lastTime) / 1000, 0.032)
+      lastTime = now
 
-      //allow platform drop
-    } else if (futurePosition.top >= maxY) {
-      playerInfo.current.top = maxY
+      if (!state.awake) {
+        frameId = requestAnimationFrame(loop)
+        return
+      }
 
-      //allow calculations to stop
-      manageLoop("stop")
+      const previousBottom = state.y + HEIGHT
+
+      /* --- horizontal --- */
+      const direction = (keys.right ? 1 : 0) - (keys.left ? 1 : 0)
+      state.vx = direction * MOVE_SPEED
+      if (direction !== 0) state.facing = direction as 1 | -1
+      state.running = direction !== 0 && state.grounded
+
+      state.x += state.vx * delta
+
+      const pageWidth = document.documentElement.scrollWidth
+      state.x = Math.max(0, Math.min(state.x, pageWidth - WIDTH))
+
+      /* --- timers --- */
+      if (state.jumpBuffer > 0) state.jumpBuffer -= delta
+      if (state.coyote > 0) state.coyote -= delta
+      if (state.dropThrough > 0) state.dropThrough -= delta
+
+      /* --- jump --- */
+      if (state.jumpBuffer > 0 && (state.grounded || state.coyote > 0)) {
+        state.vy = JUMP_VELOCITY
+        state.grounded = false
+        state.coyote = 0
+        state.jumpBuffer = 0
+      }
+
+      /* --- drop through the platform underfoot --- */
+      if (keys.down && state.grounded) {
+        state.dropThrough = DROP_THROUGH_GRACE
+        state.grounded = false
+        state.y += 2
+      }
+
+      /* --- vertical --- */
+      state.vy = Math.min(state.vy + GRAVITY * delta, MAX_FALL)
+      state.y += state.vy * delta
+
+      const nextBottom = state.y + HEIGHT
+
+      /* --- land on a platform, one way only ---
+         Only while falling, and only when the feet crossed the top edge this
+         frame. Rising through a heading is therefore always allowed. */
+      let landed = false
+
+      if (state.vy >= 0 && state.dropThrough <= 0) {
+        for (const eachPlatform of platforms) {
+          const overlapsX = state.x + WIDTH > eachPlatform.left && state.x < eachPlatform.right
+          if (!overlapsX) continue
+
+          const crossed = previousBottom <= eachPlatform.top + 1 && nextBottom >= eachPlatform.top
+
+          if (crossed) {
+            state.y = eachPlatform.top - HEIGHT
+            state.vy = 0
+            landed = true
+            break
+          }
+        }
+      }
+
+      /* --- the bottom of the document is solid ground --- */
+      const floor = document.documentElement.scrollHeight - HEIGHT - 4
+      if (state.y >= floor) {
+        state.y = floor
+        state.vy = 0
+        landed = true
+      }
+
+      if (landed) {
+        state.grounded = true
+        state.coyote = COYOTE_TIME
+      } else {
+        if (state.grounded) state.coyote = COYOTE_TIME
+        state.grounded = false
+      }
+
+      /* --- paint --- */
+      element.style.transform =
+        `translate3d(${Math.round(state.x)}px, ${Math.round(state.y)}px, 0) scaleX(${state.facing})`
+      element.dataset.grounded = String(state.grounded)
+      element.dataset.running = String(state.running)
+
+      frameId = requestAnimationFrame(loop)
     }
 
-    if (onAFloor) {
-      manageLoop("stop")
-    }
+    frameId = requestAnimationFrame(loop)
 
-    //apply styling
-    if (playerRef.current === null) return
-    playerRef.current.style.top = `${playerInfo.current.top}px`
-    playerRef.current.style.left = `${playerInfo.current.left}px`
-    playerRef.current.style.transform = playerInfo.current.directionFacing === "left" ? `rotateY(0deg)` : `rotateY(180deg)`
-  }
+    /* ---- Teardown ------------------------------------------------------- */
+    return () => {
+      cancelAnimationFrame(frameId)
+      resizeObserver.disconnect()
+      window.removeEventListener("keydown", onKeyDown)
+      window.removeEventListener("keyup", onKeyUp)
+    }
+  }, [])
 
   return (
-    <div ref={playerRef} id="player" className={styles.player} style={{ width: `${playerInfo.current.width}px`, height: `${playerInfo.current.height}px` }}></div>
+    <>
+      <div
+        ref={elementRef}
+        className={styles.player}
+        style={{ width: WIDTH, height: HEIGHT, opacity: visible ? 1 : 0 }}
+        aria-hidden="true"
+      />
+
+      {visible && (
+        <p className={styles.hint}>
+          <span className="label labelPlain labelSignal">Try this</span>
+          <kbd>A</kbd><kbd>D</kbd> run
+          <span>·</span>
+          <kbd>W</kbd> jump
+          <span>·</span>
+          <kbd>S</kbd> drop through
+          <span>·</span>
+          every heading is a platform
+        </p>
+      )}
+    </>
   )
 }

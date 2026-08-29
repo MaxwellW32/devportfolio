@@ -1,5 +1,5 @@
 "use client"
-import HideNav from "@/components/hideNav/HideNav"
+import ImmersiveMode from "@/components/chrome/ImmersiveMode"
 import { landingPageExamples } from "@/lib/landingPageExamplesData"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
@@ -12,9 +12,9 @@ export default function HompagesRootLayout({
   const router = useRouter()
 
   const checkCurrentIndex = () => {
-    const seenLink = document.URL.split("landingPageExamples/")[1]
+    const seenLink = document.URL.split("/lab/pages/")[1]
     let seenIndex = landingPageExamples.findIndex(eachPage => {
-      const currentLink = eachPage.link.split("landingPageExamples/")[1]
+      const currentLink = eachPage.link.split("/lab/pages/")[1]
 
       if (seenLink === currentLink) {
         return true
@@ -49,13 +49,13 @@ export default function HompagesRootLayout({
   }
 
   return (
-    <HideNav>
+    <ImmersiveMode>
       {children}
 
       <div style={{ position: "fixed", bottom: "1rem", width: "100%", display: "flex", flexWrap: "wrap", gap: "1rem", justifyContent: "center", zIndex: 998, userSelect: "none" }}>
         <p style={{ cursor: "pointer" }} onClick={prev}>prev</p>
         <p style={{ cursor: "pointer" }} onClick={next}>next</p>
       </div>
-    </HideNav>
+    </ImmersiveMode>
   )
 }

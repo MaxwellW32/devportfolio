@@ -1,0 +1,230 @@
+.page {
+  position: relative;
+  height: 100dvh;
+  overflow: hidden;
+  background: var(--color-void);
+}
+
+.stage {
+  position: absolute;
+  inset: 0;
+}
+
+.canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* ---- Shared overlay panel look ------------------------------------------ */
+.topBar,
+.readout,
+.bottomBar,
+.legend {
+  position: absolute;
+  background: color-mix(in oklch, var(--color-void) 80%, transparent);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--color-hairline);
+  border-radius: 3px;
+}
+
+/* ---- Top bar ------------------------------------------------------------- */
+.topBar {
+  top: 1rem;
+  left: 1rem;
+  right: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.7rem 0.9rem;
+}
+
+.back {
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-ink-faint);
+  white-space: nowrap;
+  transition: color 240ms;
+}
+
+.back:hover {
+  color: var(--color-signal);
+}
+
+.seedBox {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  margin-left: auto;
+}
+
+.seedBox input {
+  width: clamp(9rem, 24vw, 16rem);
+  padding: 0.5rem 0.75rem;
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  background: var(--color-canvas);
+  border: 1px solid var(--color-hairline);
+  border-radius: 2px;
+}
+
+.seedBox input:focus {
+  outline: none;
+  border-color: var(--color-signal);
+}
+
+/* ---- Readout ------------------------------------------------------------- */
+.readout {
+  top: 5.5rem;
+  left: 1rem;
+  width: min(17rem, calc(100vw - 2rem));
+  padding: 1rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.biomeName {
+  font-family: var(--font-display);
+  font-size: var(--step-1);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--color-signal);
+}
+
+.readout dl {
+  margin: 0;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.readout dl div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: var(--step--2);
+}
+
+.readout dt {
+  font-family: var(--font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-ink-faint);
+}
+
+.readout dd {
+  margin: 0;
+  color: var(--color-ink);
+}
+
+.note {
+  font-size: 0.68rem;
+  line-height: 1.6;
+  color: var(--color-ink-faint);
+  border-top: 1px solid var(--color-hairline);
+  padding-top: 0.65rem;
+}
+
+@media (max-height: 620px) {
+  .note { display: none; }
+}
+
+/* ---- Bottom bar ---------------------------------------------------------- */
+.bottomBar {
+  bottom: 1rem;
+  left: 1rem;
+  right: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.7rem 0.9rem;
+}
+
+.keys {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-ink-faint);
+}
+
+.keys kbd {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.4rem;
+  height: 1.4rem;
+  font-family: inherit;
+  font-size: 0.68rem;
+  color: var(--color-ink);
+  background: var(--color-canvas);
+  border: 1px solid var(--color-hairline);
+  border-radius: 3px;
+}
+
+.keys span {
+  opacity: 0.4;
+  margin-inline: 0.3rem;
+}
+
+.zoom {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-left: auto;
+}
+
+.zoom input {
+  width: clamp(6rem, 14vw, 10rem);
+  accent-color: var(--color-signal);
+  background: none;
+  border: 0;
+  padding: 0;
+}
+
+/* ---- Legend -------------------------------------------------------------- */
+.legend {
+  right: 1rem;
+  top: 5.5rem;
+  padding: 0.85rem;
+  margin: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.35rem;
+  max-height: calc(100dvh - 12rem);
+  overflow-y: auto;
+}
+
+.legend li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  color: var(--color-ink-faint);
+  transition: color 240ms;
+}
+
+.legend li[data-active="true"] {
+  color: var(--color-signal);
+}
+
+.legend li span {
+  width: 0.8rem;
+  height: 0.8rem;
+  border-radius: 2px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  flex: none;
+}
+
+@media (max-width: 720px) {
+  .readout { display: none; }
+  .legend { display: none; }
+}

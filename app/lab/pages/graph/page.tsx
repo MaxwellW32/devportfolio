@@ -355,7 +355,7 @@ function Worm() {
         }
     }, [])
 
-    const movingInterval = useRef<undefined | NodeJS.Timeout>()
+    const movingInterval = useRef<NodeJS.Timeout | undefined>(undefined)
 
     function start() {
         setTimeout(() => {
@@ -392,7 +392,7 @@ function Bubble({ offset }: { offset?: { x: number, y: number } }) {
     const wormHeight = useMemo(() => getRandomNumber(100, 20), [])
 
 
-    const movingInterval = useRef<undefined | NodeJS.Timeout>()
+    const movingInterval = useRef<NodeJS.Timeout | undefined>(undefined)
 
     useEffect(() => {
         start()

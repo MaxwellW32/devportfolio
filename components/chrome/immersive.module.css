@@ -1,0 +1,33 @@
+.wrap {
+  animation: fadeIn 500ms var(--ease-out-expo) both;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+}
+
+.toggle {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 200;
+  padding: 0.45rem 0.85rem;
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-ink-faint);
+  background: color-mix(in oklch, var(--color-void) 85%, transparent);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--color-hairline);
+  border-radius: 99px;
+  cursor: pointer;
+  opacity: 0.45;
+  transition: opacity 260ms, color 260ms, border-color 260ms;
+}
+
+.toggle:hover {
+  opacity: 1;
+  color: var(--color-signal);
+  border-color: var(--color-signal);
+}

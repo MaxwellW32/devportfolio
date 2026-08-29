@@ -1,642 +1,684 @@
 "use client"
 
-import React, { useEffect, useMemo, useRef, useState } from 'react'
-import styles from "./page.module.css"
-import { shellStats, generalInfo, keysCurrentlyPressed, tankStats, tankDirections } from './roomTypes'
-import InfoMarker from '@/components/infoMarker/InfoMarker'
-import { v4 as uuidV4 } from "uuid"
+import { useCallback, useEffect, useRef, useState } from "react"
+import Link from "next/link"
 
-//pure functions when i can
-//if function needs to change global variables directly, cannot be pure
+import styles from "./tank.module.css"
+
+/* ============================================================================
+   TANK — ricochet arena
+
+   The goal I set myself: shells that bounce correctly off walls, and enemies
+   that lead their shots instead of aiming where you already were.
+
+   Two bits of real geometry make the whole thing work:
+
+     1. Reflection. When a shell crosses a wall, flip the velocity component on
+        that axis only. Angle in equals angle out, and a bank shot round a
+        corner becomes possible rather than lucky.
+
+     2. Interception. To hit a moving target, an enemy solves for where the
+        target *will* be — a quadratic in time-to-impact. Firing at the
+        target's current position misses every time it is moving.
+   ========================================================================= */
+
+const ARENA = { width: 960, height: 620 }
+const TANK_RADIUS = 13
+const SHELL_RADIUS = 3.2
+const SHELL_SPEED = 320
+const MAX_BOUNCES = 3
+const SHELL_LIFETIME = 5
+const RELOAD = 0.45
+const ENEMY_RELOAD = 2.1
+
+type vector = { x: number; y: number }
+
+type wall = { x: number; y: number; width: number; height: number }
+
+type shell = {
+  id: number
+  x: number
+  y: number
+  vx: number
+  vy: number
+  bounces: number
+  age: number
+  friendly: boolean
+  trail: vector[]
+}
+
+type tank = {
+  id: number
+  x: number
+  y: number
+  angle: number
+  turret: number
+  cooldown: number
+  alive: boolean
+  /** Enemies only: where they are currently heading. */
+  wanderAngle: number
+}
+
+type phase = "ready" | "playing" | "won" | "lost"
+
+/** The arena layout — outer border is implicit, these are the inner blocks. */
+const walls: wall[] = [
+  { x: 150, y: 90, width: 26, height: 160 },
+  { x: 150, y: 370, width: 26, height: 160 },
+  { x: 784, y: 90, width: 26, height: 160 },
+  { x: 784, y: 370, width: 26, height: 160 },
+  { x: 300, y: 250, width: 170, height: 26 },
+  { x: 490, y: 344, width: 170, height: 26 },
+  { x: 440, y: 90, width: 26, height: 110 },
+  { x: 494, y: 420, width: 26, height: 110 },
+  { x: 300, y: 470, width: 130, height: 26 },
+  { x: 530, y: 124, width: 130, height: 26 },
+]
+
+function clamp(value: number, min: number, max: number) {
+  return value < min ? min : value > max ? max : value
+}
+
+/** Circle-versus-axis-aligned-rectangle overlap, returning the push-out vector. */
+function resolveCircleRect(cx: number, cy: number, radius: number, rect: wall): vector | null {
+  const nearestX = clamp(cx, rect.x, rect.x + rect.width)
+  const nearestY = clamp(cy, rect.y, rect.y + rect.height)
+
+  const dx = cx - nearestX
+  const dy = cy - nearestY
+  const distanceSquared = dx * dx + dy * dy
+
+  if (distanceSquared >= radius * radius) return null
+
+  const distance = Math.sqrt(distanceSquared)
+
+  // Dead centre: push out along the shallowest axis rather than dividing by zero
+  if (distance === 0) {
+    const leftGap = cx - rect.x
+    const rightGap = rect.x + rect.width - cx
+    const topGap = cy - rect.y
+    const bottomGap = rect.y + rect.height - cy
+    const smallest = Math.min(leftGap, rightGap, topGap, bottomGap)
+
+    if (smallest === leftGap) return { x: -(leftGap + radius), y: 0 }
+    if (smallest === rightGap) return { x: rightGap + radius, y: 0 }
+    if (smallest === topGap) return { x: 0, y: -(topGap + radius) }
+    return { x: 0, y: bottomGap + radius }
+  }
+
+  const overlap = radius - distance
+  return { x: (dx / distance) * overlap, y: (dy / distance) * overlap }
+}
+
+/**
+ * Where should a shell be aimed to intercept a moving target?
+ * Solves |target + v·t − origin| = speed·t for the smallest positive t.
+ * Returns null when the target simply cannot be caught.
+ */
+function interceptAngle(origin: vector, target: vector, targetVelocity: vector, shellSpeed: number) {
+  const dx = target.x - origin.x
+  const dy = target.y - origin.y
+
+  const a = targetVelocity.x * targetVelocity.x + targetVelocity.y * targetVelocity.y - shellSpeed * shellSpeed
+  const b = 2 * (dx * targetVelocity.x + dy * targetVelocity.y)
+  const c = dx * dx + dy * dy
+
+  let time: number
+
+  if (Math.abs(a) < 1e-6) {
+    // Target moving at exactly shell speed — the quadratic degenerates
+    if (Math.abs(b) < 1e-6) return null
+    time = -c / b
+  } else {
+    const discriminant = b * b - 4 * a * c
+    if (discriminant < 0) return null
+
+    const root = Math.sqrt(discriminant)
+    const t1 = (-b + root) / (2 * a)
+    const t2 = (-b - root) / (2 * a)
+
+    const candidates = [t1, t2].filter(t => t > 0)
+    if (candidates.length === 0) return null
+    time = Math.min(...candidates)
+  }
+
+  if (time <= 0) return null
+
+  return Math.atan2(dy + targetVelocity.y * time, dx + targetVelocity.x * time)
+}
 
 export default function Page() {
-    const canvasRef = useRef<HTMLDivElement>(null!)
-    const rooms = useRef<HTMLDivElement[]>([])
-    const shells = useRef<shellStats[]>([])
-    const maxShellsSpawnable = useRef<number>(60)
-    const amountOfTanks = useRef<number>(1)
-    const generalInfo = useRef<generalInfo>({
-        roomWidth: 1000,
-        amountOfLanes: 10,
-        maxShellsSpawnable: maxShellsSpawnable.current / amountOfTanks.current,
-    })
-    const keysCurrentlyPressed = useRef<keysCurrentlyPressed>({
-        up: false,
-        down: false,
-        left: false,
-        right: false,
-        blast: false
-    })
-    const playerTanks = useRef<tankStats[]>([{
-        id: "max",
-        width: 20,
-        x: 0,
-        y: 0,
-        speed: 2,
-        directionFacing: "right",
-        team: "home",
-        element: null!
-    }])
-    const animationFrameId = useRef<number>()
-    const shellAnimationFrameId = useRef<number>()
-    const lastPathInBoundForShells = useRef<{ [key: string]: HTMLDivElement }>({})
-    const userInteracted = useRef(false)
-    const lastPathInBoundForTanks = useRef<{ [key: string]: HTMLDivElement }>({})
+  const canvasRef = useRef<HTMLCanvasElement | null>(null)
+  const wrapRef = useRef<HTMLDivElement | null>(null)
 
-    //start off
-    const ranOnce = useRef(false)
-    useEffect(() => {
-        if (ranOnce.current) return
-        ranOnce.current = true
+  const [phase, phaseSet] = useState<phase>("ready")
+  const [score, scoreSet] = useState(0)
+  const [enemiesLeft, enemiesLeftSet] = useState(0)
+  const [wave, waveSet] = useState(1)
 
-        startOff()
-    }, [])
+  const phaseRef = useRef<phase>("ready")
+  useEffect(() => {
+    phaseRef.current = phase
+  }, [phase])
 
-    //clean up
-    useEffect(() => {
-        return () => {
-            if (userInteracted.current) {
-                console.log(`$ran`);
-                closeDown()
-            }
+  const player = useRef<tank>({
+    id: 0, x: 90, y: ARENA.height / 2, angle: 0, turret: 0, cooldown: 0, alive: true, wanderAngle: 0,
+  })
+  const playerVelocity = useRef<vector>({ x: 0, y: 0 })
+  const enemies = useRef<tank[]>([])
+  const shells = useRef<shell[]>([])
+  const keys = useRef<Record<string, boolean>>({})
+  const pointer = useRef<vector>({ x: ARENA.width / 2, y: ARENA.height / 2 })
+  const shellId = useRef(0)
+  const waveRef = useRef(1)
+
+  /* ---- Spawning --------------------------------------------------------- */
+  const spawnWave = useCallback((waveNumber: number) => {
+    const count = Math.min(2 + waveNumber, 6)
+    const spawned: tank[] = []
+
+    for (let i = 0; i < count; i++) {
+      // Spread spawns down the right-hand side, clear of the wall blocks
+      const y = 90 + ((ARENA.height - 180) / Math.max(count - 1, 1)) * i
+      spawned.push({
+        id: i + 1,
+        x: ARENA.width - 90,
+        y,
+        angle: Math.PI,
+        turret: Math.PI,
+        cooldown: 0.6 + i * 0.35,
+        alive: true,
+        wanderAngle: Math.PI,
+      })
+    }
+
+    enemies.current = spawned
+    enemiesLeftSet(count)
+  }, [])
+
+  const startGame = useCallback(() => {
+    player.current = {
+      id: 0, x: 90, y: ARENA.height / 2, angle: 0, turret: 0, cooldown: 0, alive: true, wanderAngle: 0,
+    }
+    playerVelocity.current = { x: 0, y: 0 }
+    shells.current = []
+    waveRef.current = 1
+    waveSet(1)
+    scoreSet(0)
+    spawnWave(1)
+    phaseSet("playing")
+  }, [spawnWave])
+
+  /* ---- Input ------------------------------------------------------------ */
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      keys.current[e.key.toLowerCase()] = true
+
+      if (e.key === " ") e.preventDefault()
+      if (["arrowup", "arrowdown", "arrowleft", "arrowright"].includes(e.key.toLowerCase())) {
+        e.preventDefault()
+      }
+    }
+    const onKeyUp = (e: KeyboardEvent) => {
+      keys.current[e.key.toLowerCase()] = false
+    }
+
+    window.addEventListener("keydown", onKeyDown)
+    window.addEventListener("keyup", onKeyUp)
+
+    return () => {
+      window.removeEventListener("keydown", onKeyDown)
+      window.removeEventListener("keyup", onKeyUp)
+    }
+  }, [])
+
+  /* ---- Simulation + render --------------------------------------------- */
+  useEffect(() => {
+    const canvas = canvasRef.current
+    const wrap = wrapRef.current
+    if (canvas === null || wrap === null) return
+
+    const ctx = canvas.getContext("2d")
+    if (ctx === null) return
+
+    // The arena is a fixed logical size, scaled to fit whatever space it gets
+    let scale = 1
+    let offsetX = 0
+    let offsetY = 0
+
+    const resize = () => {
+      const rect = wrap.getBoundingClientRect()
+      const dpr = Math.min(window.devicePixelRatio || 1, 2)
+
+      canvas.width = Math.round(rect.width * dpr)
+      canvas.height = Math.round(rect.height * dpr)
+
+      scale = Math.min(rect.width / ARENA.width, rect.height / ARENA.height)
+      offsetX = (rect.width - ARENA.width * scale) / 2
+      offsetY = (rect.height - ARENA.height * scale) / 2
+
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+    }
+
+    resize()
+    const observer = new ResizeObserver(resize)
+    observer.observe(wrap)
+
+    const toArena = (clientX: number, clientY: number) => {
+      const rect = canvas.getBoundingClientRect()
+      return {
+        x: (clientX - rect.left - offsetX) / scale,
+        y: (clientY - rect.top - offsetY) / scale,
+      }
+    }
+
+    const onPointerMove = (e: PointerEvent) => {
+      pointer.current = toArena(e.clientX, e.clientY)
+    }
+
+    const fire = (from: tank, angle: number, friendly: boolean) => {
+      shells.current.push({
+        id: shellId.current++,
+        x: from.x + Math.cos(angle) * (TANK_RADIUS + 6),
+        y: from.y + Math.sin(angle) * (TANK_RADIUS + 6),
+        vx: Math.cos(angle) * SHELL_SPEED,
+        vy: Math.sin(angle) * SHELL_SPEED,
+        bounces: 0,
+        age: 0,
+        friendly,
+        trail: [],
+      })
+    }
+
+    const onPointerDown = (e: PointerEvent) => {
+      if (phaseRef.current !== "playing") return
+      pointer.current = toArena(e.clientX, e.clientY)
+
+      if (player.current.cooldown <= 0 && player.current.alive) {
+        fire(player.current, player.current.turret, true)
+        player.current.cooldown = RELOAD
+      }
+    }
+
+    canvas.addEventListener("pointermove", onPointerMove)
+    canvas.addEventListener("pointerdown", onPointerDown)
+
+    let frameId = 0
+    let lastTime = performance.now()
+
+    const update = (delta: number) => {
+      if (phaseRef.current !== "playing") return
+
+      /* --- player movement --- */
+      const self = player.current
+      const speed = 168
+
+      let moveX = 0
+      let moveY = 0
+      if (keys.current["w"] || keys.current["arrowup"]) moveY -= 1
+      if (keys.current["s"] || keys.current["arrowdown"]) moveY += 1
+      if (keys.current["a"] || keys.current["arrowleft"]) moveX -= 1
+      if (keys.current["d"] || keys.current["arrowright"]) moveX += 1
+
+      const magnitude = Math.hypot(moveX, moveY)
+      if (magnitude > 0) {
+        moveX /= magnitude
+        moveY /= magnitude
+        self.angle = Math.atan2(moveY, moveX)
+      }
+
+      playerVelocity.current = { x: moveX * speed, y: moveY * speed }
+
+      self.x += moveX * speed * delta
+      self.y += moveY * speed * delta
+
+      self.turret = Math.atan2(pointer.current.y - self.y, pointer.current.x - self.x)
+
+      if (self.cooldown > 0) self.cooldown -= delta
+
+      // Space fires too, for anyone who would rather not use the mouse
+      if (keys.current[" "] && self.cooldown <= 0) {
+        fire(self, self.turret, true)
+        self.cooldown = RELOAD
+      }
+
+      /* --- keep tanks out of walls and inside the arena --- */
+      const constrain = (unit: tank) => {
+        unit.x = clamp(unit.x, TANK_RADIUS, ARENA.width - TANK_RADIUS)
+        unit.y = clamp(unit.y, TANK_RADIUS, ARENA.height - TANK_RADIUS)
+
+        for (const eachWall of walls) {
+          const push = resolveCircleRect(unit.x, unit.y, TANK_RADIUS, eachWall)
+          if (push !== null) {
+            unit.x += push.x
+            unit.y += push.y
+          }
         }
-    }, [])
+      }
 
-    function startOff() {
-        //place tank in right position
-        playerTanks.current.forEach(eachTank => {
-            eachTank.x = generalInfo.current.roomWidth / 2 - eachTank.width / 2
-            eachTank.y = generalInfo.current.roomWidth / 2 - eachTank.width / 2
+      constrain(self)
+
+      /* --- enemies --- */
+      for (const enemy of enemies.current) {
+        if (!enemy.alive) continue
+
+        const toPlayerX = self.x - enemy.x
+        const toPlayerY = self.y - enemy.y
+        const distance = Math.hypot(toPlayerX, toPlayerY)
+
+        // Close the distance, but hold station once inside firing range
+        const desired = distance > 260 ? Math.atan2(toPlayerY, toPlayerX) : enemy.wanderAngle
+
+        if (distance <= 260) {
+          // Strafe rather than sit still, so they are not free target practice
+          enemy.wanderAngle += (Math.random() - 0.5) * 1.6 * delta
+        }
+
+        const enemySpeed = distance > 260 ? 82 : 54
+        enemy.x += Math.cos(desired) * enemySpeed * delta
+        enemy.y += Math.sin(desired) * enemySpeed * delta
+        enemy.angle = desired
+
+        constrain(enemy)
+
+        // Aim where the player is going, not where they are
+        const lead = interceptAngle(
+          { x: enemy.x, y: enemy.y },
+          { x: self.x, y: self.y },
+          playerVelocity.current,
+          SHELL_SPEED,
+        )
+        enemy.turret = lead ?? Math.atan2(toPlayerY, toPlayerX)
+
+        enemy.cooldown -= delta
+        if (enemy.cooldown <= 0 && distance < 460) {
+          // A little spread, so perfect prediction does not make them unfair
+          fire(enemy, enemy.turret + (Math.random() - 0.5) * 0.09, false)
+          enemy.cooldown = ENEMY_RELOAD + Math.random() * 0.8
+        }
+      }
+
+      /* --- shells --- */
+      const survivors: shell[] = []
+
+      for (const eachShell of shells.current) {
+        eachShell.age += delta
+        if (eachShell.age > SHELL_LIFETIME) continue
+
+        // Substep so a fast shell cannot tunnel through a thin wall
+        const steps = 4
+        const stepDelta = delta / steps
+        let dead = false
+
+        for (let s = 0; s < steps && !dead; s++) {
+          eachShell.x += eachShell.vx * stepDelta
+          eachShell.y += eachShell.vy * stepDelta
+
+          // --- arena edges ---
+          if (eachShell.x < SHELL_RADIUS || eachShell.x > ARENA.width - SHELL_RADIUS) {
+            eachShell.x = clamp(eachShell.x, SHELL_RADIUS, ARENA.width - SHELL_RADIUS)
+            eachShell.vx *= -1
+            eachShell.bounces++
+          }
+          if (eachShell.y < SHELL_RADIUS || eachShell.y > ARENA.height - SHELL_RADIUS) {
+            eachShell.y = clamp(eachShell.y, SHELL_RADIUS, ARENA.height - SHELL_RADIUS)
+            eachShell.vy *= -1
+            eachShell.bounces++
+          }
+
+          // --- inner walls: reflect on whichever axis was crossed ---
+          for (const eachWall of walls) {
+            const push = resolveCircleRect(eachShell.x, eachShell.y, SHELL_RADIUS, eachWall)
+            if (push === null) continue
+
+            eachShell.x += push.x
+            eachShell.y += push.y
+
+            // The push-out vector points along the face that was hit
+            if (Math.abs(push.x) > Math.abs(push.y)) eachShell.vx *= -1
+            else eachShell.vy *= -1
+
+            eachShell.bounces++
+            break
+          }
+
+          if (eachShell.bounces > MAX_BOUNCES) {
+            dead = true
+            break
+          }
+
+          // --- hits ---
+          if (eachShell.friendly) {
+            for (const enemy of enemies.current) {
+              if (!enemy.alive) continue
+              if (Math.hypot(enemy.x - eachShell.x, enemy.y - eachShell.y) < TANK_RADIUS + SHELL_RADIUS) {
+                enemy.alive = false
+                dead = true
+                scoreSet(prev => prev + 100)
+                enemiesLeftSet(prev => Math.max(0, prev - 1))
+                break
+              }
+            }
+          } else if (
+            self.alive &&
+            Math.hypot(self.x - eachShell.x, self.y - eachShell.y) < TANK_RADIUS + SHELL_RADIUS
+          ) {
+            self.alive = false
+            dead = true
+            phaseSet("lost")
+          }
+        }
+
+        if (!dead) {
+          eachShell.trail.push({ x: eachShell.x, y: eachShell.y })
+          if (eachShell.trail.length > 9) eachShell.trail.shift()
+          survivors.push(eachShell)
+        }
+      }
+
+      shells.current = survivors
+
+      /* --- wave complete --- */
+      if (self.alive && enemies.current.length > 0 && enemies.current.every(e => !e.alive)) {
+        if (waveRef.current >= 4) {
+          phaseSet("won")
+        } else {
+          waveRef.current++
+          waveSet(waveRef.current)
+          spawnWave(waveRef.current)
+        }
+      }
+    }
+
+    /* ---- Drawing --------------------------------------------------------- */
+    const drawTank = (unit: tank, friendly: boolean) => {
+      ctx.save()
+      ctx.translate(unit.x, unit.y)
+
+      // shadow
+      ctx.beginPath()
+      ctx.arc(1.5, 2.5, TANK_RADIUS, 0, Math.PI * 2)
+      ctx.fillStyle = "rgba(0,0,0,0.35)"
+      ctx.fill()
+
+      // hull
+      ctx.save()
+      ctx.rotate(unit.angle)
+      ctx.fillStyle = friendly ? "oklch(70% 0.17 122)" : "oklch(58% 0.16 25)"
+      ctx.fillRect(-TANK_RADIUS, -TANK_RADIUS + 2, TANK_RADIUS * 2, TANK_RADIUS * 2 - 4)
+
+      ctx.fillStyle = "rgba(0,0,0,0.25)"
+      ctx.fillRect(-TANK_RADIUS, -TANK_RADIUS + 2, TANK_RADIUS * 2, 3)
+      ctx.fillRect(-TANK_RADIUS, TANK_RADIUS - 5, TANK_RADIUS * 2, 3)
+      ctx.restore()
+
+      // turret
+      ctx.save()
+      ctx.rotate(unit.turret)
+      ctx.fillStyle = friendly ? "oklch(88% 0.21 122)" : "oklch(70% 0.19 25)"
+      ctx.fillRect(0, -2.5, TANK_RADIUS + 9, 5)
+      ctx.beginPath()
+      ctx.arc(0, 0, TANK_RADIUS * 0.55, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.restore()
+
+      ctx.restore()
+    }
+
+    const render = () => {
+      const rect = wrap.getBoundingClientRect()
+      ctx.clearRect(0, 0, rect.width, rect.height)
+
+      ctx.save()
+      ctx.translate(offsetX, offsetY)
+      ctx.scale(scale, scale)
+
+      // floor
+      ctx.fillStyle = "oklch(19% 0.01 240)"
+      ctx.fillRect(0, 0, ARENA.width, ARENA.height)
+
+      // grid
+      ctx.strokeStyle = "oklch(24% 0.012 240)"
+      ctx.lineWidth = 1
+      ctx.beginPath()
+      for (let x = 40; x < ARENA.width; x += 40) {
+        ctx.moveTo(x, 0)
+        ctx.lineTo(x, ARENA.height)
+      }
+      for (let y = 40; y < ARENA.height; y += 40) {
+        ctx.moveTo(0, y)
+        ctx.lineTo(ARENA.width, y)
+      }
+      ctx.stroke()
+
+      // walls
+      for (const eachWall of walls) {
+        ctx.fillStyle = "oklch(30% 0.014 240)"
+        ctx.fillRect(eachWall.x, eachWall.y, eachWall.width, eachWall.height)
+        ctx.strokeStyle = "oklch(38% 0.015 240)"
+        ctx.strokeRect(eachWall.x + 0.5, eachWall.y + 0.5, eachWall.width - 1, eachWall.height - 1)
+      }
+
+      // border
+      ctx.strokeStyle = "oklch(38% 0.015 240)"
+      ctx.lineWidth = 2
+      ctx.strokeRect(1, 1, ARENA.width - 2, ARENA.height - 2)
+
+      // aim line, showing the first bounce
+      if (phaseRef.current === "playing" && player.current.alive) {
+        ctx.setLineDash([4, 6])
+        ctx.strokeStyle = "oklch(88% 0.21 122 / 0.22)"
+        ctx.lineWidth = 1
+        ctx.beginPath()
+        ctx.moveTo(player.current.x, player.current.y)
+        ctx.lineTo(pointer.current.x, pointer.current.y)
+        ctx.stroke()
+        ctx.setLineDash([])
+      }
+
+      // shells
+      for (const eachShell of shells.current) {
+        const colour = eachShell.friendly ? "oklch(88% 0.21 122" : "oklch(70% 0.19 25"
+
+        eachShell.trail.forEach((eachPoint, eachIndex) => {
+          const alpha = (eachIndex / eachShell.trail.length) * 0.4
+          ctx.beginPath()
+          ctx.arc(eachPoint.x, eachPoint.y, SHELL_RADIUS * 0.7, 0, Math.PI * 2)
+          ctx.fillStyle = `${colour} / ${alpha})`
+          ctx.fill()
         })
 
-        //generate rooms
-        for (let index = 0; index < 4; index++) {
-            addRoom()
-        }
+        ctx.beginPath()
+        ctx.arc(eachShell.x, eachShell.y, SHELL_RADIUS, 0, Math.PI * 2)
+        ctx.fillStyle = `${colour})`
+        ctx.fill()
+      }
 
-        //listen to move keys
-        //remove prev listeners
-        document.body.removeEventListener("keydown", (e) => detectKeys(e, "keydown"))
-        document.body.removeEventListener("keyup", (e) => detectKeys(e, "keyup"))
-        //add key listener to move tank
-        document.body.addEventListener("keydown", (e) => detectKeys(e, "keydown"))
-        document.body.addEventListener("keyup", (e) => detectKeys(e, "keyup"))
+      for (const enemy of enemies.current) {
+        if (enemy.alive) drawTank(enemy, false)
+      }
 
-        //detect mousePos
-        //remove prev listeners
-        document.body.removeEventListener("mousemove", (e) => detectMouse(e))
-        //add key listener to move tank
-        document.body.addEventListener("mousemove", (e) => detectMouse(e))
+      if (player.current.alive) drawTank(player.current, true)
 
-        //start movement loop
-        //ensure animation loop starts fresh
-        if (animationFrameId.current) cancelAnimationFrame(animationFrameId.current)
-        continuousMovementLoop()
-
-        if (shellAnimationFrameId.current) cancelAnimationFrame(shellAnimationFrameId.current)
-        continuousMoveShellLoop()
+      ctx.restore()
     }
 
-    function closeDown() {
-        if (animationFrameId.current) cancelAnimationFrame(animationFrameId.current)
+    const loop = (now: number) => {
+      const delta = Math.min((now - lastTime) / 1000, 0.033)
+      lastTime = now
 
-        if (shellAnimationFrameId.current) cancelAnimationFrame(shellAnimationFrameId.current)
+      update(delta)
+      render()
 
-        document.body.removeEventListener("keydown", (e) => detectKeys(e, "keydown"))
-        document.body.removeEventListener("keyup", (e) => detectKeys(e, "keyup"))
-        document.body.removeEventListener("mousemove", (e) => detectMouse(e))
+      frameId = requestAnimationFrame(loop)
     }
 
-    function assignTankRefs(e: HTMLDivElement | null, tankId: string) {
-        if (e === null) return
+    frameId = requestAnimationFrame(loop)
 
-        playerTanks.current = playerTanks.current.map(eachTank => {
-            if (eachTank.id === tankId)
-                eachTank.element = e
-            return eachTank
-        })
+    return () => {
+      cancelAnimationFrame(frameId)
+      observer.disconnect()
+      canvas.removeEventListener("pointermove", onPointerMove)
+      canvas.removeEventListener("pointerdown", onPointerDown)
     }
-
-    function addRoom() {
-        const randR = Math.floor(Math.random() * 256)
-        const randG = Math.floor(Math.random() * 256)
-        const randB = Math.floor(Math.random() * 256)
-
-        const newRoom = document.createElement("div")
-
-        newRoom.classList.add(styles.room)
-        newRoom.style.width = `${generalInfo.current.roomWidth}px`
-        newRoom.style.backgroundColor = `rgba(${randR},${randG},${randB},0.2)`
-
-        rooms.current.push(newRoom)
-        canvasRef.current.append(newRoom)
-
-        const newestRoomAdded = rooms.current[rooms.current.length - 1]
-
-        //generate maze
-        const singleLaneWidth = generalInfo.current.roomWidth / generalInfo.current.amountOfLanes
-
-        const makePath = (option: "vertical" | "horizantal") => {
-            if (option === "horizantal") {
-                const newHorizantalPath = document.createElement("div")
-                const pathHeight = singleLaneWidth
-                const pathWidth = newestRoomAdded.offsetWidth
-                const pathLeft = newestRoomAdded.offsetLeft
-                const pathTop = (newestRoomAdded.clientHeight / 2) - (pathHeight / 2)
-
-                newHorizantalPath.style.height = `${pathHeight}px`
-                newHorizantalPath.style.width = `${pathWidth}px`
-                newHorizantalPath.style.top = `${pathTop}px`
-                newHorizantalPath.style.left = `${pathLeft}px`
-                newHorizantalPath.classList.add(styles.path)
-
-                newestRoomAdded.append(newHorizantalPath)
-
-            } else {
-                const newVerticalPath = document.createElement("div")
-                const pathHeight = newestRoomAdded.clientHeight
-                const pathWidth = singleLaneWidth
-                const pathLeft = (newestRoomAdded.offsetLeft + (newestRoomAdded.clientWidth / 2)) - pathWidth / 2
-                const pathTop = newestRoomAdded.clientTop
-
-                newVerticalPath.style.height = `${pathHeight}px`
-                newVerticalPath.style.width = `${pathWidth}px`
-                newVerticalPath.style.top = `${pathTop}px`
-                newVerticalPath.style.left = `${pathLeft}px`
-                newVerticalPath.classList.add(styles.path)
-
-                newestRoomAdded.append(newVerticalPath)
-            }
-        }
-        makePath("horizantal")
-        makePath("vertical")
-    }
-
-    function detectKeys(e: KeyboardEvent, option: "keydown" | "keyup") {
-        const seenKey = e.key.toLowerCase()
-
-        if (seenKey === "arrowup" || seenKey === "w") {
-            keysCurrentlyPressed.current.up = option === "keydown" ? true : false
-        }
-        if (seenKey === "arrowdown" || seenKey === "s") {
-            keysCurrentlyPressed.current.down = option === "keydown" ? true : false
-        }
-        if (seenKey === "arrowleft" || seenKey === "a") {
-            keysCurrentlyPressed.current.left = option === "keydown" ? true : false
-        }
-        if (seenKey === "arrowright" || seenKey === "d") {
-            keysCurrentlyPressed.current.right = option === "keydown" ? true : false
-        }
-        if (seenKey === "x") {
-            keysCurrentlyPressed.current.blast = option === "keydown" ? true : false
-
-            //search through tanks, fire from only non enemy tank
-            if (keysCurrentlyPressed.current.blast) {
-                playerTanks.current.forEach(eachTank => {
-                    if (eachTank.team !== "home") return
-
-                    // console.log(`$fired`);
-                    blastFromTank(eachTank)
-                })
-            }
-        }
-
-        userInteracted.current = true
-    }
-
-    function detectMouse(e: MouseEvent) {
-        //refactor to have automatic fire as well
-        if (!canvasRef.current) return
-
-        const mouseX = e.clientX
-        const mouseY = e.clientY
-
-        const homeTank = playerTanks.current.find(eachTank => eachTank.team === "home")
-        if (!homeTank) return
-
-        const tankScreenX = homeTank.x - canvasRef.current.scrollLeft + (homeTank.width / 2) //make it revolve center of the tank
-        const tankScreenY = homeTank.y - canvasRef.current.scrollTop + (homeTank.width / 2)
-
-        const deltaX = mouseX - tankScreenX;
-        const deltaY = mouseY - tankScreenY;
-
-        let angle = (Math.atan2(deltaY, deltaX) * (-180 / Math.PI));
-
-        if (angle < 0) {
-            angle += 360;
-        }
-
-        let direction: tankDirections | null = null
-        let stiffAngle = angle
-
-        if (angle < 45) {
-            direction = "right"
-            stiffAngle = 360
-
-        } else if (angle < 90) {
-            direction = "up-right"
-            stiffAngle = 45
-        } else if (angle < 135) {
-            direction = "up"
-            stiffAngle = 90
-        } else if (angle < 180) {
-            direction = "up-left"
-            stiffAngle = 135
-        } else if (angle < 225) {
-            direction = "left"
-            stiffAngle = 180
-        } else if (angle < 270) {
-            direction = "down-left"
-            stiffAngle = 225
-        } else if (angle < 315) {
-            direction = "down"
-            stiffAngle = 270
-        } else if (angle < 360) {
-            stiffAngle = 315
-            direction = "down-right"
-        }
-
-        if (direction) {
-            homeTank.directionFacing = direction
-
-            //style snout
-            homeTank.element.style.setProperty("--rotateAngle", `${stiffAngle * -1}deg`)
-        }
-    }
-
-    function continuousMovementLoop() {
-        animationFrameId.current = requestAnimationFrame(continuousMovementLoop)
-
-        playerTanks.current.forEach(eachTank => {
-            //moveTank Loop
-            const newTankPos = moveTankPosition(keysCurrentlyPressed.current, eachTank, rooms.current)
-            eachTank.x = newTankPos.newXPos
-            eachTank.y = newTankPos.newYPos
-            placeTankAtLocation(eachTank.x, eachTank.y, eachTank.element)
-
-            if (eachTank.team !== "home") return //ensure only hometank is centered
-
-            //center screen
-            centerCanvas(eachTank.x, eachTank.y)
-
-            //run room check - ensure infinite rooms
-            ensureInfiniteRooms(eachTank)
-        })
-    }
-
-    function moveTankPosition(keysCurrentlyPressedLocal: keysCurrentlyPressed, seenTank: tankStats, roomsLocal: HTMLDivElement[],) {
-        let currentXPos = seenTank.x
-        let currentYPos = seenTank.y
-
-        let newXPos = currentXPos
-        let newYPos = currentYPos
-
-        let currentRoomIndex = 0 //assign box to correct room
-        roomsLocal.forEach((eachRoom, eachRoomIndex) => {
-            if (newXPos > eachRoom.offsetLeft) {
-                currentRoomIndex = eachRoomIndex
-                return
-            }
-        })
-
-        const notOnLastRoom = currentRoomIndex !== roomsLocal.length - 1
-        const usingPrevRoom = currentRoomIndex !== 0
-        const usingNextRoom = notOnLastRoom
-
-        const pathsInPrevRoom = usingPrevRoom ? roomsLocal[currentRoomIndex - 1].childNodes : [];
-        const pathsInCurrentRoom = roomsLocal[currentRoomIndex].childNodes;
-        const pathsInNextRoom = usingNextRoom ? roomsLocal[currentRoomIndex + 1].childNodes : [];
-
-        const allPaths: HTMLDivElement[] = []
-
-        pathsInPrevRoom.forEach(eachPath => {
-            allPaths.push(eachPath as HTMLDivElement)
-        })//add all paths to allpaths array
-        pathsInCurrentRoom.forEach(eachPath => {
-            allPaths.push(eachPath as HTMLDivElement)
-        })
-        pathsInNextRoom.forEach(eachPath => {
-            allPaths.push(eachPath as HTMLDivElement)
-        })
-
-        if (keysCurrentlyPressedLocal.up) {//change position
-            newYPos -= seenTank.speed
-        }
-        if (keysCurrentlyPressedLocal.down) {
-            newYPos += seenTank.speed
-        }
-        if (keysCurrentlyPressedLocal.left) {
-            newXPos -= seenTank.speed
-        }
-        if (keysCurrentlyPressedLocal.right) {
-            newXPos += seenTank.speed
-        }
-
-        let canMove = false;
-        allPaths.forEach(eachPath => {
-            const pathConnectsRooms = roomsLocal[currentRoomIndex].offsetLeft + roomsLocal[currentRoomIndex].clientWidth === eachPath.offsetLeft + eachPath.clientWidth
-
-            const minXPos = eachPath.offsetLeft + (pathConnectsRooms ? - seenTank.width : 0)
-            const maxXPos = eachPath.offsetLeft + eachPath.clientWidth + (pathConnectsRooms ? 0 : - seenTank.width)
-
-            const minYPos = eachPath.offsetTop
-            const maxYPos = eachPath.offsetTop + eachPath.clientHeight - seenTank.width
-
-            if (newXPos >= minXPos && newXPos <= maxXPos && newYPos >= minYPos && newYPos <= maxYPos) {
-                canMove = true;
-                lastPathInBoundForTanks.current[seenTank.id] = eachPath
-            }
-        });
-
-        if (!canMove) {
-            const lastPathInBounds = lastPathInBoundForTanks.current[seenTank.id]
-
-            const pathConnectsRooms = roomsLocal[currentRoomIndex].offsetLeft + roomsLocal[currentRoomIndex].clientWidth === lastPathInBounds.offsetLeft + lastPathInBounds.clientWidth
-
-            const minXPos = lastPathInBounds.offsetLeft + (pathConnectsRooms ? - seenTank.width : 0)
-            const maxXPos = lastPathInBounds.offsetLeft + lastPathInBounds.clientWidth + (pathConnectsRooms ? 0 : - seenTank.width)
-
-            const minYPos = lastPathInBounds.offsetTop
-            const maxYPos = lastPathInBounds.offsetTop + lastPathInBounds.clientHeight - seenTank.width
-
-            if (newXPos < minXPos) {
-                newXPos = minXPos
-            }
-            if (newXPos > maxXPos) {
-                newXPos = maxXPos
-            }
-            if (newYPos < minYPos) {
-                newYPos = minYPos
-            }
-            if (newYPos > maxYPos) {
-                newYPos = maxYPos
-            }
-        }
-
-        return { newXPos, newYPos }
-    }
-
-    function placeTankAtLocation(x: number, y: number, tankRefLocal: HTMLDivElement) {
-        tankRefLocal.style.translate = `${x}px ${y}px`
-    }
-
-    function centerCanvas(x: number, y: number) {
-        const middleOfScreenXPos = canvasRef.current.scrollLeft + (canvasRef.current.clientWidth / 2)
-        const middleOfScreenYPos = canvasRef.current.scrollTop + (canvasRef.current.clientHeight / 2)
-
-        const newMiddleX = x
-        const newMiddleY = y
-
-        const differenceBetweenLocationX = newMiddleX - middleOfScreenXPos
-        const differenceBetweenLocationY = newMiddleY - middleOfScreenYPos
-
-        canvasRef.current.scrollLeft += differenceBetweenLocationX
-        canvasRef.current.scrollTop += differenceBetweenLocationY
-    }
-
-    function ensureInfiniteRooms(seenTank: tankStats) {
-        //check room tank is in
-        let currentRoom = 0 //assign box to correct room
-        rooms.current.forEach((eachRoom, eachRoomIndex) => {
-            if (seenTank.x > eachRoom.offsetLeft) {
-                currentRoom = eachRoomIndex + 1
-                return
-            }
-        })
-
-        //check amount of rooms left
-        const amountOfRoomsLeft = rooms.current.length - currentRoom
-
-        //spawn more rooms
-        if (amountOfRoomsLeft <= 2) {
-            addRoom()
-        }
-    }
-
-    function blastFromTank(seenTank: tankStats) {
-        let xDirection = 0
-        let yDirection = 0
-
-        if (seenTank.directionFacing === "up") {
-            yDirection = -1
-
-        } else if (seenTank.directionFacing === "down") {
-            yDirection = 1
-
-        } else if (seenTank.directionFacing === "left") {
-            xDirection = -1
-
-        } else if (seenTank.directionFacing === "right") {
-            xDirection = 1
-
-        } else if (seenTank.directionFacing === "up-left") {
-            xDirection = -1
-            yDirection = -1
-
-        } else if (seenTank.directionFacing === "up-right") {
-            xDirection = 1
-            yDirection = -1
-
-        } else if (seenTank.directionFacing === "down-left") {
-            xDirection = -1
-            yDirection = 1
-
-        } else if (seenTank.directionFacing === "down-right") {
-            xDirection = 1
-            yDirection = 1
-        }
-
-        const shellWidth = 10
-
-        const newShellEl = document.createElement("div")
-        newShellEl.style.width = `${shellWidth}px`
-        newShellEl.classList.add(styles.shell)
-
-        const newShell: shellStats = {
-            id: uuidV4(),
-            firedFrom: seenTank.id,
-            width: shellWidth,
-            x: seenTank.x + (seenTank.width / 2) - (shellWidth / 2),
-            y: seenTank.y + (seenTank.width / 2) - (shellWidth / 2),
-            xDirection: xDirection,
-            yDirection: yDirection,
-            wallsHit: 0,
-            speed: 3,
-            el: newShellEl
-        }
-
-        shells.current.push(newShell)
-        canvasRef.current.append(newShell.el)
-
-        //if too many fired from tank - remove earlier shells fired from screen
-        const currentShellsFromTankCount = shells.current.reduce((acc, shell) => {
-            if (shell.firedFrom === seenTank.id) {
-                return acc + 1
-            } else {
-                return acc;
-            }
-        }, 0)
-
-        //remove earliest shell from screen
-        if (currentShellsFromTankCount > generalInfo.current.maxShellsSpawnable) {
-            const earliestShellFiredFromTank = shells.current.find(eachShell => eachShell.firedFrom === seenTank.id)
-            if (earliestShellFiredFromTank === undefined) return
-
-            removeShell(earliestShellFiredFromTank.id)
-        }
-    }
-
-    function continuousMoveShellLoop() {
-        shellAnimationFrameId.current = requestAnimationFrame(continuousMoveShellLoop)
-
-        shells.current.forEach(eachShell => {
-            let currentX = eachShell.x
-            let currentY = eachShell.y
-
-            let newXPos = currentX + eachShell.xDirection * eachShell.speed
-            let newYPos = currentY + eachShell.yDirection * eachShell.speed
-
-            let currentRoomIndex = 0 //assign box to correct room
-            rooms.current.forEach((eachRoom, eachRoomIndex) => {
-                if (currentX > eachRoom.offsetLeft) {
-                    currentRoomIndex = eachRoomIndex
-                    return
-                }
-            })
-
-            const onLastRoom = currentRoomIndex === rooms.current.length - 1
-            const usingPrevRoom = currentRoomIndex !== 0
-            const usingNextRoom = !onLastRoom
-
-            const pathsInPrevRoom = usingPrevRoom ? rooms.current[currentRoomIndex - 1].childNodes : [];
-            const pathsInCurrentRoom = rooms.current[currentRoomIndex].childNodes;
-            const pathsInNextRoom = usingNextRoom ? rooms.current[currentRoomIndex + 1].childNodes : [];
-
-            const allPaths: HTMLDivElement[] = []
-
-            pathsInPrevRoom.forEach(eachPath => {
-                allPaths.push(eachPath as HTMLDivElement)
-            })//add all paths to allpaths array
-            pathsInCurrentRoom.forEach(eachPath => {
-                allPaths.push(eachPath as HTMLDivElement)
-            })
-            pathsInNextRoom.forEach(eachPath => {
-                allPaths.push(eachPath as HTMLDivElement)
-            })
-
-            let inBoundCount = 0
-            let hitX = false
-            let hitY = false
-
-            allPaths.forEach(eachPath => {//check if shell inbound of path
-                const isHorizantalConnector = rooms.current[currentRoomIndex].offsetLeft + rooms.current[currentRoomIndex].clientWidth === eachPath.offsetLeft + eachPath.clientWidth
-
-                const minXPos = eachPath.offsetLeft + (isHorizantalConnector && currentRoomIndex !== 0 ? - eachShell.width : 0)
-                const maxXPos = eachPath.offsetLeft + eachPath.clientWidth + (isHorizantalConnector && !onLastRoom ? 0 : - eachShell.width)
-
-                const minYPos = eachPath.offsetTop
-                const maxYPos = eachPath.offsetTop + eachPath.clientHeight - eachShell.width
-
-                //ensure inbounds - track last time element was inbounds
-                if (newXPos >= minXPos && newXPos <= maxXPos && newYPos >= minYPos && newYPos <= maxYPos) {
-                    inBoundCount++
-                    lastPathInBoundForShells.current[eachShell.id] = eachPath
-
-                    if (newXPos === minXPos || newXPos === maxXPos) {
-                        hitX = true
-                    }
-                    if (newYPos === minYPos || newYPos === maxYPos) {
-                        hitY = true
-                    }
-                }
-            })
-
-            //keep faster tank shells in bounds if out of bounds
-            if (inBoundCount === 0) {
-                const lastMatchedPath = lastPathInBoundForShells.current[eachShell.id]
-                const isHorizantalConnector = rooms.current[currentRoomIndex].offsetLeft + rooms.current[currentRoomIndex].clientWidth === lastMatchedPath.offsetLeft + lastMatchedPath.clientWidth
-
-                const minXPos = lastMatchedPath.offsetLeft + (isHorizantalConnector && currentRoomIndex !== 0 ? - eachShell.width : 0)
-                const maxXPos = lastMatchedPath.offsetLeft + lastMatchedPath.clientWidth + (isHorizantalConnector && !onLastRoom ? 0 : - eachShell.width)
-
-                const minYPos = lastMatchedPath.offsetTop
-                const maxYPos = lastMatchedPath.offsetTop + lastMatchedPath.clientHeight - eachShell.width
-
-                if (newXPos > maxXPos) {
-                    newXPos = maxXPos
-                    eachShell.xDirection *= -1
-                }
-                if (newXPos < minXPos) {
-                    newXPos = minXPos
-                    eachShell.xDirection *= -1
-                }
-                if (newYPos > maxYPos) {
-                    newYPos = maxYPos
-                    eachShell.yDirection *= -1
-                }
-                if (newYPos < minYPos) {
-                    newYPos = minYPos
-                    eachShell.yDirection *= -1
-                }
-            }
-
-            //handle cross section paths
-            for (let index = 0; index < inBoundCount; index++) {
-                if (hitX) {
-                    eachShell.xDirection *= -1
-                    // console.log(`$flpped x - currently`, eachShell.xDirection);
-                }
-                if (hitY) {
-                    eachShell.yDirection *= -1
-                    // console.log(`$flpped y - currently`, eachShell.yDirection);
-                }
-            }
-
-            if (hitX && hitY) {
-                // console.log(`$hit both x y`);
-                eachShell.xDirection *= -1
-                eachShell.yDirection *= -1
-            }
-
-            if (eachShell.wallsHit > 1000) {
-                removeShell(eachShell.id)
-            }
-
-            if (hitX || hitY) {
-                eachShell.wallsHit++
-            }
-
-            eachShell.x = newXPos
-            eachShell.y = newYPos
-            eachShell.el.style.translate = `${newXPos}px ${newYPos}px`
-        })
-    }
-
-    function removeShell(idToRemove: string) {
-        shells.current = shells.current.filter(eachShell => {
-            if (eachShell.id !== idToRemove) {
-                return true
-            } else {
-                eachShell.el.remove()
-                return false
-            }
-        })
-        console.log(`$removed shell`);
-    }
-
-    return (
-        <main className={styles.mainDivRef}>
-            <div ref={canvasRef} className={styles.canvas}>
-                {playerTanks.current.map(eachTank => {
-                    return (
-                        <React.Fragment key={eachTank.id}>
-                            <div ref={(e) => assignTankRefs(e, eachTank.id)} className={styles.tank} style={{ width: `${eachTank.width}px`, translate: `${eachTank.x}px ${eachTank.y}px` }}>
-                                <div className={styles.snout}></div>
-                            </div>
-                        </React.Fragment>
-                    )
-                })}
+  }, [spawnWave])
+
+  return (
+    <main className={styles.page}>
+      <header className={styles.bar}>
+        <Link href="/fun" className={styles.back}>← Playground</Link>
+
+        <div className={styles.stats}>
+          <span>Wave <b className="readout">{wave}</b></span>
+          <span>Enemies <b className="readout">{enemiesLeft}</b></span>
+          <span>Score <b className="readout">{score}</b></span>
+        </div>
+      </header>
+
+      <div ref={wrapRef} className={styles.stage}>
+        <canvas ref={canvasRef} className={styles.canvas} />
+
+        {phase !== "playing" && (
+          <div className={styles.overlay}>
+            <div className={styles.card}>
+              <p className="label labelSignal">
+                {phase === "ready" ? "Ricochet arena" : phase === "won" ? "Cleared" : "Destroyed"}
+              </p>
+
+              <h1>
+                {phase === "ready" && "Bank your shots."}
+                {phase === "won" && "All four waves down."}
+                {phase === "lost" && "They led the shot."}
+              </h1>
+
+              <p className={styles.cardBody}>
+                {phase === "ready" && (
+                  <>
+                    Shells reflect off walls up to {MAX_BOUNCES} times — angle in
+                    equals angle out, so corners are cover for them and a route
+                    for you. Enemies solve for where you are going, not where
+                    you are, so keep changing direction.
+                  </>
+                )}
+                {phase === "won" && `Four waves cleared with ${score} points.`}
+                {phase === "lost" && `You made it to wave ${wave} with ${score} points.`}
+              </p>
+
+              <p className={styles.controls}>
+                <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move
+                <span>·</span>
+                Mouse aims
+                <span>·</span>
+                <kbd>Click</kbd> or <kbd>Space</kbd> fires
+              </p>
+
+              <button type="button" className="btn btnPrimary" onClick={startGame}>
+                <span>{phase === "ready" ? "Start" : "Play again"}</span>
+              </button>
             </div>
-        </main>
-    )
+          </div>
+        )}
+      </div>
+    </main>
+  )
 }

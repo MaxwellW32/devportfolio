@@ -1,0 +1,95 @@
+.hero {
+  position: relative;
+  padding-block: clamp(3rem, 2rem + 5vw, 6rem) clamp(1.5rem, 1rem + 2vw, 2.5rem);
+  overflow: hidden;
+}
+
+.heroInner {
+  position: relative;
+  display: grid;
+  gap: 1.35rem;
+  max-width: 52rem;
+}
+
+.title {
+  font-size: var(--step-5);
+  letter-spacing: -0.045em;
+}
+
+.lede {
+  max-width: 56ch;
+  color: var(--color-ink-dim);
+  line-height: 1.75;
+}
+
+.body {
+  display: grid;
+  gap: clamp(1.5rem, 1rem + 2vw, 2.5rem);
+  align-items: start;
+  padding-block: clamp(1.5rem, 1rem + 2vw, 3rem) clamp(4rem, 3rem + 4vw, 7rem);
+}
+
+@media (min-width: 900px) {
+  .body {
+    grid-template-columns: 1.5fr 1fr;
+  }
+}
+
+.formPanel {
+  padding: clamp(1.5rem, 1rem + 2vw, 2.5rem);
+  border: 1px solid var(--color-hairline);
+  border-radius: 3px;
+  background: var(--color-canvas);
+}
+
+.panelTitle {
+  font-size: var(--step-2);
+  margin-bottom: 1.75rem;
+}
+
+.side {
+  display: grid;
+  gap: 1rem;
+  align-content: start;
+}
+
+.channels,
+.note {
+  display: grid;
+  gap: 1rem;
+  padding: clamp(1.25rem, 1rem + 1vw, 1.75rem);
+  border: 1px solid var(--color-hairline);
+  border-radius: 3px;
+  background: var(--color-canvas);
+}
+
+.channels dl {
+  margin: 0;
+  display: grid;
+  gap: 0.9rem;
+}
+
+.channels dl div {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.channels dt {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-ink-faint);
+}
+
+.channels dd {
+  margin: 0;
+  font-size: var(--step--1);
+  overflow-wrap: anywhere;
+}
+
+.note p:last-child {
+  color: var(--color-ink-dim);
+  font-size: var(--step--1);
+  line-height: 1.75;
+}

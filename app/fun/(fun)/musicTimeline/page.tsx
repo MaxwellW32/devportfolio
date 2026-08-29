@@ -51,7 +51,7 @@ export default function Page() {
     const [segmentWidth,] = useState(20)
     const [rowHeight,] = useState(20)
 
-    const playingInterval = useRef<NodeJS.Timeout>()
+    const playingInterval = useRef<NodeJS.Timeout | undefined>(undefined)
 
     const timeLineArray = useMemo(() => {
         return new Array(timelineTime).fill("")

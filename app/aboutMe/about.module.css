@@ -1,0 +1,163 @@
+.hero {
+  position: relative;
+  padding-block: clamp(3rem, 2rem + 5vw, 6rem);
+  overflow: hidden;
+}
+
+.heroInner {
+  position: relative;
+  display: grid;
+  gap: 1.75rem;
+  justify-items: start;
+  max-width: 60rem;
+}
+
+.title {
+  font-size: var(--step-4);
+  letter-spacing: -0.04em;
+}
+
+.accent { color: var(--color-signal); }
+
+.bio {
+  display: grid;
+  gap: 1.15rem;
+  max-width: var(--measure);
+  color: var(--color-ink-dim);
+  line-height: 1.8;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+/* ---- Section furniture --------------------------------------------------- */
+.head {
+  display: grid;
+  gap: 1.15rem;
+  max-width: 54rem;
+  margin-bottom: clamp(2rem, 1.5rem + 2vw, 3rem);
+}
+
+.sectionTitle {
+  font-size: var(--step-3);
+  letter-spacing: -0.035em;
+}
+
+.lede {
+  max-width: 58ch;
+  color: var(--color-ink-dim);
+  line-height: 1.7;
+}
+
+/* ---- Principles ---------------------------------------------------------- */
+.principles {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  border-top: 1px solid var(--color-hairline);
+}
+
+.principles li {
+  display: grid;
+  gap: 0.5rem 2.5rem;
+  padding-block: clamp(1.25rem, 1rem + 1.5vw, 2rem);
+  border-bottom: 1px solid var(--color-hairline);
+}
+
+@media (min-width: 720px) {
+  .principles li {
+    grid-template-columns: 4rem 1fr;
+  }
+}
+
+.principles li > p {
+  font-size: var(--step--1);
+  color: var(--color-signal);
+  letter-spacing: 0.1em;
+}
+
+.principles h3 {
+  font-size: var(--step-1);
+  margin-bottom: 0.55rem;
+}
+
+.principles div > p {
+  max-width: 70ch;
+  color: var(--color-ink-dim);
+  font-size: var(--step--1);
+  line-height: 1.8;
+}
+
+/* ---- Frequency chart ----------------------------------------------------- */
+.frequency {
+  display: grid;
+  gap: 1rem;
+  padding: clamp(1.25rem, 1rem + 1.5vw, 2rem);
+  margin-bottom: clamp(2rem, 1.5rem + 2vw, 3rem);
+  border: 1px solid var(--color-hairline);
+  border-radius: 3px;
+  background: var(--color-canvas);
+}
+
+.frequency ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.frequency li {
+  display: grid;
+  grid-template-columns: minmax(6rem, 9rem) 1fr 2rem;
+  align-items: center;
+  gap: 1rem;
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  color: var(--color-ink-dim);
+}
+
+.frequency li > span:last-child {
+  text-align: right;
+  color: var(--color-signal);
+}
+
+.bar {
+  position: relative;
+  height: 6px;
+  background: var(--color-surface);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.bar::after {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--fill);
+  background: linear-gradient(90deg, var(--color-signal-dim), var(--color-signal));
+  border-radius: 99px;
+}
+
+/* ---- Skill groups -------------------------------------------------------- */
+.skillGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(18rem, 100%), 1fr));
+  gap: clamp(1rem, 0.75rem + 1vw, 1.75rem);
+}
+
+.skillGroup {
+  display: grid;
+  gap: 0.9rem;
+  align-content: start;
+  height: 100%;
+  padding: clamp(1.15rem, 1rem + 0.8vw, 1.6rem);
+  border: 1px solid var(--color-hairline);
+  border-radius: 3px;
+  background: var(--color-canvas);
+}

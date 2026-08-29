@@ -1,181 +1,218 @@
-import BackToTopBttn from "@/components/backToTopButton/BackToTopBttn";
-import BlogPosts from "@/components/blogPosts/BlogPosts";
-import InfiniteScroll from "@/components/infiniteScroll/InfiniteScroll";
-import MyMetrics from "@/components/myMetrics/MyMetrics";
-import MyProjects from "@/components/myProjects/MyProjects";
-import MyApps from "@/components/playstoreApps/MyApps";
-import ServicesProvided from "@/components/servicesProvided/ServicesProvided";
-import ShowHomePageExample from "@/components/showHomePageExample/ShowHomePageExample";
-import ShowMadeWebsite from "@/components/showMadeWebsite/ShowMadeWebsite";
-import Skill from "@/components/skills/Skill";
-import Socials from "@/components/socials/Socials";
-import TextChanger from "@/components/textChanger/TextChanger";
-import { landingPageExamples } from "@/lib/landingPageExamplesData";
-import { madeWebsites } from "@/lib/MadeWebsitesData";
-import Image from "next/image";
+import Link from "next/link"
 
-export default function page() {
+import SignalCanvas from "@/components/hero/SignalCanvas"
+import Reveal from "@/components/ui/Reveal"
+import ProjectCard from "@/components/projects/ProjectCard"
+import { projects } from "@/lib/projects"
+import { achievements, capabilities, principles } from "@/lib/profile"
+import { resolveShots } from "@/lib/shots"
+import styles from "./home.module.css"
 
+const featured = projects.filter(eachProject => eachProject.tier === "flagship").slice(0, 4)
+const featuredShots = resolveShots(featured)
 
+export default function Page() {
   return (
     <main>
-      <section>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem", flexDirection: "row-reverse" }}>
-          <Image alt="profile" priority={true} width={400} height={400} src={require(`@/public/cat1.png`).default.src} style={{ flex: "1 1 400px", }} />
+      {/* ==================================================================
+          HERO
+          ================================================================== */}
+      <section className={styles.hero}>
+        <div className="gridlines" aria-hidden="true" />
 
-          <article style={{ flex: "1 1 500px" }}>
-            <h1 style={{ display: "flex", gap: "1rem" }}>
-              <div style={{ display: "flex", gap: ".1rem" }}>
-                <h1 style={{ color: "rgb(var(--color1))" }}>H</h1>
-                <h1 style={{ color: "rgb(var(--color2))" }}>e</h1>
-                <h1 style={{ color: "rgb(var(--color3))" }}>l</h1>
-                <h1 style={{ color: "rgb(var(--color4))" }}>l</h1>
-                <h1 style={{ color: "rgb(var(--color5))" }}>o</h1>
+        <div className={`shellWide ${styles.heroInner}`}>
+          <div className={styles.heroCopy}>
+            <p className="label labelSignal">Kingston, Jamaica · Available</p>
+
+            <h1 className={styles.heroTitle}>
+              I build the instrument
+              <br />
+              before I trust
+              <br />
+              <span className={styles.heroAccent}>the reading.</span>
+            </h1>
+
+            <p className={styles.heroLede}>
+              Full-stack engineer. I build trading systems that measure themselves,
+              AI products that hold their shape when the model misbehaves, and
+              platforms that stay correct as they grow.
+            </p>
+
+            <div className={styles.heroActions}>
+              <Link href="/projects" className="btn btnPrimary">
+                <span>See the work</span>
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </Link>
+
+              <Link href="/contactUs" className="btn">
+                <span>Get in touch</span>
+              </Link>
+            </div>
+          </div>
+
+          <div className={styles.heroPlot}>
+            <div className={styles.plotFrame}>
+              <div className={styles.plotHead}>
+                <span className="label labelPlain labelSignal">Live signal</span>
+                <span className="readout">σ ← cursor height</span>
               </div>
 
-              I&apos;m</h1>
+              <div className={styles.plotBody}>
+                <SignalCanvas />
+              </div>
 
-            <p className="extraLargeText">Maxwell Wedderburn</p>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: "2rem", marginTop: "1rem" }}>
-              <TextChanger />
-
-              <a href="/resume.pdf" download="My Resume">
-                <button>
-                  Get Resume
-
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M288 32c0-17.7-14.3-32-32-32s-32 14.3-32 32V274.7l-73.4-73.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l128 128c12.5 12.5 32.8 12.5 45.3 0l128-128c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L288 274.7V32zM64 352c-35.3 0-64 28.7-64 64v32c0 35.3 28.7 64 64 64H448c35.3 0 64-28.7 64-64V416c0-35.3-28.7-64-64-64H346.5l-45.3 45.3c-25 25-65.5 25-90.5 0L165.5 352H64zm368 56a24 24 0 1 1 0 48 24 24 0 1 1 0-48z" /></svg>
-                </button>
-              </a>
-
-              <Socials />
+              <div className={styles.plotFoot}>
+                <span className="readout">random walk · 22-period mean</span>
+              </div>
             </div>
+          </div>
+        </div>
 
-          </article>
+        <div className={`shellWide ${styles.heroMeta}`}>
+          {capabilities.map((eachCapability, eachIndex) => (
+            <Reveal key={eachCapability.label} delay={eachIndex * 80}>
+              <div className={styles.metaItem}>
+                <p className="readout" data-value>{eachCapability.value}</p>
+                <p>{eachCapability.label}</p>
+              </div>
+            </Reveal>
+          ))}
         </div>
       </section>
 
-      <section style={{ backgroundColor: "var(--backgroundColor)" }}>
-        <h2 id="services">Services</h2>
+      {/* ==================================================================
+          PRINCIPLES — how I work
+          ================================================================== */}
+      <section className="section">
+        <div className="shellWide">
+          <Reveal>
+            <header className={styles.sectionHead}>
+              <p className="label">How I work</p>
+              <h2 className={styles.sectionTitle}>
+                Anyone can ship. The question is whether you would know if it were wrong.
+              </h2>
+            </header>
+          </Reveal>
 
-        <p style={{ marginBottom: "1rem" }} className="extraLargeText">Things I&apos;m good at</p>
-
-        <ServicesProvided />
+          <ol className={styles.principles}>
+            {principles.map((eachPrinciple, eachIndex) => (
+              <Reveal key={eachPrinciple.title} as="li" delay={eachIndex * 90}>
+                <article className={styles.principle}>
+                  <p className="readout">{String(eachIndex + 1).padStart(2, "0")}</p>
+                  <h3>{eachPrinciple.title}</h3>
+                  <p>{eachPrinciple.body}</p>
+                </article>
+              </Reveal>
+            ))}
+          </ol>
+        </div>
       </section>
 
-      <section>
-        <h2>Built</h2>
+      {/* ==================================================================
+          FEATURED WORK
+          ================================================================== */}
+      <section className="section" style={{ background: "var(--color-canvas)" }}>
+        <div className="shellWide">
+          <Reveal>
+            <header className={styles.sectionHead}>
+              <p className="label">Selected work</p>
+              <h2 className={styles.sectionTitle}>Four I would defend in an interview.</h2>
+              <p className={styles.sectionLede}>
+                Each of these has a hard part — a problem where the obvious solution was
+                wrong, and the right one took real thought.
+              </p>
+            </header>
+          </Reveal>
 
-        <p style={{ marginBottom: "1rem" }} className="extraLargeText">Websites Built.</p>
+          <div className={styles.featured}>
+            {featured.map((eachProject, eachIndex) => (
+              <Reveal key={eachProject.slug} delay={eachIndex * 90}>
+                <ProjectCard project={eachProject} shot={featuredShots[eachProject.slug]} />
+              </Reveal>
+            ))}
+          </div>
 
-        <div style={{ display: "grid" }}>
-          <div className="noScrollBar" style={{ display: "grid", gridAutoFlow: "column", gridAutoColumns: "250px", overflowX: "auto", gap: "1rem" }}>
-            {madeWebsites.map((eachWebsite, eachWebsiteIndex) => {
-              return (
-                <ShowMadeWebsite key={eachWebsiteIndex} {...eachWebsite} />
-              )
-            })}
+          <Reveal>
+            <div className={styles.sectionFoot}>
+              <Link href="/projects" className="btn">
+                <span>All {projects.length} projects</span>
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </Link>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* ==================================================================
+          ACHIEVEMENTS
+          ================================================================== */}
+      <section className="section">
+        <div className="shellWide">
+          <Reveal>
+            <header className={styles.sectionHead}>
+              <p className="label">Track record</p>
+              <h2 className={styles.sectionTitle}>Things I have actually shipped.</h2>
+            </header>
+          </Reveal>
+
+          <div className={styles.achievements}>
+            {achievements.map((eachAchievement, eachIndex) => (
+              <Reveal key={eachAchievement.title} delay={eachIndex * 70}>
+                <article className={styles.achievement}>
+                  <p className="readout">{eachAchievement.year}</p>
+
+                  <div>
+                    <h3>{eachAchievement.title}</h3>
+                    <p>{eachAchievement.body}</p>
+
+                    <ul className="chipRow">
+                      {eachAchievement.stack.map(eachTech => (
+                        <li key={eachTech} className="chip">{eachTech}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </article>
+              </Reveal>
+            ))}
           </div>
         </div>
       </section>
 
-      <section style={{ backgroundColor: "var(--backgroundColor)" }}>
-        <h2>Landing Pages I&apos;ve built</h2>
+      {/* ==================================================================
+          PLAYGROUND TEASER
+          ================================================================== */}
+      <section className="section" style={{ background: "var(--color-canvas)" }}>
+        <div className="shellWide">
+          <div className={styles.playground}>
+            <Reveal>
+              <div>
+                <p className="label">Playground</p>
+                <h2 className={styles.sectionTitle}>
+                  And some things built purely because I wanted to know if I could.
+                </h2>
+                <p className={styles.sectionLede}>
+                  Procedural worlds, a chess engine, audio-reactive visualisers, and a
+                  character who runs along the headings of the page. No client asked for
+                  any of it.
+                </p>
 
-        <p style={{ marginBottom: "1rem" }} className="extraLargeText">Find a design you&apos;ll love.</p>
-
-        <InfiniteScroll amountOfTrains={3} initialTimeToLoop={20}>
-          <div className="noScrollBar" style={{ display: "grid", gridAutoFlow: "column", gridAutoColumns: "250px", overflowX: "auto", gap: "1rem", marginRight: "1rem" }}>
-            {landingPageExamples.map((eachHomePageExample, eachHomePageExampleIndex) => {
-              return (
-                <ShowHomePageExample key={eachHomePageExampleIndex} {...eachHomePageExample} />
-              )
-            })}
-          </div>
-        </InfiniteScroll>
-      </section>
-
-      <section>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(250px, 100%), 1fr))", gap: "1rem", alignItems: "center" }}>
-          <article style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-            <h2>Special Skills</h2>
-
-            <p className="extraLargeText">My Special Skill Field Here.</p>
-
-            <a href="/resume.pdf" download="My Resume" >
-              <button>
-                Get Resume
-
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M288 32c0-17.7-14.3-32-32-32s-32 14.3-32 32V274.7l-73.4-73.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l128 128c12.5 12.5 32.8 12.5 45.3 0l128-128c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L288 274.7V32zM64 352c-35.3 0-64 28.7-64 64v32c0 35.3 28.7 64 64 64H448c35.3 0 64-28.7 64-64V416c0-35.3-28.7-64-64-64H346.5l-45.3 45.3c-25 25-65.5 25-90.5 0L165.5 352H64zm368 56a24 24 0 1 1 0 48 24 24 0 1 1 0-48z" /></svg>
-              </button>
-            </a>
-          </article>
-
-          <div style={{ display: "grid", gap: "1rem" }}>
-            <Skill title={`communication`} amount={`95%`} />
-            <Skill title={`Leadership`} amount={`80%`} />
-            <Skill title={`Teamwork`} amount={`95%`} />
-            <Skill title={`Flexibility`} amount={`90%`} />
+                <div className={styles.heroActions}>
+                  <Link href="/fun" className="btn">
+                    <span>Enter the playground</span>
+                  </Link>
+                  <Link href="/lab" className="btn btnGhost">
+                    <span>Browse the lab</span>
+                  </Link>
+                </div>
+              </div>
+            </Reveal>
           </div>
         </div>
       </section>
-
-      <section style={{ backgroundColor: "var(--backgroundColor)" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(250px, 100%), 1fr))", gap: "1rem" }}>
-          <MyMetrics amount={100} amountAdd="+" svg={
-            <svg style={{ width: "1.5rem" }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M224 256A128 128 0 1 0 224 0a128 128 0 1 0 0 256zm-45.7 48C79.8 304 0 383.8 0 482.3C0 498.7 13.3 512 29.7 512H418.3c16.4 0 29.7-13.3 29.7-29.7C448 383.8 368.2 304 269.7 304H178.3z" /></svg>
-          } text="Happy Clients" />
-
-          <MyMetrics amount={200} amountAdd="+" svg={
-            <svg style={{ width: "1.5rem" }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M495.9 166.6c3.2 8.7 .5 18.4-6.4 24.6l-43.3 39.4c1.1 8.3 1.7 16.8 1.7 25.4s-.6 17.1-1.7 25.4l43.3 39.4c6.9 6.2 9.6 15.9 6.4 24.6c-4.4 11.9-9.7 23.3-15.8 34.3l-4.7 8.1c-6.6 11-14 21.4-22.1 31.2c-5.9 7.2-15.7 9.6-24.5 6.8l-55.7-17.7c-13.4 10.3-28.2 18.9-44 25.4l-12.5 57.1c-2 9.1-9 16.3-18.2 17.8c-13.8 2.3-28 3.5-42.5 3.5s-28.7-1.2-42.5-3.5c-9.2-1.5-16.2-8.7-18.2-17.8l-12.5-57.1c-15.8-6.5-30.6-15.1-44-25.4L83.1 425.9c-8.8 2.8-18.6 .3-24.5-6.8c-8.1-9.8-15.5-20.2-22.1-31.2l-4.7-8.1c-6.1-11-11.4-22.4-15.8-34.3c-3.2-8.7-.5-18.4 6.4-24.6l43.3-39.4C64.6 273.1 64 264.6 64 256s.6-17.1 1.7-25.4L22.4 191.2c-6.9-6.2-9.6-15.9-6.4-24.6c4.4-11.9 9.7-23.3 15.8-34.3l4.7-8.1c6.6-11 14-21.4 22.1-31.2c5.9-7.2 15.7-9.6 24.5-6.8l55.7 17.7c13.4-10.3 28.2-18.9 44-25.4l12.5-57.1c2-9.1 9-16.3 18.2-17.8C227.3 1.2 241.5 0 256 0s28.7 1.2 42.5 3.5c9.2 1.5 16.2 8.7 18.2 17.8l12.5 57.1c15.8 6.5 30.6 15.1 44 25.4l55.7-17.7c8.8-2.8 18.6-.3 24.5 6.8c8.1 9.8 15.5 20.2 22.1 31.2l4.7 8.1c6.1 11 11.4 22.4 15.8 34.3zM256 336a80 80 0 1 0 0-160 80 80 0 1 0 0 160z" /></svg>
-          } text="Projects Complete" />
-
-          <MyMetrics amount={4} amountAdd="+" svg={
-            <svg style={{ width: "1.5rem" }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M152 24c0-13.3-10.7-24-24-24s-24 10.7-24 24V64H64C28.7 64 0 92.7 0 128v16 48V448c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V192 144 128c0-35.3-28.7-64-64-64H344V24c0-13.3-10.7-24-24-24s-24 10.7-24 24V64H152V24zM48 192h80v56H48V192zm0 104h80v64H48V296zm128 0h96v64H176V296zm144 0h80v64H320V296zm80-48H320V192h80v56zm0 160v40c0 8.8-7.2 16-16 16H320V408h80zm-128 0v56H176V408h96zm-144 0v56H64c-8.8 0-16-7.2-16-16V408h80zM272 248H176V192h96v56z" /></svg>
-          } text="Years of Experience" />
-        </div>
-      </section>
-
-      <section style={{ backgroundColor: "var(--backgroundColor)" }} >
-        <h2 id="projects">Projects Done</h2>
-
-        <p className='extraLargeText'>My Complete Projects</p>
-
-        <MyProjects />
-      </section>
-
-      <section style={{ backgroundColor: "var(--backgroundColor)" }} >
-        <h2 id="projects">My Apps on the Google PlayStore</h2>
-
-        <p className='extraLargeText'>Built with React Native</p>
-
-        <MyApps />
-      </section>
-      {/* <section>
-        <Testimonials />
-      </section> */}
-
-      {/* <section style={{ backgroundColor: "var(--backgroundColor)" }}>
-        <div style={{ display: "grid" }}>
-          <h2>Favourite Clients</h2>
-
-          <p style={{ marginBlock: "2rem" }} className="extraLargeText">Work With Trusted Companies.</p>
-
-          <TrustedCompanies />
-        </div>
-      </section> */}
-
-      <section style={{ backgroundColor: "var(--backgroundColor)" }}>
-        <div style={{ display: "grid", justifyItems: "center" }}>
-          <h2>Blog Post</h2>
-
-          <p style={{ marginBlock: "2rem" }} className="extraLargeText">Latest Tips & Tricks</p>
-
-          <BlogPosts inPreviewMode={true} limit={3} />
-        </div>
-      </section>
-
-      <BackToTopBttn />
     </main>
   )
 }

@@ -1,9 +1,8 @@
 import Blog from '@/components/blog/Blog';
 import { blogs } from '@/lib/BlogData';
-import React from 'react'
 
-export default function Page({ params: { category } }: { params: { category: string } }) {
-
+export default async function Page({ params }: { params: Promise<{ category: string }> }) {
+    const { category } = await params
     const foundFittingArr = blogs.filter(eachBlog => eachBlog.category === category)
 
     if (foundFittingArr.length === 0) return <p>Nothing Matching that category</p>

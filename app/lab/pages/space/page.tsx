@@ -2,12 +2,12 @@
 
 import { createRoot } from 'react-dom/client'
 import React, { HTMLAttributes, useRef, useState } from 'react'
-import { Canvas, useFrame, MeshProps } from '@react-three/fiber'
-import { BufferGeometry, Material, Mesh, NormalBufferAttributes, Object3DEventMap, PerspectiveCamera } from 'three'
+import { Canvas, useFrame, type ThreeElements } from '@react-three/fiber'
+import type { Mesh } from 'three'
 
-function Box(props: MeshProps) {
+function Box(props: ThreeElements['mesh']) {
     // This reference will give us direct access to the mesh
-    const meshRef = useRef<THREE.Mesh>(null!)
+    const meshRef = useRef<Mesh>(null!)
 
     // Set up state for the hovered and active state
     const [hovered, setHover] = useState(false)
@@ -17,7 +17,7 @@ function Box(props: MeshProps) {
     useFrame((state, delta) => (meshRef.current.rotation.x += delta))
 
     return (
-        <mesh {...props} ref={meshRef} scale={active ? 1.5 : 1} onClick={(event) => setActive(!active)} onPointerOver={(event) => setHover(true)} onPointerOut={(event) => setHover(false)}>
+        <mesh {...props} ref={meshRef} scale={active ? 1.5 : 1} onClick={() => setActive(!active)} onPointerOver={() => setHover(true)} onPointerOut={() => setHover(false)}>
             <boxGeometry args={[1, 1, 1]} />
             <meshStandardMaterial color={hovered ? 'hotpink' : 'orange'} />
         </mesh>

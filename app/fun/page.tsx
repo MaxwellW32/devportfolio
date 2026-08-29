@@ -1,38 +1,96 @@
-import Eye from '@/components/eye/Eye'
-import Player from '@/components/player/Player'
-import { funItems } from '@/lib/FunData'
-import Image from 'next/image'
-import Link from 'next/link'
-import React from 'react'
+import type { Metadata } from "next"
+import Link from "next/link"
+
+import Player from "@/components/player/Player"
+import Reveal from "@/components/ui/Reveal"
+import { funItems } from "@/lib/FunData"
+import styles from "./fun.module.css"
+
+export const metadata: Metadata = {
+  title: "Playground",
+  description:
+    "Procedural worlds, flocking simulations, a chess engine and audio visualisers — built to find out whether I could.",
+}
+
+const stateLabel: Record<string, string> = {
+  polished: "Polished",
+  playable: "Playable",
+  sketch: "Sketch",
+}
 
 export default function Page() {
-    return (
-        <div>
-            <Player />
+  return (
+    <main className={styles.page}>
+      <Player />
 
-            <section style={{ textAlign: "center", display: "grid", justifyItems: "center" }}>
-                <h1>Welcome to some Fun</h1>
+      <section className={`shellWide ${styles.hero}`}>
+        <div className="gridlines" aria-hidden="true" />
 
-                <Eye />
-            </section>
+        <div className={styles.heroInner}>
+          <p className="label labelSignal">Playground</p>
 
-            <section>
-                <div style={{ display: "grid", gap: "1rem", gridTemplateColumns: "repeat(auto-fill, minmax(min(250px, 100%),1fr))" }}>
-                    {funItems.map(eachFunItem => {
-                        return (
-                            <Link key={eachFunItem.slug} href={`/fun/${eachFunItem.slug}`} style={{ backgroundColor: "var(--backgroundColor)", display: "grid", gridTemplateRows: "1fr auto", }}>
-                                <div style={{ overflow: "hidden", width: "100%", aspectRatio: "1/1" }}>
-                                    <Image alt={`${eachFunItem.title}'s image`} src={eachFunItem.image} width={500} height={500} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
-                                </div>
+          {/* data-platform-enabled makes this a platform for the character */}
+          <h1 data-platform-enabled className={styles.title}>
+            Things nobody asked for.
+          </h1>
 
-                                <div style={{ padding: "1rem", color: "#fff", display: "grid", gap: ".5rem", whiteSpace: "nowrap", }}>
-                                    <h3 data-platform-enabled="true" style={{ justifySelf: "flex-start" }}>{eachFunItem.title}</h3>
-                                </div>
-                            </Link>
-                        )
-                    })}
-                </div>
-            </section>
+          <p className={styles.lede}>
+            Each of these started with a claim I wanted to see proved rather
+            than assumed — that three rules make a flock, that a whole world can
+            live in one string, that a bank shot is geometry and not luck.
+          </p>
+
+          <p className={styles.lede}>
+            There is also a character on this page. Press <kbd>A</kbd> or{" "}
+            <kbd>D</kbd> and every heading below becomes a platform.
+          </p>
         </div>
-    )
+      </section>
+
+      <section className={`shellWide ${styles.grid}`}>
+        {funItems.map((eachItem, eachIndex) => (
+          <Reveal key={eachItem.slug} delay={eachIndex * 60}>
+            <Link href={`/fun/${eachItem.slug}`} className={`card ${styles.card}`}>
+              <div className={styles.cardHead}>
+                <span className="label labelPlain">{stateLabel[eachItem.state]}</span>
+                <span className={styles.arrow} aria-hidden="true">
+                  <svg viewBox="0 0 24 24">
+                    <path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </span>
+              </div>
+
+              {/* Every card title is also a platform */}
+              <h2 data-platform-enabled className={styles.cardTitle}>
+                {eachItem.title}
+              </h2>
+
+              <p className={styles.claim}>{eachItem.claim}</p>
+
+              <ul className="chipRow">
+                {eachItem.tags.map(eachTag => (
+                  <li key={eachTag} className="chip">{eachTag}</li>
+                ))}
+              </ul>
+            </Link>
+          </Reveal>
+        ))}
+      </section>
+
+      <section className={`shellWide ${styles.outro}`}>
+        <h2 data-platform-enabled className={styles.outroTitle}>
+          The serious work lives next door.
+        </h2>
+
+        <div className={styles.outroActions}>
+          <Link href="/projects" className="btn btnPrimary">
+            <span>See the work</span>
+          </Link>
+          <Link href="/lab" className="btn">
+            <span>Browse the lab</span>
+          </Link>
+        </div>
+      </section>
+    </main>
+  )
 }

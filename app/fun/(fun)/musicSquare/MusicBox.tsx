@@ -1,5 +1,5 @@
 "use client"
-import HideNav from '@/components/hideNav/HideNav'
+
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import styles from "./musicBox.module.css"
 import { boxStats } from './musicTypes'

@@ -1,0 +1,405 @@
+/* ============================================================================
+   PROJECT EXPLORER — index rail + morphing detail panel
+   ========================================================================= */
+
+.header {
+  display: grid;
+  gap: 2.5rem;
+  align-items: end;
+  padding-block: clamp(2.5rem, 1.5rem + 5vw, 5rem) clamp(1.5rem, 1rem + 2vw, 2.5rem);
+}
+
+@media (min-width: 900px) {
+  .header {
+    grid-template-columns: 1fr auto;
+  }
+}
+
+.title {
+  font-size: var(--step-4);
+  margin-block: 1rem 1.25rem;
+}
+
+.lede {
+  max-width: 56ch;
+  color: var(--color-ink-dim);
+  line-height: 1.7;
+}
+
+.counts {
+  display: flex;
+  gap: 2.5rem;
+  margin: 0;
+}
+
+.counts div {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.counts dd {
+  margin: 0;
+  font-size: var(--step-2);
+  font-weight: 600;
+  color: var(--color-signal);
+  line-height: 1;
+}
+
+/* ---- Filters ------------------------------------------------------------ */
+.filters {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding-block: 1rem;
+  border-block: 1px solid var(--color-hairline);
+}
+
+.filters > span {
+  flex: none;
+}
+
+.filterRow {
+  display: flex;
+  gap: 0.4rem;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.35rem 0.8rem;
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  letter-spacing: 0.04em;
+  color: var(--color-ink-dim);
+  background: none;
+  border: 1px solid var(--color-hairline);
+  border-radius: 99px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 220ms, border-color 220ms, background-color 220ms;
+}
+
+.filter:hover {
+  color: var(--color-ink);
+  border-color: var(--color-ink-faint);
+}
+
+.filter[data-active="true"] {
+  color: var(--color-void);
+  background: var(--color-signal);
+  border-color: var(--color-signal);
+}
+
+.filter span {
+  opacity: 0.6;
+  font-size: 0.9em;
+}
+
+/* ---- Layout ------------------------------------------------------------- */
+.explorer {
+  display: grid;
+  gap: clamp(1.5rem, 1rem + 2vw, 2.5rem);
+  padding-block: clamp(2rem, 1.5rem + 2vw, 3rem) clamp(4rem, 3rem + 4vw, 7rem);
+  align-items: start;
+}
+
+@media (min-width: 1000px) {
+  .explorer {
+    grid-template-columns: minmax(15rem, 19rem) 1fr;
+  }
+}
+
+/* ---- Rail --------------------------------------------------------------- */
+.rail {
+  display: grid;
+  gap: 1.75rem;
+  align-content: start;
+}
+
+@media (min-width: 1000px) {
+  .rail {
+    position: sticky;
+    top: calc(var(--nav-h) + 1.5rem);
+    max-height: calc(100dvh - var(--nav-h) - 3rem);
+    overflow-y: auto;
+    padding-right: 0.5rem;
+  }
+}
+
+.railGroup ul {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 1px;
+}
+
+.railItem {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  padding: 0.6rem 0.75rem 0.6rem 1rem;
+  text-align: left;
+  background: none;
+  border: 0;
+  border-left: 2px solid transparent;
+  border-radius: 0 2px 2px 0;
+  cursor: pointer;
+  transition: background-color 220ms var(--ease-out-expo), border-color 220ms;
+}
+
+.railItem:hover {
+  background: var(--color-canvas);
+}
+
+.railItem[data-active="true"] {
+  background: var(--color-canvas);
+  border-left-color: var(--color-signal);
+}
+
+.railName {
+  font-family: var(--font-display);
+  font-size: var(--step-0);
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  color: var(--color-ink-dim);
+  transition: color 220ms;
+}
+
+.railItem[data-active="true"] .railName {
+  color: var(--color-signal);
+}
+
+.railItem:hover .railName {
+  color: var(--color-ink);
+}
+
+.railItem[data-active="true"]:hover .railName {
+  color: var(--color-signal);
+}
+
+.railYear {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.06em;
+  color: var(--color-ink-faint);
+}
+
+.railHint {
+  display: none;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  color: var(--color-ink-faint);
+  padding-left: 1rem;
+}
+
+@media (min-width: 1000px) {
+  .railHint { display: flex; }
+}
+
+.railHint kbd {
+  display: grid;
+  place-items: center;
+  min-width: 1.35rem;
+  height: 1.35rem;
+  font-family: inherit;
+  font-size: 0.7rem;
+  border: 1px solid var(--color-hairline);
+  border-radius: 3px;
+  background: var(--color-canvas);
+}
+
+/* ---- Detail panel ------------------------------------------------------- */
+.detail {
+  border: 1px solid var(--color-hairline);
+  border-radius: 3px;
+  background: var(--color-canvas);
+  overflow: hidden;
+  animation: detailIn 420ms var(--ease-out-expo);
+}
+
+@keyframes detailIn {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .detail { animation: none; }
+}
+
+.detailShot {
+  position: relative;
+  aspect-ratio: 26 / 9;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-hairline);
+  overflow: hidden;
+}
+
+.detailShot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, color-mix(in oklch, var(--color-canvas) 80%, transparent), transparent 60%);
+}
+
+.detailBody {
+  display: grid;
+  gap: 1.75rem;
+  padding: clamp(1.5rem, 1rem + 2.5vw, 2.75rem);
+}
+
+.detailHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.detailTitle {
+  font-size: var(--step-3);
+  margin-top: 0.75rem;
+}
+
+.detailTagline {
+  font-size: var(--step-1);
+  color: var(--color-ink);
+  line-height: 1.4;
+  max-width: 42ch;
+  letter-spacing: -0.015em;
+}
+
+.detailSummary {
+  max-width: 68ch;
+  color: var(--color-ink-dim);
+  font-size: var(--step--1);
+  line-height: 1.8;
+}
+
+/* ---- Metrics ------------------------------------------------------------ */
+.metrics {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(9rem, 100%), 1fr));
+  gap: 1px;
+  background: var(--color-hairline);
+  border: 1px solid var(--color-hairline);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.metrics li {
+  display: grid;
+  gap: 0.3rem;
+  padding: 1rem 1.1rem;
+  background: var(--color-canvas);
+}
+
+.metrics li span:first-child {
+  font-size: var(--step-1);
+  font-weight: 600;
+  color: var(--color-signal);
+  line-height: 1;
+}
+
+.metrics li span:last-child {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-ink-faint);
+  line-height: 1.45;
+}
+
+/* ---- The hard part ------------------------------------------------------ */
+.hardPart {
+  display: grid;
+  gap: 0.85rem;
+  padding: clamp(1.15rem, 1rem + 1vw, 1.75rem);
+  background: color-mix(in oklch, var(--color-signal) 5%, var(--color-surface));
+  border: 1px solid color-mix(in oklch, var(--color-signal) 25%, transparent);
+  border-left-width: 2px;
+  border-left-color: var(--color-signal);
+  border-radius: 2px;
+}
+
+.hardPart h3 {
+  font-size: var(--step-1);
+}
+
+.hardPart p:last-child {
+  color: var(--color-ink-dim);
+  font-size: var(--step--1);
+  line-height: 1.8;
+  max-width: 70ch;
+}
+
+/* ---- Columns ------------------------------------------------------------ */
+.columns {
+  display: grid;
+  gap: 2rem;
+}
+
+@media (min-width: 700px) {
+  .columns {
+    grid-template-columns: 1.35fr 1fr;
+  }
+}
+
+.bullets {
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.7rem;
+}
+
+.bullets li {
+  position: relative;
+  padding-left: 1.4rem;
+  color: var(--color-ink-dim);
+  font-size: var(--step--1);
+  line-height: 1.65;
+}
+
+.bullets li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.62em;
+  width: 0.5rem;
+  height: 1px;
+  background: var(--color-ink-faint);
+}
+
+.bullets[data-signal] li::before {
+  background: var(--color-signal);
+}
+
+.bullets[data-signal] li {
+  color: var(--color-ink);
+}
+
+.stack {
+  margin-top: 1rem;
+}
+
+.detailActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding-top: 0.5rem;
+}

@@ -1,79 +1,38 @@
 "use client"
 
-import { useAtom } from "jotai"
-import { screenSizeGlobal } from "./globalState"
+import { useSetAtom } from "jotai"
 import { useEffect } from "react"
+import { screenSizeGlobal } from "./globalState"
 
-
+/**
+ * Keeps the global screen-size atom in sync with the viewport.
+ * Layout should be driven by CSS wherever possible — this exists only for the
+ * handful of components that genuinely need the breakpoint in JS.
+ */
 export default function AtomLoader() {
-    const [screenSize, screenSizeSet] = useAtom(screenSizeGlobal)
+  const screenSizeSet = useSetAtom(screenSizeGlobal)
 
-    //handle reizing
-    const findScreenSize = () => {
-        // const matchPhone = window.matchMedia("(max-width: 768px)")
-        let localDesktop = false
-        let localTablet = false
-        let localPhone = false
+  useEffect(() => {
+    const desktop = window.matchMedia("(min-width: 1024px)")
+    const tablet = window.matchMedia("(min-width: 501px) and (max-width: 1023px)")
 
-
-        if (window.innerWidth > 1023) {
-            localDesktop = true
-        } else if (window.innerWidth > 500) {
-            localTablet = true
-        } else {
-            localPhone = true
-        }
-
-        let prevScreenSize = {
-            desktop: false,
-            tablet: false,
-            phone: false
-        }
-
-        screenSizeSet(prev => {
-            prevScreenSize = prev
-
-            return prev
-        })
-
-        if (localDesktop && !prevScreenSize.desktop) {
-            screenSizeSet(prev => {
-                prev = { desktop: false, tablet: false, phone: false }
-
-                prev.desktop = true
-                return { ...prev }
-            })
-        }
-
-        if (localTablet && !prevScreenSize.tablet) {
-            screenSizeSet(prev => {
-                prev = { desktop: false, tablet: false, phone: false }
-
-                prev.tablet = true
-                return { ...prev }
-            })
-        }
-
-        if (localPhone && !prevScreenSize.phone) {
-            screenSizeSet(prev => {
-                prev = { desktop: false, tablet: false, phone: false }
-
-                prev.phone = true
-                return { ...prev }
-            })
-        }
+    const sync = () => {
+      screenSizeSet({
+        desktop: desktop.matches,
+        tablet: tablet.matches,
+        phone: !desktop.matches && !tablet.matches,
+      })
     }
-    useEffect(() => {
-        findScreenSize()
-        window.addEventListener("resize", findScreenSize)
 
-        return () => {
-            window.removeEventListener("resize", findScreenSize)
-        }
-    }, [])
+    sync()
+    desktop.addEventListener("change", sync)
+    tablet.addEventListener("change", sync)
 
-    return null
+    return () => {
+      desktop.removeEventListener("change", sync)
+      tablet.removeEventListener("change", sync)
+    }
+  }, [screenSizeSet])
+
+  return null
 }
-
-
-
