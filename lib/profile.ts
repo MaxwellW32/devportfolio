@@ -21,7 +21,6 @@ export const profile = {
 
 /* ---- Hero strip --------------------------------------------------------- */
 export const capabilities: { value: string; label: string }[] = [
-  { value: "Age 6", label: "When I started coding" },
   { value: "5+", label: "Years building for the web" },
   { value: "20+", label: "Projects built" },
   { value: "8", label: "Sites live right now" },
