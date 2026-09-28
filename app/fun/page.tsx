@@ -9,7 +9,7 @@ import styles from "./fun.module.css"
 export const metadata: Metadata = {
   title: "Playground",
   description:
-    "Procedural worlds, flocking simulations, a chess engine and four things made of sound — built to find out whether I could.",
+    "A chess engine, a flock of birds in Three.js, worlds generated from a seed and toys made of sound. I built them to see if I could.",
 }
 
 const stateLabel: Record<string, string> = {
@@ -29,25 +29,26 @@ export default function Page() {
 
           {/* data-platform-enabled makes this a platform for the character */}
           <h1 data-platform-enabled className={styles.title}>
-            Things everybody asked for.
+            Things I built for fun.
           </h1>
 
           <p className={styles.lede}>
-            Each of these started with a claim I wanted to see proved rather
-            than assumed — that three rules make a flock, that a whole world can
-            live in one string, that a bank shot is geometry and not luck.
+            Each of these started with a question I wanted to answer. Can three
+            simple rules make a flock? Can a whole world come from one seed? Is
+            a bank shot geometry or luck? I built them to find out.
           </p>
 
           <div className={styles.sprite}>
             <div>
               <p className="label labelPlain">The character</p>
               <p className={styles.spriteCopy}>
-                There is someone who lives on this site. <kbd>A</kbd> and{" "}
-                <kbd>D</kbd> run him along the headings, <kbd>W</kbd> jumps and{" "}
-                <kbd>S</kbd> drops through. Press <kbd>F</kbd> and gravity goes
-                away — then he floats wherever you point him and{" "}
-                <kbd>E</kbd> follows whatever he is hovering over, which makes
-                him a slower, sillier mouse for the entire site.
+                There&apos;s a little character who lives on this site.{" "}
+                <kbd>A</kbd> and <kbd>D</kbd> run him along the headings,{" "}
+                <kbd>W</kbd> jumps and <kbd>S</kbd> drops through. Press{" "}
+                <kbd>F</kbd> to turn gravity off and he&apos;ll float wherever
+                you point him. While he&apos;s floating, <kbd>E</kbd> opens
+                whatever he&apos;s hovering over, so you can use him as a slow,
+                silly mouse for the whole site.
               </p>
             </div>
 
@@ -93,7 +94,7 @@ export default function Page() {
 
       <section className={`shellWide ${styles.outro}`}>
         <h2 data-platform-enabled className={styles.outroTitle}>
-          The serious work lives next door.
+          The serious work is next door.
         </h2>
 
         <div className={styles.outroActions}>

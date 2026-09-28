@@ -7,7 +7,7 @@ import styles from "./lab.module.css"
 export const metadata: Metadata = {
   title: "Lab",
   description:
-    "Small self-contained builds — interface experiments, API integrations, and the CSS I wanted to understand properly.",
+    "Small builds where I tried out one idea at a time, like an interface, an API or a piece of CSS I wanted to understand.",
 }
 
 /* ============================================================================
@@ -27,43 +27,43 @@ const builds: build[] = [
   {
     slug: "ecommerce",
     title: "Storefront",
-    blurb: "A full shop front — categories, search, cart and checkout, with state that survives navigation.",
+    blurb: "A demo shop with categories, search, a cart and a checkout. The cart is saved in your browser, so it's still there when you come back.",
     tags: ["State", "Search", "Cart"],
   },
   {
     slug: "calculator",
     title: "Decoy Calculator",
-    blurb: "Works as a calculator. Enter the right sequence and it unlocks encrypted notes instead.",
+    blurb: "It works as a normal calculator. Type in the secret sequence and your PIN, and it opens a hidden photo gallery.",
     tags: ["Encryption", "Interface"],
   },
   {
     slug: "dictionary",
     title: "Dictionary",
-    blurb: "Definitions, pronunciation and etymology from a public API, wrapped in a playful interface.",
+    blurb: "Search for a word and get its definitions from a public API, while a couple of parrots fly across the page.",
     tags: ["API", "Lottie"],
   },
   {
     slug: "randomPlayer",
     title: "Random Player",
-    blurb: "An endless video feed seeded by random words, with an offline fallback when the API is unreachable.",
+    blurb: "It picks a random word, searches YouTube for it and plays what comes back. If YouTube can't be reached, it plays from a backup list.",
     tags: ["YouTube API", "Fallbacks"],
   },
   {
     slug: "perspective",
     title: "Perspective",
-    blurb: "A playlist browser built entirely out of CSS 3D transforms.",
+    blurb: "A YouTube player inside a 3D box you can rotate, built with CSS transforms. Add single videos or a whole playlist.",
     tags: ["CSS 3D", "API"],
   },
   {
     slug: "parallax",
     title: "Parallax",
-    blurb: "Layered scroll depth done with transforms rather than a library.",
+    blurb: "A page about Mars where the layers scroll at different speeds. It's all CSS, with no library.",
     tags: ["CSS", "Scroll"],
   },
   {
     slug: "toDo",
     title: "To Do",
-    blurb: "The classic, with local persistence and a greeting that changes with the hour.",
+    blurb: "A to-do list that saves to your browser. You can attach videos to a list, and empty lines show a random quote.",
     tags: ["Local storage"],
   },
 ]
@@ -78,9 +78,10 @@ export default function Page() {
           <p className="label labelSignal">The lab</p>
           <h1 className={styles.title}>Small builds, one idea each.</h1>
           <p className={styles.lede}>
-            Self-contained experiments — an interface pattern, an API, a piece of
-            CSS I wanted to understand properly. Nothing here is a product; they
-            are where techniques get tested before they go into one.
+            These are small experiments. Each one let me try a single idea, such
+            as an interface pattern, an API or a piece of CSS I wanted to
+            understand properly. None of them are full products. They&apos;re
+            where I try a technique before I use it in a real project.
           </p>
         </div>
       </section>
@@ -109,9 +110,10 @@ export default function Page() {
       <section className={`shellWide ${styles.section}`}>
         <h2 className={styles.sectionTitle}>Client-facing studies</h2>
         <p className={styles.sectionLede}>
-          The complete demo sites — nine of them, each chasing a different mood
-          for a different kind of business — live in their own project now.
-          They outgrew being one page each in here.
+          I also built nine complete demo sites, each with a different look for
+          a different kind of business. They used to be single pages in here,
+          but they grew into full sites, so now they have a project of their
+          own.
         </p>
 
         <div className={styles.outLink}>

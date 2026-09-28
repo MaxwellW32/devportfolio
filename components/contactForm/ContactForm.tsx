@@ -12,8 +12,8 @@ const phoneRegex = /^([+]?[\s0-9]+)?(\d{3}|[(]?[0-9]+[)])?([-]?[\s]?[0-9])+$/
 
 const contactFormSchema = z.object({
   name: z.string().min(1, "Please add your name"),
-  email: z.string().email("That email does not look right"),
-  phone: z.string().regex(phoneRegex, "That phone number does not look right").or(z.literal("")),
+  email: z.string().email("That email doesn't look right"),
+  phone: z.string().regex(phoneRegex, "That phone number doesn't look right").or(z.literal("")),
   subject: z.string().min(1, "Please add a subject"),
   message: z.string().min(8, "A little more detail helps"),
 })
@@ -113,12 +113,12 @@ export default function ContactForm() {
         return
       }
 
-      toast.success("Sent — I will come back to you shortly.")
+      toast.success("Sent. I'll get back to you soon.")
       formObjSet({ ...emptyForm })
       errorsSet({})
       saveToLocalStorage("contactForm", emptyForm)
     } catch (error) {
-      toast.error("That did not send. Email me directly and I will pick it up.")
+      toast.error("That didn't send. Please email me directly instead.")
       console.error("Contact form send failed", error)
     } finally {
       sendingSet(false)

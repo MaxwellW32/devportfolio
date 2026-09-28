@@ -6,7 +6,7 @@ import { resolveShots } from "@/lib/shots"
 export const metadata: Metadata = {
   title: "Work",
   description:
-    "Trading systems, AI products, multi-tenant platforms and client work — with the hard part of each one written down.",
+    "Trading bots, AI apps, a website builder and client sites. Each one shows what it does and the hardest problem I solved while building it.",
 }
 
 export default function Page() {

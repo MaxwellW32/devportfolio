@@ -20,12 +20,12 @@ export const blogs: blog[] = [
         image: blog1,
         category: "html",
         datePosted: new Date("2022-12-24"),
-        title: "Getting started with html.",
+        title: "Getting started with HTML.",
         slug: "html-practice",
         messages: [
             <div key={0}>
-                <p>I&apos;ve learned so so much in this amzaing language, so many tips and tricks!</p>
-                <p style={{ marginTop: "1rem" }}>As a beginner, I quickly grasped the fundamental structure that HTML provides to a webpage. The &apos;head&apos; for meta-information, the &apos;body&apos; for content – it all started to make sense. Embracing semantic HTML not only improved my site&apos;s accessibility but also enhanced my understanding of how search engines interpret content. Remembering to use proper tags and nesting became second nature, laying a strong foundation for my coding endeavors.</p>
+                <p>I&apos;ve picked up a lot of tips and tricks in HTML, and the structure of a page made sense to me quickly. The head holds information about the page, and the body holds everything you see.</p>
+                <p style={{ marginTop: "1rem" }}>The best habit I picked up early was using semantic tags. If something is a heading, a nav or a button, I use the tag that was made for it. Screen readers and search engines both depend on those tags to understand a page. Once the tags and the nesting are right, everything I build on top is easier.</p>
             </div>
         ]
     },
@@ -33,11 +33,12 @@ export const blogs: blog[] = [
         image: blog2,
         category: "css",
         datePosted: new Date("2022-12-24"),
-        title: "Getting started with css.",
+        title: "Getting started with CSS.",
         slug: "css-practice",
         messages: [
             <div key={0}>
-                <p>As I delved into the realm of styling, CSS emerged as the artistic palette for my web creations. Cascading Style Sheets turned static HTML into visually appealing, dynamic web pages. My tip for fellow beginners: grasp the power of selectors early on. Understanding the box model and the importance of layout techniques like flexbox and grid significantly transformed the way I approached design. Don&apos;t be afraid to experiment with colors, typography, and transitions – it&apos;s in these experiments that you&apos;ll uncover your design style and elevate your websites from functional to visually stunning.</p>
+                <p>CSS is where a plain HTML page starts to look like something. My tip for anyone starting out is to learn selectors properly first, because everything else depends on being able to target the right element.</p>
+                <p style={{ marginTop: "1rem" }}>After that, learn the box model, then flexbox and grid. Understanding those changed how I approach a layout. And experiment. Try different colours, fonts and transitions, because that&apos;s how you find your own style.</p>
             </div>
         ]
     },
@@ -45,11 +46,12 @@ export const blogs: blog[] = [
         image: blog3,
         category: "javascript",
         datePosted: new Date("2022-12-24"),
-        title: "Getting started with javascript.",
+        title: "Getting started with JavaScript.",
         slug: "javascript-practice",
         messages: [
             <div key={0}>
-                <p>The introduction of JavaScript marked a pivotal moment in my coding journey. Suddenly, my static pages gained interactivity and dynamic functionalities. My advice for beginners diving into JavaScript is to focus on understanding variables, data types, and control structures. These form the building blocks for more complex scripts. Asynchronous JavaScript opened doors to handling user input and server communication seamlessly. Embrace the power of functions, and don&apos;t shy away from debugging – it&apos;s a skill that will prove invaluable as you navigate the intricate world of scripting.</p>
+                <p>JavaScript is where my pages started doing things. If you&apos;re just starting, get comfortable with variables, data types, loops and conditions before anything else. Bigger scripts are made of those same pieces.</p>
+                <p style={{ marginTop: "1rem" }}>Next, learn functions and async code, which is how a page handles user input and talks to a server. And don&apos;t avoid debugging. Working out why something broke is one of the most useful skills you can have.</p>
             </div>
         ]
     },
@@ -57,11 +59,12 @@ export const blogs: blog[] = [
         image: blog4,
         category: "next",
         datePosted: new Date("2022-12-24"),
-        title: "Getting started with next.",
+        title: "Getting started with Next.js.",
         slug: "next-practice",
         messages: [
             <div key={0}>
-                <p>As I progressed in my web development journey, I discovered the incredible capabilities of Next.js, and it revolutionized the way I approached building web applications. Next.js, built on top of React, seamlessly integrates server-side rendering and routing, providing a performant and delightful user experience. One of the most valuable lessons I learned as a beginner in Next.js is the power of static site generation (SSG) and server-side rendering (SSR). These features not only optimize page load times but also enhance SEO by delivering pre-rendered content to search engines. Additionally, the automatic code splitting in Next.js ensures efficient and optimized bundles for a faster and more responsive web app. Embracing the dynamic routing capabilities and understanding the data fetching methods, such as getStaticProps and getServerSideProps, has been instrumental in creating dynamic and data-driven applications. Next.js has truly become an indispensable tool in my toolkit, allowing me to build modern and efficient web experiences with ease.</p>
+                <p>Next.js changed how I build web apps. It&apos;s built on top of React and adds routing and server rendering. Pages can be built ahead of time or rendered on the server, so they arrive with their content already in them. That makes them load faster, and search engines can read them properly.</p>
+                <p style={{ marginTop: "1rem" }}>It also splits the code up automatically, so each page only loads what it needs. Once I understood dynamic routes and how to fetch data on the server, I could build apps that run on real data. It&apos;s now the main tool I build with.</p>
             </div>
         ]
     },
@@ -69,11 +72,12 @@ export const blogs: blog[] = [
         image: blog5,
         category: "react",
         datePosted: new Date("2022-12-24"),
-        title: "Getting started with react.",
+        title: "Getting started with React.",
         slug: "react-practice",
         messages: [
             <div key={0}>
-                <p>React has been the heartbeat of my web development journey, introducing me to the world of declarative and component-based UI design. As a beginner, the concept of breaking down user interfaces into reusable components was a game-changer. The virtual DOM and React&apos;s efficient rendering process ensured optimal performance, even for complex applications. One of the key takeaways for me has been the importance of state management. Understanding how to lift state up, use hooks, and manage the application&apos;s state flow has been pivotal in creating interactive and responsive user interfaces. React&apos;s unidirectional data flow philosophy brought clarity to how data moves through components, making it easier to reason about and debug. Additionally, the vibrant React community and the abundance of open-source libraries have provided me with a wealth of resources and best practices. As I continue to explore React, I find its flexibility and scalability to be essential for crafting modern, dynamic, and maintainable web applications.</p>
+                <p>React taught me to build an interface out of components. You make a small piece once, like a button or a card, and reuse it wherever you need it. React works out what changed and only updates that part of the page, so it stays fast even in a big app.</p>
+                <p style={{ marginTop: "1rem" }}>The most important thing to learn is state. That means knowing where your data lives, when to lift it up to a parent, and how to use hooks. Data in React flows one way, from parent to child, which makes a bug much easier to track down. There&apos;s also a big community around it, so there&apos;s usually a library or an answer for whatever you&apos;re stuck on.</p>
             </div>
         ]
     },

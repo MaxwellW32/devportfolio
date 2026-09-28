@@ -81,12 +81,11 @@ export default function ProjectExplorer({ projects, shots, counts }: explorerPro
         <div>
           <p className="label labelSignal">The work</p>
           <h1 className={styles.title}>
-            {counts.total} projects. {counts.caseStudies} worth a deep dive.
+            {counts.total} projects. {counts.caseStudies} with a full case study.
           </h1>
           <p className={styles.lede}>
-            Pick anything from the index. Each entry carries its stack, what it
-            proves, and — where there was one — the genuinely hard problem
-            underneath it.
+            Pick any project from the list. Each one shows what it does, what I
+            built it with, and the hardest problem I had to solve along the way.
           </p>
         </div>
 

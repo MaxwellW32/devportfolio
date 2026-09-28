@@ -88,7 +88,7 @@ export function emailLayout(title: string, bodyHtml: string): string {
     <div style="max-width:560px;margin:0 auto;background:#14181b;border:1px solid #33393f;border-radius:6px;overflow:hidden;">
       <div style="border-bottom:1px solid #33393f;padding:20px 28px;">
         <p style="color:#c9f74a;font-size:13px;letter-spacing:3px;margin:0;font-weight:600;">MAXWELL WEDDERBURN</p>
-        <p style="color:#7d858c;font-size:12px;margin:6px 0 0;">Full-stack engineer</p>
+        <p style="color:#7d858c;font-size:12px;margin:6px 0 0;">Full-stack developer</p>
       </div>
       <div style="padding:26px 28px;">
         <h1 style="color:#f2f0ec;font-size:19px;margin:0 0 16px;font-weight:600;">${title}</h1>

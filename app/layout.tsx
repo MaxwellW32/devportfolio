@@ -29,15 +29,15 @@ const jetbrains = JetBrains_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL("https://maxwellwedderburn.com"),
   title: {
-    default: "Maxwell Wedderburn — Full-stack engineer",
+    default: "Maxwell Wedderburn — Full-stack developer",
     template: "%s — Maxwell Wedderburn",
   },
   description:
-    "Full-stack engineer building trading systems, AI-driven products and multi-tenant platforms. I build the instrument before I trust the reading — and I am glad to explain any of it.",
+    "Full-stack developer in Kingston, Jamaica. I've been solving problems with code since I was six. I build web apps with Next.js, PostgreSQL, Drizzle, Zod and Three.js.",
   openGraph: {
-    title: "Maxwell Wedderburn — Full-stack engineer",
+    title: "Maxwell Wedderburn — Full-stack developer",
     description:
-      "Trading systems, AI-driven products and multi-tenant platforms, built with measurement discipline.",
+      "A website builder, AI story games, trading bots and sites for real businesses, built with Next.js, PostgreSQL and Zod.",
     type: "website",
   },
 }

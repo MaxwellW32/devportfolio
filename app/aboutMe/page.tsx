@@ -9,7 +9,7 @@ import styles from "./about.module.css"
 export const metadata: Metadata = {
   title: "About",
   description:
-    "Full-stack engineer in Kingston, Jamaica. Trading systems, AI products and multi-tenant platforms — built carefully, documented properly, and explained in plain language.",
+    "Full-stack developer in Kingston, Jamaica. Coding since I was six, with a background in troubleshooting. I build with Next.js, PostgreSQL, Drizzle, Zod and Three.js.",
 }
 
 export default function Page() {
@@ -26,9 +26,9 @@ export default function Page() {
           <p className="label labelSignal">{profile.location}</p>
 
           <h1 className={styles.title}>
-            I like the hard part —
+            I love solving problems.
             <br />
-            <span className={styles.accent}>and I like explaining it.</span>
+            <span className={styles.accent}>Code is how I do it.</span>
           </h1>
 
           <div className={styles.bio}>
@@ -54,7 +54,7 @@ export default function Page() {
           <Reveal>
             <header className={styles.head}>
               <p className="label">How I work</p>
-              <h2 className={styles.sectionTitle}>Six habits I would bring with me.</h2>
+              <h2 className={styles.sectionTitle}>Six things you can expect from me.</h2>
             </header>
           </Reveal>
 
@@ -80,9 +80,8 @@ export default function Page() {
               <p className="label">Toolkit</p>
               <h2 className={styles.sectionTitle}>What I build with.</h2>
               <p className={styles.lede}>
-                The counts below are derived from the {projects.length} projects
-                in the catalogue, so this list cannot drift away from what I have
-                actually shipped.
+                These counts come from the {projects.length} projects on this
+                site, so they show what I&apos;ve actually used the most.
               </p>
             </header>
           </Reveal>

@@ -5,7 +5,7 @@ import styles from "./blog.module.css"
 
 export const metadata: Metadata = {
   title: "Writing",
-  description: "Notes on building — what worked, what did not, and what the evidence said.",
+  description: "Short notes on the tools I use and what I picked up while learning them.",
 }
 
 export default function Page() {
@@ -13,9 +13,10 @@ export default function Page() {
     <main className={`shell ${styles.page}`}>
       <header className={styles.head}>
         <p className="label labelSignal">Writing</p>
-        <h1 className={styles.title}>Notes from the build.</h1>
+        <h1 className={styles.title}>What I&apos;ve learned along the way.</h1>
         <p className={styles.lede}>
-          What worked, what did not, and what the evidence actually said.
+          Short notes on the tools I use and what I picked up while learning
+          them.
         </p>
       </header>
 

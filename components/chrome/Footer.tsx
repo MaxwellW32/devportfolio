@@ -27,9 +27,9 @@ export default function Footer() {
             <p className="label labelSignal">Open to work</p>
 
             <p className={styles.headline}>
-              Got something hard?
+              Got a problem to solve?
               <br />
-              That is my favourite kind of message.
+              Those are my favourite messages.
             </p>
 
             <div className={styles.actions}>

@@ -26,7 +26,7 @@ export async function sendContactMessage(input: unknown): Promise<contactResult>
   const parsed = contactSchema.safeParse(input)
 
   if (!parsed.success) {
-    return { ok: false, error: "Some of those details did not look right." }
+    return { ok: false, error: "Some of those details didn't look right." }
   }
 
   const { name, email, phone, subject, message } = parsed.data
@@ -62,6 +62,6 @@ export async function sendContactMessage(input: unknown): Promise<contactResult>
     return { ok: true }
   } catch (error) {
     console.error("Contact form send failed:", error instanceof Error ? error.message : error)
-    return { ok: false, error: "That did not send. Please email me directly." }
+    return { ok: false, error: "That didn't send. Please email me directly instead." }
   }
 }

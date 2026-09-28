@@ -6,7 +6,7 @@ import styles from "./contact.module.css"
 
 export const metadata: Metadata = {
   title: "Contact",
-  description: "Get in touch about work, a project, or something you are stuck on.",
+  description: "Get in touch about a role, a project or a problem you're stuck on.",
 }
 
 const channels = [
@@ -26,9 +26,9 @@ export default function Page() {
           <p className="label labelSignal">Open to work</p>
           <h1 className={styles.title}>Let&apos;s talk.</h1>
           <p className={styles.lede}>
-            Contract work, a full-time role, or a problem you are stuck on — send
-            the details and I will come back to you quickly. If you would rather
-            skip the form, email is fine.
+            If you have a full-time role, contract work or a problem you&apos;re
+            stuck on, send me the details and I&apos;ll get back to you quickly.
+            You can also email me directly if you&apos;d rather skip the form.
           </p>
         </div>
       </section>
@@ -69,9 +69,10 @@ export default function Page() {
           <div className={styles.note}>
             <p className="label labelPlain labelSignal">What helps</p>
             <p>
-              A sentence on what you are building, what is going wrong, and when
-              you need it by. That is usually enough for me to tell you whether I
-              am the right person — and to say so if I am not.
+              Tell me what you&apos;re building, what&apos;s going wrong and
+              when you need it by. That&apos;s usually enough for me to know
+              whether I can help. If I&apos;m not the right person, I&apos;ll
+              tell you.
             </p>
           </div>
         </aside>

@@ -60,7 +60,7 @@ export default function Navbar() {
           </span>
           <span className={styles.brandText}>
             <span className={styles.brandName}>Maxwell Wedderburn</span>
-            <span className={styles.brandRole}>Full-stack engineer</span>
+            <span className={styles.brandRole}>Full-stack developer</span>
           </span>
         </Link>
 

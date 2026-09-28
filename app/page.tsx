@@ -25,18 +25,18 @@ export default function Page() {
             <p className="label labelSignal">Kingston, Jamaica · Available</p>
 
             <h1 className={styles.heroTitle}>
-              I build the instrument
+              I&apos;ve been solving
               <br />
-              before I trust
+              problems with code
               <br />
-              <span className={styles.heroAccent}>the reading.</span>
+              <span className={styles.heroAccent}>since I was six.</span>
             </h1>
 
             <p className={styles.heroLede}>
-              Full-stack engineer in Kingston. I build trading systems that measure
-              themselves, AI products that hold their shape when the model
-              misbehaves, and platforms that stay correct as they grow — and I am
-              always happy to walk you through how any of it works.
+              I&apos;m a full-stack developer in Kingston, Jamaica. Problem solving
+              is what I love most about coding, and years of troubleshooting
+              taught me how to find what&apos;s really wrong. I build web apps
+              with Next.js, PostgreSQL, Zod and Three.js.
             </p>
 
             <div className={styles.heroActions}>
@@ -92,7 +92,7 @@ export default function Page() {
             <header className={styles.sectionHead}>
               <p className="label">How I work</p>
               <h2 className={styles.sectionTitle}>
-                Shipping is the easy half. Knowing it is right is the job.
+                How I go about solving problems.
               </h2>
             </header>
           </Reveal>
@@ -119,10 +119,10 @@ export default function Page() {
           <Reveal>
             <header className={styles.sectionHead}>
               <p className="label">Selected work</p>
-              <h2 className={styles.sectionTitle}>Four I would happily talk you through.</h2>
+              <h2 className={styles.sectionTitle}>Four projects I&apos;m proud of.</h2>
               <p className={styles.sectionLede}>
-                Each of these has a hard part — a problem where the obvious solution
-                was wrong, and finding the right one was the best week of the build.
+                Each of these had a problem that took real work to solve. Those
+                problems are the reason I enjoyed building them.
               </p>
             </header>
           </Reveal>
@@ -156,7 +156,7 @@ export default function Page() {
           <Reveal>
             <header className={styles.sectionHead}>
               <p className="label">Track record</p>
-              <h2 className={styles.sectionTitle}>What I have shipped so far.</h2>
+              <h2 className={styles.sectionTitle}>What I&apos;ve built so far.</h2>
             </header>
           </Reveal>
 
@@ -193,13 +193,14 @@ export default function Page() {
               <div>
                 <p className="label">Playground</p>
                 <h2 className={styles.sectionTitle}>
-                  And some things built purely because I wanted to know if I could.
+                  And some things I built just for fun.
                 </h2>
                 <p className={styles.sectionLede}>
-                  Procedural worlds, a chess engine verified against published perft
-                  counts, four things made of nothing but oscillators, and a character
-                  who runs along the headings of every page on this site. No client
-                  asked for any of it.
+                  A chess engine, a flock of birds in Three.js, worlds generated
+                  from a seed, music toys made from oscillators, and a little
+                  character who can run along the headings of every page on this
+                  site. No client asked for any of these. I had an idea and
+                  wanted to see if I could build it.
                 </p>
 
                 <div className={styles.heroActions}>
